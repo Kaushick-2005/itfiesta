@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fiestaa Admin Panel</title>
+    <style>
+        body { font-family: Arial; background: #111; color: white; padding: 20px; }
+        h1, h2 { text-align: center; }
+        select, input, button { padding: 6px; margin: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #444; padding: 8px; text-align: center; }
+        th { background: #222; }
+        button { cursor: pointer; }
+        .danger { background: red; color: white; }
+        .success { background: green; color: white; }
+        .warning { background: orange; color: black; }
+    </style>
+</head>
+<body>
+
+<h1>Fiestaa Admin Control </h1>
+
+<!-- Filters -->
+<div>
+    
+    Event:
+    <select id="eventFilter">
+        <option value="">All</option>
+        <option value="blackbox">BlackBox</option>
+        <option value="escape">Escape</option>
+    </select>
+
+    Batch:
+    <input type="number" id="batchFilter" placeholder="Batch">
+
+    Status:
+    <select id="statusFilter">
+        <option value="">All</option>
+        <option value="not_started">Not Started</option>
+        <option value="active">Active</option>
+        <option value="completed">Completed</option>
+        <option value="eliminated">Eliminated</option>
+        <option value="disqualified">Disqualified</option>
+    </select>
+
+    <button onclick="loadTeams()">Apply Filter</button>
+</div>
+
+<hr>
+
+<!-- Team Table -->
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Team</th>
+            <th>Event</th>
+            <th>Batch</th>
+            <th>Score</th>
+            <th>Penalty</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="teamTable"></tbody>
+</table>
+
+<hr>
+
+<h2>Live Leaderboard</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Team</th>
+            <th>Event</th>
+            <th>Score</th>
+        </tr>
+    </thead>
+    <tbody id="leaderboardTable"></tbody>
+</table>
+
+<script>
+
+async function loadTeams() {
+
+    const eventElement = document.getElementById("eventFilter");
+    const batchElement = document.getElementById("batchFilter");
+    const statusElement = document.getElementById("statusFilter");
+
+    let eventType = eventElement.value;
+    let batch = batchElement.value;
+    let status = statusElement.value;
+
+    let query = `?eventType=${eventType}&batch=${batch}&status=${status}`;
+
+    const res = await fetch("/api/admin/teams" + query);
+    const teams = await res.json();
+
+    const table = document.getElementById("teamTable");
+    table.innerHTML = "";
+
+    teams.forEach((team, index) => {
+
+        table.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${team.teamName}</td>
+                <td>${team.eventType}</td>
+                <td>${team.batch}</td>
+                <td>${team.score}</td>
+                <td>${team.penalty}</td>
+                <td>${team.status}</td>
+                <td>
+                    <button onclick="editScore('${team._id}')">Edit</button>
+                    <button class="warning" onclick="addPenalty('${team._id}')">Penalty</button>
+                    <button class="success" onclick="changeStatus('${team._id}', 'active')">Activate</button>
+                    <button class="danger" onclick="changeStatus('${team._id}', 'disqualified')">DQ</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function editScore(id) {
+    let newScore = prompt("Enter new score:");
+    if (!newScore) return;
+
+    await fetch(`/api/admin/edit-score/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: newScore })
+    });
+
+    loadTeams();
+}
+
+async function addPenalty(id) {
+    let points = prompt("Enter penalty points:");
+    if (!points) return;
+
+    await fetch(`/api/admin/add-penalty/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ points })
+    });
+
+    loadTeams();
+}
+
+async function changeStatus(id, status) {
+    await fetch(`/api/admin/status/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status })
+    });
+
+    loadTeams();
+}
+
+async function loadLeaderboard() {
+
+    const res = await fetch("/api/admin/leaderboard");
+    const teams = await res.json();
+
+    const table = document.getElementById("leaderboardTable");
+    table.innerHTML = "";
+
+    teams.forEach((team, index) => {
+        table.innerHTML += `
+            <tr>
+                <td>${index + 1}</td>
+                <td>${team.teamName}</td>
+                <td>${team.eventType}</td>
+                <td>${team.score}</td>
+            </tr>
+        `;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadTeams();
+    loadLeaderboard();
+
+    setInterval(() => {
+        loadTeams();
+        loadLeaderboard();
+    }, 5000);
+});
+
+</script>
+
+</body>
+</html>

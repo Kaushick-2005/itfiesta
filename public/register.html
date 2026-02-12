@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Fiesta - Team Registration</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card register-card">
+            <div class="auth-header">
+                <div class="logo">
+                    <i class="fas fa-code"></i>
+                    <h1>IT Fiesta</h1>
+                </div>
+                <p class="subtitle">Create your team account and join the competition</p>
+            </div>
+            
+            <form id="registerForm" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="teamName">
+                            <i class="fas fa-flag"></i>
+                            Team Name
+                        </label>
+                        <input type="text" id="teamName" placeholder="Enter your team name" required />
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="leaderName">
+                            <i class="fas fa-user-tie"></i>
+                            Team Leader Name
+                        </label>
+                        <input type="text" id="leaderName" placeholder="Enter team leader's name" required />
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="leaderMobile">
+                            <i class="fas fa-phone"></i>
+                            Leader Mobile Number
+                        </label>
+                        <input type="tel" id="leaderMobile" placeholder="Enter mobile number" required />
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>
+                        <i class="fas fa-users"></i>
+                        Team Members
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="member2">
+                                <i class="fas fa-user"></i>
+                                Member 2 (Optional)
+                            </label>
+                            <input type="text" id="member2" placeholder="Enter member 2's name" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="member3">
+                                <i class="fas fa-user"></i>
+                                Member 3 (Optional)
+                            </label>
+                            <input type="text" id="member3" placeholder="Enter member 3's name" />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="eventType">
+                            <i class="fas fa-calendar-check"></i>
+                            Select Event
+                        </label>
+                        <select id="eventType" required>
+                            <option value="">Choose your competition</option>
+                            <option value="blackbox">Black Box Challenge</option>
+                            <option value="escape">Tech Escape Room</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i>
+                    Register Team
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have a team account?</p>
+                <a href="login.html" class="link-secondary">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign in here
+                </a>
+            </div>
+        </div>
+        
+        <div class="background-decoration">
+            <div class="floating-shape shape-1"></div>
+            <div class="floating-shape shape-2"></div>
+            <div class="floating-shape shape-3"></div>
+        </div>
+    </div>
+    
+    <script src="js/register.js"></script>
+</body>
+</html>

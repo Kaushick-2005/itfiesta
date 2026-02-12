@@ -1,0 +1,704 @@
+/* ========================================
+   IT FIESTA - Dark Space Tech Theme
+   ======================================== */
+
+/* Reset */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body - Dark Space Background */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0a0e1a;
+    background-image: 
+        radial-gradient(ellipse at top, #1a237e 0%, transparent 50%),
+        radial-gradient(ellipse at bottom, #0d47a1 0%, transparent 50%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    color: #ffffff;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Animated Stars Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
+        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+        radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(1px 1px at 230px 80px, rgba(255,255,255,0.2), transparent),
+        radial-gradient(2px 2px at 300px 150px, rgba(255,255,255,0.4), transparent),
+        radial-gradient(1px 1px at 370px 50px, rgba(255,255,255,0.3), transparent),
+        radial-gradient(2px 2px at 450px 180px, rgba(255,255,255,0.2), transparent);
+    background-size: 500px 500px;
+    animation: twinkle 8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes twinkle {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* Container */
+.auth-container {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+/* Card - Clean Professional */
+.auth-card,
+.register-card {
+    background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 30, 0.98));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(100, 150, 200, 0.15);
+    border-radius: 24px;
+    padding: 45px 40px;
+    box-shadow: 
+        0 4px 30px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Subtle top accent line */
+.auth-card::before,
+.register-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.4), transparent);
+    border-radius: 2px;
+}
+
+/* Header */
+.auth-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.logo i {
+    font-size: 32px;
+    color: #60a5fa;
+}
+
+.logo h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+}
+
+.subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+/* Form */
+.auth-form {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Form Row */
+.form-row {
+    width: 100%;
+}
+
+/* Form Group */
+.form-group {
+    width: 100%;
+    text-align: left;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-group label i {
+    color: #60a5fa;
+    font-size: 13px;
+    width: 16px;
+    text-align: center;
+}
+
+/* Inputs */
+.form-group input,
+.form-group select {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 400;
+    color: #ffffff;
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(100, 150, 200, 0.15);
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.25s ease;
+}
+
+.form-group input::placeholder {
+    color: #64748b;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+/* Select Dropdown */
+.form-group select {
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px;
+    padding-right: 45px;
+}
+
+.form-group select option {
+    background: #1e293b;
+    color: #ffffff;
+    padding: 12px;
+}
+
+/* Form Section (Team Members) */
+.form-section {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1px solid rgba(100, 150, 200, 0.12);
+    border-radius: 14px;
+    padding: 22px 20px;
+    margin: 4px 0;
+}
+
+.form-section h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.form-section h3 i {
+    color: #60a5fa;
+    font-size: 15px;
+}
+
+.form-section .form-row {
+    margin-bottom: 16px;
+}
+
+.form-section .form-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.form-section .form-group input {
+    padding: 12px 14px;
+    font-size: 14px;
+}
+
+/* Primary Button */
+.btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 15px 24px;
+    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 30px rgba(37, 99, 235, 0.5),
+        0 0 60px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:hover::before {
+    left: 100%;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-primary i {
+    font-size: 14px;
+}
+
+/* Footer */
+.auth-footer {
+    text-align: center;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(100, 150, 200, 0.1);
+}
+
+.auth-footer p {
+    color: #64748b;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.link-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #60a5fa;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px 18px;
+    background: rgba(96, 165, 250, 0.08);
+    border: 1px solid rgba(96, 165, 250, 0.15);
+    border-radius: 10px;
+    transition: all 0.25s ease;
+}
+
+.link-secondary:hover {
+    background: rgba(96, 165, 250, 0.15);
+    border-color: rgba(96, 165, 250, 0.4);
+}
+
+.link-secondary i {
+    font-size: 13px;
+}
+
+/* ========================================
+   SUCCESS MESSAGE (Team ID Display)
+   ======================================== */
+
+/* Success container alignment */
+.auth-card,
+.register-card {
+    text-align: center;
+}
+
+/* Success Header - Icon + Title Wrapper */
+.success-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.success-header i.fa-check-circle {
+    font-size: 60px;
+    color: #22c55e;
+}
+
+.success-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+}
+
+.success-header .subtitle {
+    color: #94a3b8;
+    font-size: 14px;
+    margin: 0;
+}
+
+.auth-card p,
+.register-card p {
+    color: #94a3b8;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.auth-card h2,
+.register-card h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #60a5fa;
+    padding: 16px 24px;
+    margin: 20px 0;
+    background: rgba(59, 130, 246, 0.08);
+    border: 1px solid rgba(59, 130, 246, 0.25);
+    border-radius: 12px;
+    letter-spacing: 2px;
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-family: 'Courier New', monospace;
+}
+
+/* Success state specific styling */
+.register-card .link-secondary {
+    margin-top: 25px;
+}
+
+/* Background Decoration - Hidden */
+.background-decoration,
+.floating-shape {
+    display: none;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - ALL SCREEN SIZES
+   ======================================== */
+
+/* Tablets and Large Phones (768px and below) */
+@media screen and (max-width: 768px) {
+    body {
+        padding: 30px 20px;
+    }
+    
+    .auth-container {
+        max-width: 100%;
+        padding: 0 10px;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 38px 30px;
+        max-width: 100%;
+    }
+}
+
+/* Standard Phones - iPhone 8+, Samsung Galaxy (480px and below) */
+@media screen and (max-width: 480px) {
+    body {
+        padding: 20px 15px;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
+    }
+    
+    html {
+        height: -webkit-fill-available;
+    }
+    
+    .auth-container {
+        padding: 0 8px;
+        width: 100%;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 32px 24px;
+        border-radius: 16px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .logo i {
+        font-size: 28px;
+    }
+    
+    .logo h1 {
+        font-size: 24px;
+    }
+    
+    .subtitle {
+        font-size: 13px;
+        padding: 0 10px;
+    }
+    
+    .auth-form {
+        gap: 18px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 13px 14px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+    }
+    
+    .form-section {
+        padding: 18px 16px;
+    }
+    
+    .btn-primary {
+        padding: 14px 20px;
+        font-size: 14px;
+        width: 100%;
+    }
+    
+    .auth-card h2,
+    .register-card h2 {
+        font-size: 26px;
+        padding: 14px 16px;
+        letter-spacing: 2px;
+        word-break: break-all;
+    }
+}
+
+/* Small Phones - iPhone SE, older devices (375px and below) */
+@media screen and (max-width: 375px) {
+    body {
+        padding: 15px 12px;
+    }
+    
+    .auth-container {
+        padding: 0 5px;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 28px 20px;
+        border-radius: 14px;
+    }
+    
+    .logo {
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .logo i {
+        font-size: 24px;
+    }
+    
+    .logo h1 {
+        font-size: 22px;
+    }
+    
+    .subtitle {
+        font-size: 12px;
+        margin-bottom: 24px;
+    }
+    
+    .form-group label {
+        font-size: 11px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    .form-section {
+        padding: 16px 14px;
+    }
+    
+    .section-title {
+        font-size: 11px;
+    }
+    
+    .btn-primary {
+        padding: 13px 18px;
+        font-size: 13px;
+    }
+    
+    .auth-card h2,
+    .register-card h2 {
+        font-size: 22px;
+        padding: 12px 14px;
+        letter-spacing: 1px;
+    }
+    
+    .auth-footer {
+        margin-top: 24px;
+        gap: 14px;
+    }
+}
+
+/* Extra Small Phones - Galaxy Fold, very old devices (320px and below) */
+@media screen and (max-width: 320px) {
+    body {
+        padding: 10px 8px;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+    
+    .logo i {
+        font-size: 22px;
+    }
+    
+    .logo h1 {
+        font-size: 20px;
+    }
+    
+    .subtitle {
+        font-size: 11px;
+    }
+    
+    .form-group label {
+        font-size: 10px;
+        letter-spacing: 0.5px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 11px 10px;
+        font-size: 14px;
+    }
+    
+    .form-section {
+        padding: 14px 12px;
+    }
+    
+    .btn-primary {
+        padding: 12px 16px;
+        font-size: 12px;
+    }
+    
+    .auth-card h2,
+    .register-card h2 {
+        font-size: 18px;
+        padding: 10px 12px;
+        letter-spacing: 0.5px;
+    }
+    
+    .auth-footer p {
+        font-size: 12px;
+    }
+}
+
+/* ========================================
+   LANDSCAPE MODE FIX
+   ======================================== */
+
+@media screen and (max-height: 500px) and (orientation: landscape) {
+    body {
+        padding: 15px;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 20px 24px;
+    }
+    
+    .logo {
+        margin-bottom: 15px;
+    }
+    
+    .subtitle {
+        margin-bottom: 15px;
+    }
+    
+    .auth-form {
+        gap: 12px;
+    }
+    
+    .auth-footer {
+        margin-top: 15px;
+    }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.btn-primary:focus-visible,
+.link-secondary:focus-visible,
+.form-group input:focus-visible,
+.form-group select:focus-visible {
+    outline: 2px solid #63b3ed;
+    outline-offset: 2px;
+}
+
+/* ========================================
+   iOS & SAFARI FIXES
+   ======================================== */
+
+@supports (-webkit-touch-callout: none) {
+    .form-group input,
+    .form-group select {
+        font-size: 16px; /* Prevents auto-zoom on input focus */
+    }
+}
+
+/* Safe area for notched phones (iPhone X+) */
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(15px, env(safe-area-inset-left));
+        padding-right: max(15px, env(safe-area-inset-right));
+        padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+}
+
+/* ========================================
+   HIGH DPI / RETINA DISPLAYS
+   ======================================== */
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .auth-card,
+    .register-card {
+        border-width: 0.5px;
+    }
+}
