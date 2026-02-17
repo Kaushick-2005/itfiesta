@@ -90,13 +90,22 @@ function disableAllInputs(){
 var tabSwitchCooldown = false;
 
 function enableTabSwitchPenalty(){
+  console.log('[Common] Tab switch penalty enabled');
   window.addEventListener('visibilitychange', function(){
+    console.log('[Common] Visibility changed, state:', document.visibilityState);
     // Skip if exam is already submitted
-    if (window.EXAM_SUBMITTED) return;
+    if (window.EXAM_SUBMITTED) {
+      console.log('[Common] Exam already submitted, skipping penalty');
+      return;
+    }
     // Skip if cooldown active
-    if (tabSwitchCooldown) return;
+    if (tabSwitchCooldown) {
+      console.log('[Common] Cooldown active, skipping');
+      return;
+    }
     
     if (document.visibilityState === 'hidden'){
+      console.log('[Common] Tab switch detected! Applying penalty...');
       tabSwitchCooldown = true;
       
       // Apply penalty via API

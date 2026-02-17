@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* Unified Professional Dark Mode - Round 3 */
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --bg-main: #0a0a0f;
     --bg-card: rgba(25, 25, 32, 0.65);
@@ -288,12 +292,196 @@ textarea:focus {
 
 
 <script>
+// ==================== HELPER FUNCTIONS FOR FORMULAS ====================
+
+function gcd(a, b) {
+    while (b !== 0) {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+function factorial(n) {
+    let result = 1;
+    for (let i = 2; i <= n; i++) result *= i;
+    return result;
+}
+
+function isAnagram(a, b) {
+    return a.split("").sort().join("") === b.split("").sort().join("");
+}
+
+function isSubsequence(s1, s2) {
+    let j = 0;
+    for (let i = 0; i < s1.length && j < s2.length; i++) {
+        if (s1[i] === s2[j]) j++;
+    }
+    return j === s2.length;
+}
+
+function middleDigit(x) {
+    const str = String(Math.abs(x));
+    const len = str.length;
+    if (len === 0) return 0;
+    const midIndex = Math.floor(len / 2);
+    return parseInt(str[midIndex]);
+}
+
+function sumDigits(x) {
+    return String(Math.abs(x)).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+}
+
+function reverseNumber(x) {
+    return parseInt(String(Math.abs(x)).split('').reverse().join('')) * Math.sign(x);
+}
+
+function isPalindrome(x) {
+    const str = String(Math.abs(x));
+    return str === str.split('').reverse().join('');
+}
+
+function countVowels(str) {
+    return (str.match(/[aeiouAEIOU]/g) || []).length;
+}
+
+function isPrime(n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 === 0 || n % 3 === 0) return false;
+    for (let i = 5; i * i <= n; i += 6) {
+        if (n % i === 0 || n % (i + 2) === 0) return false;
+    }
+    return true;
+}
+
+function largestDigit(x) {
+    return Math.max(...String(Math.abs(x)).split('').map(Number));
+}
+
+function differenceMaxMinDigit(x) {
+    const digits = String(Math.abs(x)).split('').map(Number);
+    return Math.max(...digits) - Math.min(...digits);
+}
+
+function distanceToNearest10(x) {
+    return Math.min(
+        Math.abs(x - Math.floor(x / 10) * 10),
+        Math.abs(x - (Math.floor(x / 10) + 1) * 10)
+    );
+}
+
+function countEvenDigits(x) {
+    return String(Math.abs(x)).split('').filter(d => parseInt(d) % 2 === 0).length;
+}
+
+function countOddDigits(x) {
+    return String(Math.abs(x)).split('').filter(d => parseInt(d) % 2 !== 0).length;
+}
+
+function productDigits(x) {
+    return String(Math.abs(x)).split('').reduce((prod, digit) => prod * parseInt(digit), 1);
+}
+
+// Additional missing functions from database
+function reverse(x) {
+    return String(x).split('').reverse().join('');
+}
+
+function countDistinctCharacters(str) {
+    return new Set(str.toLowerCase()).size;
+}
+
+function longestCommonPrefix(x, y) {
+    let i = 0;
+    while (i < x.length && i < y.length && x[i] === y[i]) i++;
+    return x.substring(0, i);
+}
+
+function mergeAlternately(x, y) {
+    let result = '';
+    const maxLen = Math.max(x.length, y.length);
+    for (let i = 0; i < maxLen; i++) {
+        if (i < x.length) result += x[i];
+        if (i < y.length) result += y[i];
+    }
+    return result;
+}
+
+function removeDuplicates(str) {
+    return [...new Set(str)].join('');
+}
+
+function longestCommonSubstring(x, y) {
+    let longest = '';
+    for (let i = 0; i < x.length; i++) {
+        for (let j = i + 1; j <= x.length; j++) {
+            const substr = x.substring(i, j);
+            if (y.includes(substr) && substr.length > longest.length) {
+                longest = substr;
+            }
+        }
+    }
+    return longest;
+}
+
+function countConsonants(str) {
+    return str.toLowerCase().split('').filter(c => /[bcdfghjklmnpqrstvwxyz]/.test(c)).length;
+}
+
+function rotateLeft(str) {
+    return str.substring(1) + str[0];
+}
+
+function rotateRightDigit(x, k) {
+    const str = String(x);
+    const len = str.length;
+    k = k % len;
+    return str.substring(len - k) + str.substring(0, len - k);
+}
+
+function digitProduct(x) {
+    return String(Math.abs(x)).split('').reduce((prod, digit) => prod * parseInt(digit), 1);
+}
+
+function mod9Value(x) {
+    while (x >= 10) {
+        x = String(x).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+    }
+    return x;
+}
+
+function productMinusSum(x) {
+    const digits = String(Math.abs(x)).split('').map(Number);
+    const product = digits.reduce((a, b) => a * b, 1);
+    const sum = digits.reduce((a, b) => a + b, 0);
+    return product - sum;
+}
+
+function reverseAndDouble(x) {
+    return reverseNumber(x) * 2;
+}
+
+function reverseIncrement(x) {
+    return reverseNumber(x) + 1;
+}
+
+function countOnesBinary(x) {
+    return x.toString(2).split('1').length - 1;
+}
+
+// ==================== MAIN SCRIPT ====================
+
 const API = "/api/blackbox";
 
 let sessionId = null;
 let endTime = null;
 let variableCount = 3;
 const FALLBACK_DURATION_MS = 5 * 60 * 1000;
+
+// Submission flag to disable tab switching after submission
+window.EXAM_SUBMITTED = false;
 
 window.onload = async function() {
 
@@ -369,30 +557,52 @@ window.onload = async function() {
 let tabSwitchCooldown = false;
 
 document.addEventListener("visibilitychange", async function () {
+    console.log('[Round 3] Visibility changed, state:', document.visibilityState);
+    
+    // Skip if exam is already submitted
+    if (window.EXAM_SUBMITTED) {
+        console.log('[Round 3] Exam already submitted, skipping penalty');
+        return;
+    }
+    
+    if (!sessionId) {
+        console.log('[Round 3] No session ID, skipping');
+        return;
+    }
+    
+    // Skip if cooldown active
+    if (tabSwitchCooldown) {
+        console.log('[Round 3] Cooldown active, skipping');
+        return;
+    }
 
-    if (!sessionId) return;
-    if (tabSwitchCooldown) return;
-
-    if (document.hidden) {
+    if (document.visibilityState === 'hidden') {
+        console.log('[Round 3] Tab switch detected! Applying penalty...');
         tabSwitchCooldown = true;
         
-        const response = await fetch(`${API}/tab-switch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                session_id: sessionId
-            })
-        });
+        try {
+            const response = await fetch(`${API}/tab-switch`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    session_id: sessionId
+                })
+            });
 
-        const data = await response.json();
+            const data = await response.json();
+            console.log('[Round 3] Tab switch response:', data);
 
-        if (data.action === "penalty") {
-            alert(data.message);
+            if (data.action === "penalty") {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('[Round 3] Tab switch API error:', error);
+        } finally {
+            // 3 second cooldown before next penalty can trigger
+            setTimeout(() => {
+                tabSwitchCooldown = false;
+            }, 3000);
         }
-        
-        setTimeout(() => {
-            tabSwitchCooldown = false;
-        }, 3000);
     }
 });
 
@@ -425,9 +635,13 @@ async function generateOutput() {
 
 
 async function submitLogic() {
+    // Mark exam as submitted to disable tab switching
+    window.EXAM_SUBMITTED = true;
+    console.log('[Round 3] Exam submitted, tab switching disabled');
 
     if (!sessionId) {
         alert("Unable to submit: session not initialized. Please reload (server might be offline).");
+        window.EXAM_SUBMITTED = false; // Re-enable if validation fails
         return;
     }
 
@@ -459,10 +673,10 @@ async function submitLogic() {
 
     if (data.moveTo) {
         showModal(
-            data.result === "correct" ? "✅ Correct!" : "Round Completed",
+            data.result === "correct" ? "🎉 BlackBox Completed!" : "Game Complete",
             data.result === "correct"
-                ? "+20 points! View leaderboard!"
-                : "+5 participation points. View leaderboard.",
+                ? `Outstanding! +${data.score || 0} points! View your final score on leaderboard.`
+                : `+${data.score || 0} participation points earned. Thanks for participating!`,
             data.moveTo
         );
     }

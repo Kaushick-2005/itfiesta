@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Leaderboard</title>
+    <style>
+        body{
+            background:#0f172a;
+            color:white;
+            font-family:Arial;
+            padding:40px;
+            text-align:center;
+        }
+
+        table{
+            margin:30px auto;
+            border-collapse:collapse;
+            width:60%;
+            background:#1e293b;
+        }
+
+        th, td{
+            padding:12px;
+            border:1px solid #334155;
+        }
+
+        th{
+            background:#3b82f6;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🏆 Leaderboard</h1>
+
+<table>
+    <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Team Name</th>
+            <th>Total Score</th>
+        </tr>
+    </thead>
+    <tbody id="leaderboardBody">
+    </tbody>
+</table>
+
+<script>
+
+// 🔥 THIS IS THE LEADERBOARD JS
+const API = "http://localhost:5000/api/game";
+
+window.onload = async function () {
+
+    const response = await fetch(`${API}/leaderboard`);
+    const data = await response.json();
+
+    const tableBody = document.getElementById("leaderboardBody");
+    tableBody.innerHTML = "";
+
+    data.forEach((team, index) => {
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${team._id}</td>
+            <td>${team.totalScore}</td>
+        `;
+
+        tableBody.appendChild(row);
+    });
+};
+
+</script>
+
+</body>
+</html>

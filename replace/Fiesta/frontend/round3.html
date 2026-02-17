@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Round 3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+    margin:0;
+    font-family:"Segoe UI",Arial;
+    background:linear-gradient(135deg,#0f172a,#1e1b4b);
+    color:white;
+}
+
+.header{
+    background:#111827;
+    padding:15px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+}
+
+.title{
+    font-size:22px;
+    font-weight:bold;
+    color:#60a5fa;
+}
+
+.timer{
+    background:#1e293b;
+    padding:8px 18px;
+    border-radius:25px;
+    border:2px solid #3b82f6;
+    font-weight:bold;
+}
+
+.container{
+    width:90%;
+    max-width:950px;
+    margin:40px auto;
+}
+
+.card{
+    background:#1e293b;
+    padding:25px;
+    border-radius:16px;
+    margin-bottom:25px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.5);
+}
+
+input, select{
+    width:100%;
+    padding:14px;
+    border-radius:10px;
+    border:2px solid transparent;
+    background:#0f172a;
+    color:white;
+    font-size:16px;
+    margin-top:12px;
+    transition:0.3s;
+}
+
+input:focus, select:focus{
+    outline:none;
+    border:2px solid #3b82f6;
+    box-shadow:0 0 8px #3b82f6;
+}
+
+button{
+    margin-top:18px;
+    background:linear-gradient(90deg,#3b82f6,#2563eb);
+    padding:12px 25px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 5px 15px rgba(59,130,246,0.4);
+}
+
+.output-box{
+    margin-top:20px;
+    padding:18px;
+    background:#0f172a;
+    border-radius:12px;
+    font-size:18px;
+    color:#38bdf8;
+    border-left:4px solid #3b82f6;
+}
+
+textarea{
+    width:100%;
+    height:160px;
+    padding:15px;
+    border-radius:12px;
+    border:2px solid transparent;
+    background:#0f172a;
+    color:white;
+    font-size:15px;
+    margin-top:10px;
+    resize:none;
+    transition:0.3s;
+}
+
+textarea:focus{
+    outline:none;
+    border:2px solid #3b82f6;
+    box-shadow:0 0 8px #3b82f6;
+}
+
+.instructions{
+    background:#0f172a;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:20px;
+    font-size:14px;
+    line-height:1.6;
+    border-left:4px solid #facc15;
+}
+
+.instructions h4{
+    margin:0 0 10px 0;
+    color:#facc15;
+}
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="title">💻 ROUND 3</div>
+    <div class="timer" id="timer">⏱️ Loading...</div>
+</div>
+
+<div class="container">
+
+    <div class="card">
+
+        <div class="instructions">
+            <h4>⚠ Instructions</h4>
+            • Use variables <b>age</b>, <b>score</b>, and <b>role</b>.<br>
+            • Explain the conditions clearly in English.<br>
+            • Mention logical operators like <b>AND</b>, <b>OR</b> if required.<br>
+            • Mention comparisons such as greater than, less than, equal to.<br>
+            • Do NOT write full code. Explain the decision logic.
+        </div>
+
+        <h2>🧾 Test Decision Input</h2>
+
+        <input type="number" id="age" placeholder="Enter Age">
+
+        <input type="number" id="score" placeholder="Enter Score">
+
+        <select id="role">
+            <option value="student">Student</option>
+            <option value="professional">Professional</option>
+            <option value="intern">Intern</option>
+        </select>
+
+        <button onclick="generateOutput()">Generate Output</button>
+
+        <div class="output-box">
+            Output: <span id="outputDisplay">-</span>
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <h3>🧠 Explain Decision Logic</h3>
+
+        <textarea id="logicBox"
+        placeholder="Explain how age, score, and role determine the final result..."></textarea>
+
+        <button class="submit-btn" onclick="submitLogic()">Submit Explanation</button>
+
+    </div>
+
+</div>
+
+
+<script>
+const API = "http://localhost:5000/api/game";
+
+let sessionId = null;
+let endTime = null;
+let variableCount = 3;
+
+window.onload = async function() {
+
+    const startResponse = await fetch(`${API}/start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            team_name: "Team1",
+            round: 3
+        })
+    });
+
+    const data = await startResponse.json();
+
+    if (data.status === "blocked") {
+    window.location.href = "leaderboard.html";
+    return;
+}
+
+if (data.status === "already_completed") {
+    window.location.href = "leaderboard.html";
+    return;
+}
+
+
+    sessionId = data.session_id;
+    endTime = new Date(data.end_time);
+
+    startTimer();
+};
+
+
+// 🔴 STRICT TAB SWITCH
+document.addEventListener("visibilitychange", async function handler() {
+
+    if (!sessionId) return;
+
+    if (document.hidden) {
+
+        document.removeEventListener("visibilitychange", handler);
+
+        await fetch(`${API}/force-eliminate`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: sessionId
+            })
+        });
+
+        showModal(
+            "❌ You Are Eliminated!",
+            "Tab switching is not allowed.",
+            "leaderboard.html"
+        );
+    }
+});
+
+async function generateOutput() {
+
+    const age = document.getElementById("age").value;
+    const score = document.getElementById("score").value;
+    const role = document.getElementById("role").value;
+
+    const finalInput = JSON.stringify({
+        age: age,
+        score: score,
+        role: role
+    });
+
+    const response = await fetch(`${API}/test`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            session_id: sessionId,
+            input: finalInput
+        })
+    });
+
+    const data = await response.json();
+
+    document.getElementById("outputDisplay").innerText =
+        data.output !== undefined ? data.output : "Error";
+}
+
+
+async function submitLogic() {
+
+    const logic = document.getElementById("logicBox").value;
+
+    const response = await fetch(`${API}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            session_id: sessionId,
+            answer: logic
+        })
+    });
+
+    const data = await response.json();
+console.log("Submit response:", data);
+    if (data.result && data.result.toLowerCase() === "correct")
+ {
+        showModal(
+            "🎉 All Rounds Completed!",
+            "View your final ranking on leaderboard?",
+            "leaderboard.html"
+        );
+    } 
+    else {
+        showModal(
+            "❌ You Are Eliminated!",
+            "Better luck next time.",
+            "leaderboard.html"
+        );
+    }
+}
+
+
+
+function startTimer() {
+
+    const timer = document.getElementById("timer");
+
+    const interval = setInterval(() => {
+
+        const diff = endTime - new Date();
+
+        if (diff <= 0) {
+            clearInterval(interval);
+            showModal(
+    "⏰ Time Over!",
+    "Your time has expired.",
+    "leaderboard.html"
+);
+            return;
+        }
+
+        const m = Math.floor(diff / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+
+        timer.innerText = `⏱️ ${m}:${s < 10 ? "0" : ""}${s}`;
+
+    }, 1000);
+}
+function showModal(title, message, redirectUrl) {
+
+    document.getElementById("modalTitle").innerText = title;
+    document.getElementById("modalMessage").innerText = message;
+
+    const modal = document.getElementById("resultModal");
+    modal.style.display = "flex";
+
+    document.getElementById("confirmBtn").onclick = function () {
+        window.location.href = redirectUrl;
+    };
+}
+
+
+</script>
+
+<div id="resultModal" style="display:none; position:fixed; inset:0;
+background:rgba(0,0,0,0.6); backdrop-filter:blur(6px);
+justify-content:center; align-items:center; z-index:999;">
+
+    <div style="background:#1e293b; padding:35px;
+    border-radius:18px; text-align:center; width:360px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.6);">
+
+        <h2 id="modalTitle" style="margin-bottom:10px;"></h2>
+        <p id="modalMessage" style="opacity:0.8;"></p>
+
+        <div style="margin-top:25px;">
+            <button id="confirmBtn"
+            style="margin-left:12px;">Continue</button>
+        </div>
+    </div>
+</div>
+
+</body>
+
+</html>

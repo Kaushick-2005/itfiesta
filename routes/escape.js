@@ -24,19 +24,63 @@ router.get("/questions/:level", async (req, res) => {
     try {
         const level = parseInt(req.params.level);
         
-        let questions = await EscapeQuestion.find({ level });
+        let questions;
         
-        // Fallback: direct MongoDB query
-        if (!questions.length) {
+        // For Level 5, use raw MongoDB query to preserve options object structure
+        if (level === 5) {
             const db = mongoose.connection.db;
             const questionsCol = db.collection('escapequestions');
-            const rawQuestions = await questionsCol.find({ level }).toArray();
-            if (rawQuestions.length) {
-                questions = rawQuestions;
+            questions = await questionsCol.find({ level }).toArray();
+        } else {
+            questions = await EscapeQuestion.find({ level });
+            
+            // Fallback: direct MongoDB query
+            if (!questions.length) {
+                const db = mongoose.connection.db;
+                const questionsCol = db.collection('escapequestions');
+                const rawQuestions = await questionsCol.find({ level }).toArray();
+                if (rawQuestions.length) {
+                    questions = rawQuestions;
+                }
             }
         }
         
-        // Shuffle questions for each request
+        // Special handling for Level 5: Group by scenario_id and stage
+        if (level === 5) {
+            // Group documents by scenario_id
+            const grouped = {};
+            
+            questions.forEach(doc => {
+                const scenarioId = doc.scenario_id || doc.scenarioId;
+                const stage = doc.stage || 1;
+                
+                if (!grouped[scenarioId]) {
+                    grouped[scenarioId] = {
+                        scenario_id: scenarioId,
+                        title: doc.title || `Scenario ${scenarioId}`,
+                        stages: []
+                    };
+                }
+                
+                // Add stage with options
+                grouped[scenarioId].stages.push({
+                    stage: stage,
+                    text: doc.text || doc.description || '',
+                    options: doc.options || []
+                });
+            });
+            
+            // Convert to array and sort stages within each scenario
+            const scenarios = Object.values(grouped).map(scenario => {
+                scenario.stages.sort((a, b) => a.stage - b.stage);
+                return scenario;
+            });
+            
+            console.log(`[Level 5] Grouped ${questions.length} documents into ${scenarios.length} scenarios`);
+            return res.json(scenarios);
+        }
+        
+        // For other levels: Shuffle questions for each request
         const shuffled = questions.sort(() => Math.random() - 0.5);
         
         res.json(shuffled);
@@ -198,11 +242,12 @@ router.post("/tab-switch", async (req, res) => {
             return res.json({ error: "Team not found" });
         }
         
+        const totalScore = team.score || 0;
         console.log(`Escape tab switch: Team ${team.teamId}, count=${team.tabSwitchCount}, score=${team.score}`);
         
         res.json({
             action: "penalty",
-            message: `⚠ Tab switch detected!\n-10 marks deducted.\nTotal tab switches: ${team.tabSwitchCount}`,
+            message: `TAB SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
             scoreDeducted: 10,
             penalty: team.penalty,
             currentScore: team.score,
@@ -231,7 +276,7 @@ router.get("/level/:level/start", async (req, res) => {
             2: 300,  // 5 minutes
             3: 300,  // 5 minutes
             4: 420,  // 7 minutes
-            5: 600   // 10 minutes
+            5: 180   // 3 minutes
         };
         
         res.json({

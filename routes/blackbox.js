@@ -5,6 +5,159 @@ const mongoose = require("mongoose");
 // Main Team model (from your registration system)
 const Team = require("../models/Team");
 
+// ==================== HELPER FUNCTIONS FOR FORMULAS ====================
+
+function gcd(a, b) {
+    while (b !== 0) {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+function factorial(n) {
+    let result = 1;
+    for (let i = 2; i <= n; i++) result *= i;
+    return result;
+}
+
+function isAnagram(a, b) {
+    return a.split("").sort().join("") === b.split("").sort().join("");
+}
+
+function isSubsequence(s1, s2) {
+    let j = 0;
+    for (let i = 0; i < s1.length && j < s2.length; i++) {
+        if (s1[i] === s2[j]) j++;
+    }
+    return j === s2.length;
+}
+
+function middleDigit(x) {
+    const str = String(Math.abs(x));
+    const len = str.length;
+    if (len === 0) return 0;
+    const midIndex = Math.floor(len / 2);
+    return parseInt(str[midIndex]);
+}
+
+function sumDigits(x) {
+    return String(Math.abs(x)).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+}
+
+function reverseNumber(x) {
+    return parseInt(String(Math.abs(x)).split('').reverse().join('')) * Math.sign(x);
+}
+
+function isPalindrome(x) {
+    const str = String(Math.abs(x));
+    return str === str.split('').reverse().join('');
+}
+
+function countVowels(str) {
+    return (str.match(/[aeiouAEIOU]/g) || []).length;
+}
+
+function isPrime(n) {
+    if (n <= 1) return false;
+    if (n <= 3) return true;
+    if (n % 2 === 0 || n % 3 === 0) return false;
+    for (let i = 5; i * i <= n; i += 6) {
+        if (n % i === 0 || n % (i + 2) === 0) return false;
+    }
+    return true;
+}
+
+// Additional missing functions from database
+function reverse(x) {
+    return String(x).split('').reverse().join('');
+}
+
+function countDistinctCharacters(str) {
+    return new Set(str.toLowerCase()).size;
+}
+
+function longestCommonPrefix(x, y) {
+    let i = 0;
+    while (i < x.length && i < y.length && x[i] === y[i]) i++;
+    return x.substring(0, i);
+}
+
+function mergeAlternately(x, y) {
+    let result = '';
+    const maxLen = Math.max(x.length, y.length);
+    for (let i = 0; i < maxLen; i++) {
+        if (i < x.length) result += x[i];
+        if (i < y.length) result += y[i];
+    }
+    return result;
+}
+
+function removeDuplicates(str) {
+    return [...new Set(str)].join('');
+}
+
+function longestCommonSubstring(x, y) {
+    let longest = '';
+    for (let i = 0; i < x.length; i++) {
+        for (let j = i + 1; j <= x.length; j++) {
+            const substr = x.substring(i, j);
+            if (y.includes(substr) && substr.length > longest.length) {
+                longest = substr;
+            }
+        }
+    }
+    return longest;
+}
+
+function countConsonants(str) {
+    return str.toLowerCase().split('').filter(c => /[bcdfghjklmnpqrstvwxyz]/.test(c)).length;
+}
+
+function rotateLeft(str) {
+    return str.substring(1) + str[0];
+}
+
+function rotateRightDigit(x, k) {
+    const str = String(x);
+    const len = str.length;
+    k = k % len;
+    return str.substring(len - k) + str.substring(0, len - k);
+}
+
+function digitProduct(x) {
+    return String(Math.abs(x)).split('').reduce((prod, digit) => prod * parseInt(digit), 1);
+}
+
+function mod9Value(x) {
+    while (x >= 10) {
+        x = String(x).split('').reduce((sum, digit) => sum + parseInt(digit), 0);
+    }
+    return x;
+}
+
+function productMinusSum(x) {
+    const digits = String(Math.abs(x)).split('').map(Number);
+    const product = digits.reduce((a, b) => a * b, 1);
+    const sum = digits.reduce((a, b) => a + b, 0);
+    return product - sum;
+}
+
+function reverseAndDouble(x) {
+    return reverseNumber(x) * 2;
+}
+
+function reverseIncrement(x) {
+    return reverseNumber(x) + 1;
+}
+
+function countOnesBinary(x) {
+    return x.toString(2).split('1').length - 1;
+}
+
+// ==================== BLACKBOX MODELS ====================
+
 // BlackBox models (we'll create inline schemas for simplicity)
 const questionSchema = new mongoose.Schema({
     round: Number,
@@ -218,7 +371,7 @@ router.post("/test", async (req, res) => {
         const session = await BlackBoxSession.findById(session_id).populate("question_id");
         if (!session) {
             console.log("ERROR: Session not found");
-            return res.json({ result: "error" });
+            return res.json({ output: "Session not found" });
         }
 
         const question = session.question_id;
@@ -268,7 +421,7 @@ router.post("/test", async (req, res) => {
 
     } catch (err) {
         console.error("BlackBox TEST ERROR:", err);
-        res.json({ result: "error" });
+        res.json({ output: "Error" });
     }
 });
 
@@ -380,20 +533,22 @@ router.post("/submit", async (req, res) => {
             isCorrect = roundScore > 0;
         }
 
-        // Update team score AND increment currentRound
+        // Update team score with old BlackBox marking system
         const currentRound = session.round;
         const nextRound = currentRound + 1;
         
         if (isCorrect) {
+            // Full marks for correct answer
             await Team.updateOne(
                 { teamId: session.team_id },
-                { $inc: { score: 20, currentRound: 1 } }
+                { $inc: { score: roundScore, currentRound: 1 } }
             );
         } else {
-            // Wrong answer: participation points + still advance to next round
+            // Participation marks for wrong answer (no elimination)
+            const participationMarks = Math.floor(roundScore * 0.3) || 10; // 30% of full marks or minimum 10
             await Team.updateOne(
                 { teamId: session.team_id },
-                { $inc: { score: 5, currentRound: 1 } }
+                { $inc: { score: participationMarks, currentRound: 1 } }
             );
         }
 
@@ -416,8 +571,10 @@ router.post("/submit", async (req, res) => {
 
         return res.json({
             result: isCorrect ? "correct" : "wrong",
+            score: isCorrect ? roundScore : Math.floor(roundScore * 0.3) || 10,
             nextRound: nextRound,
-            moveTo: moveTo
+            moveTo: moveTo,
+            timeUsed: session.start_time ? Math.floor((new Date() - session.start_time) / 1000) : 0
         });
 
     } catch (err) {

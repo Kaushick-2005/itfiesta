@@ -135,7 +135,6 @@ function renderLeaderboard(teams) {
                 <td>${rankDisplay}</td>
                 <td class="team-name">${escapeHtml(team.teamName)}</td>
                 <td><span class="score-badge">${team.totalScore || team.score || 0} pts</span></td>
-                <td><span class="time-badge">${formatTime(team.totalExamTime || 0)}</span></td>
                 <td><span class="batch-badge">Batch ${team.batch || 'N/A'}</span></td>
                 <td><span class="status-badge status-${statusClass}">${statusText}</span></td>
             </tr>
@@ -171,7 +170,7 @@ function showError() {
     const tbody = document.getElementById('leaderboardBody');
     tbody.innerHTML = `
         <tr>
-            <td colspan="6" style="text-align: center; padding: 40px; color: #ef4444;">
+            <td colspan="5" style="text-align: center; padding: 40px; color: #ef4444;">
                 ⚠️ Failed to load leaderboard. Retrying...
             </td>
         </tr>
