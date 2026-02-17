@@ -1,0 +1,370 @@
+{
+  "level": 3,
+  "title": "Level 3 – Logic Code Master Set",
+  "total_questions": 25,
+  "questions": [
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the clues and generate the final code.",
+      "clues": [
+        { "clue": "Binary of 13?", "answer": "1101" },
+        { "clue": "Hexadecimal of 26?", "answer": "1A" },
+        { "clue": "How many sides does a pentagon have?", "answer": "5" }
+      ],
+      "final_rule": "Concatenate Binary + Hex + Number",
+      "final_code": "11011A5",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the clues and calculate the final code.",
+      "clues": [
+        { "clue": "ASCII value of B?", "answer": "66" },
+        { "clue": "Reverse of 240?", "answer": "42" },
+        { "clue": "How many bits in 1 byte?", "answer": "8" }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(66 + 42) × 8 = 864",
+      "final_code": "864",
+      "marks": 30
+    },
+
+    {
+      "category": "networking",
+      "type": "logic_code",
+      "question": "Solve the networking clues and generate the final code.",
+      "clues": [
+        { "clue": "How many layers in the OSI model?", "answer": "7" },
+        { "clue": "Default HTTP port?", "answer": "80" },
+        { "clue": "IPv4 address contains how many octets?", "answer": "4" }
+      ],
+      "final_rule": "Multiply Clue1 × Clue3, then append Clue2",
+      "calculation": "7 × 4 = 28, append 80",
+      "final_code": "2880",
+      "marks": 30
+    },
+
+    {
+      "category": "programming",
+      "type": "logic_code",
+      "question": "Solve the programming logic clues and compute the final code.",
+      "clues": [
+        { "clue": "Output of print(2 ** 3)?", "answer": "8" },
+        { "clue": "Length of string \"Escape\"?", "answer": "6" },
+        { "clue": "How many keywords in C language (classic standard)?", "answer": "32" }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(8 + 6) × 32 = 448",
+      "final_code": "448",
+      "marks": 30
+    },
+
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber + encoding clues and generate the final code.",
+      "clues": [
+        { "clue": "Binary of 9?", "answer": "1001" },
+        { "clue": "Caesar cipher shift +1 of \"DOG\"?", "answer": "EPH" },
+        { "clue": "SHA-1 produces how many bits?", "answer": "160" }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "10013160",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, decimal, and shape logic clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 21?", "answer": "10101" },
+        { "clue": "Decimal value of Hex 1F?", "answer": "31" },
+        { "clue": "How many diagonals does a square have?", "answer": "2" }
+      ],
+      "final_rule": "Concatenate Binary + Decimal + Number",
+      "final_code": "10101312",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and bit logic clues to compute the final code.",
+      "clues": [
+        { "clue": "ASCII value of C?", "answer": "67" },
+        { "clue": "Reverse of 305?", "answer": "503" },
+        { "clue": "How many bits are there in 2 bytes?", "answer": "16" }
+      ],
+      "final_rule": "(67 + 503) ÷ 16",
+      "calculation": "(67 + 503) ÷ 16 = 35.625 (rounded down → 35)",
+      "final_code": "35",
+      "marks": 30
+    },
+
+    {
+      "category": "networking",
+      "type": "logic_code",
+      "question": "Solve the networking clues and generate the final code.",
+      "clues": [
+        { "clue": "How many bits are there in an IPv4 address?", "answer": "32" },
+        { "clue": "How many layers are there in TCP/IP model?", "answer": "4" },
+        { "clue": "Default HTTPS port number?", "answer": "443" }
+      ],
+      "final_rule": "Multiply Clue1 × Clue2, then append Clue3",
+      "calculation": "32 × 4 = 128, append 443",
+      "final_code": "128443",
+      "marks": 30
+    },
+
+    {
+      "category": "programming",
+      "type": "logic_code",
+      "question": "Solve the programming logic clues and compute the final code.",
+      "clues": [
+        { "clue": "Output of 5 % 2?", "answer": "1" },
+        { "clue": "Length of the string \"System\"?", "answer": "6" },
+        { "clue": "How many primitive data types are there in Java?", "answer": "8" }
+      ],
+      "final_rule": "(1 + 6) × 8",
+      "final_code": "56",
+      "marks": 30
+    },
+
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber, encoding, and math clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 12?", "answer": "1100" },
+        { "clue": "Caesar cipher shift +2 of \"CAT\"?", "answer": "ECV" },
+        { "clue": "MD5 produces how many bits?", "answer": "128" }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + MD5 bits",
+      "final_code": "11003128",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, hexadecimal, and geometry clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 18?", "answer": "10010" },
+        { "clue": "Hexadecimal of 45?", "answer": "2D" },
+        { "clue": "How many degrees are there in a right angle?", "answer": "90" }
+      ],
+      "final_rule": "Concatenate Binary + Hex + Number",
+      "final_code": "100102D90",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and bit clues to compute the final code.",
+      "clues": [
+        { "clue": "ASCII value of D?", "answer": "68" },
+        { "clue": "Reverse of 512?", "answer": "215" },
+        { "clue": "How many bits are there in 4 bytes?", "answer": "32" }
+      ],
+      "final_rule": "(Clue1 + Clue2) ÷ Clue3",
+      "calculation": "(68 + 215) ÷ 32 = 283 ÷ 32 = 8 (integer division)",
+      "final_code": "8",
+      "marks": 30
+    },
+{
+  "category": "networking",
+  "type": "logic_code",
+  "question": "Solve the networking clues and generate the final code.",
+  "clues": [
+    { "clue": "How many layers are there in the OSI model?", "answer": "7" },
+    { "clue": "How many bits are there in 1 byte?", "answer": "8" },
+    { "clue": "Default FTP port number?", "answer": "21" }
+  ],
+  "final_rule": "Multiply Clue1 × Clue2, then append Clue3",
+  "calculation": "7 × 8 = 56, append 21",
+  "final_code": "5621",
+  "marks": 30
+},
+{
+  "category": "programming",
+  "type": "logic_code",
+  "question": "Solve the programming, string, and logic clues to compute the final code.",
+  "clues": [
+    { "clue": "Output of 10 // 3 in Python?", "answer": "3" },
+    { "clue": "Length of the string \"Network\"?", "answer": "7" },
+    { "clue": "How many primitive data types are there in C language?", "answer": "4" }
+  ],
+  "final_rule": "(Clue1 + Clue2) × Clue3",
+  "calculation": "(3 + 7) × 4 = 40",
+  "final_code": "40",
+  "marks": 30
+},
+
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber, encoding, and hashing clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 6?", "answer": "110" },
+        { "clue": "Caesar cipher shift +3 of \"HAT\"?", "answer": "KDW" },
+        { "clue": "SHA-256 produces how many bits?", "answer": "256" }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "1103256",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, hexadecimal, and geometry clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 25?", "answer": "11001" },
+        { "clue": "Hexadecimal of 58?", "answer": "3A" },
+        { "clue": "How many sides does a triangle have?", "answer": "3" }
+      ],
+      "final_rule": "Concatenate Binary + Hex + (Clue3 × 2)",
+      "calculation": "3 × 2 = 6",
+      "final_code": "110013A6",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and multiplication clues to generate the final code.",
+      "clues": [
+        { "clue": "ASCII value of E?", "answer": "69" },
+        { "clue": "Reverse of 640?", "answer": "046" },
+        { "clue": "How many bits in 3 bytes?", "answer": "24" }
+      ],
+      "final_rule": "(Clue1 + Clue2 as number) × Clue3",
+      "calculation": "(69 + 46) × 24 = 115 × 24 = 2760",
+      "final_code": "2760",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the networking and division clues to generate the final code.",
+      "clues": [
+        { "clue": "How many bits are there in IPv6 address?", "answer": "128" },
+        { "clue": "How many layers in TCP/IP model?", "answer": "4" },
+        { "clue": "Default SMTP port number?", "answer": "25" }
+      ],
+      "final_rule": "(Clue1 ÷ Clue2), then append Clue3",
+      "calculation": "128 ÷ 4 = 32, append 25",
+      "final_code": "3225",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the programming and logic clues to generate the final code.",
+      "clues": [
+        { "clue": "Output of: 17 % 5 ?", "answer": "2" },
+        { "clue": "Length of the string \"Security\"?", "answer": "8" },
+        { "clue": "How many loops are there in Java?", "answer": "3" }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(2 + 8) × 3 = 30",
+      "final_code": "30",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the cyber, cipher, and hashing clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 14?", "answer": "1110" },
+        { "clue": "Caesar cipher shift +1 of \"CODE\"?", "answer": "DPEF" },
+        { "clue": "SHA-512 produces how many bits?", "answer": "512" }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "11104512",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the decimal, binary, and polygon clues to generate the final code.",
+      "clues": [
+        { "clue": "Decimal value of Hex 2A?", "answer": "42" },
+        { "clue": "Binary of 10?", "answer": "1010" },
+        { "clue": "How many sides does a hexagon have?", "answer": "6" }
+      ],
+      "final_rule": "Concatenate Clue1 + Binary + Clue3",
+      "final_code": "4210106",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, bit logic, and addition clues to generate the final code.",
+      "clues": [
+        { "clue": "ASCII value of F?", "answer": "70" },
+        { "clue": "How many bits in a nibble?", "answer": "4" },
+        { "clue": "Reverse of 321?", "answer": "123" }
+      ],
+      "final_rule": "(Clue1 × Clue2) + Clue3",
+      "calculation": "(70 × 4) + 123 = 280 + 123 = 403",
+      "final_code": "403",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the OS and port clues to generate the final code.",
+      "clues": [
+        { "clue": "How many states in basic Process Lifecycle?", "answer": "5" },
+        { "clue": "Default Telnet port?", "answer": "23" },
+        { "clue": "How many bits in 1 byte?", "answer": "8" }
+      ],
+      "final_rule": "(Clue1 × Clue3), then append Clue2",
+      "calculation": "5 × 8 = 40, append 23",
+      "final_code": "4023",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the programming power and length clues to generate the final code.",
+      "clues": [
+        { "clue": "Output of: 3 ** 3 ?", "answer": "27" },
+        { "clue": "Length of the string \"Binary\"?", "answer": "6" },
+        { "clue": "How many primitive types in Java?", "answer": "8" }
+      ],
+      "final_rule": "(Clue1 − Clue2) × Clue3",
+      "calculation": "(27 − 6) × 8 = 21 × 8 = 168",
+      "final_code": "168",
+      "marks": 30
+    },
+
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the encoding and hashing clues to generate the final code.",
+      "clues": [
+        { "clue": "Binary of 11?", "answer": "1011" },
+        { "clue": "Caesar cipher shift +2 of \"SUN\"?", "answer": "UWP" },
+        { "clue": "How many bits in SHA-224?", "answer": "224" }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "10113224",
+      "marks": 30
+    }
+  ]
+}

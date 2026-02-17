@@ -62,9 +62,25 @@ router.post("/start", async (req, res) => {
             return res.status(404).json({ error: "Team not found" });
         }
         
+        // 🔥 CHECK BATCH ASSIGNMENT BEFORE ALLOWING EXAM START
+        if (team.batch === null || team.batch === undefined) {
+            return res.status(403).json({ 
+                error: "Batch not started yet. Please wait for admin to start your batch.",
+                status: "waiting",
+                message: "Your batch hasn't started yet. Please wait for admin announcement."
+            });
+        }
+        
         // Check if eliminated/disqualified
         if (team.status === "eliminated" || team.status === "disqualified") {
             return res.json({ status: "blocked", message: "Team eliminated" });
+        }
+        
+        // Record exam start time if not already recorded
+        if (!team.examStartTime) {
+            team.examStartTime = new Date();
+            team.status = "active";
+            await team.save();
         }
         
         // Get current level from team
@@ -72,6 +88,14 @@ router.post("/start", async (req, res) => {
         
         // If completed all 5 levels
         if (currentLevel > 5) {
+            // Record exam end time if not already recorded
+            if (!team.examEndTime && team.examStartTime) {
+                team.examEndTime = new Date();
+                team.totalExamTime = team.examEndTime - team.examStartTime;
+                team.status = "completed";
+                await team.save();
+            }
+            
             return res.json({ 
                 status: "completed", 
                 message: "All levels completed!",
@@ -85,7 +109,8 @@ router.post("/start", async (req, res) => {
             teamId: team.teamId,
             teamName: team.teamName,
             score: team.score || 0,
-            penalty: team.penalty || 0
+            penalty: team.penalty || 0,
+            batch: team.batch
         });
         
     } catch (err) {

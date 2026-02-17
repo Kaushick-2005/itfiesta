@@ -72,9 +72,14 @@ function initLevelTimer(durationSeconds, displayEl, onExpire) {
 }
 
 // Disable all interactive inputs on the page (used on timeout or elimination)
+// Excludes modal buttons so users can still navigate after submission
 function disableAllInputs(){
   var inputs = document.querySelectorAll('input, button, textarea, select');
   inputs.forEach(function(el){
+    // Don't disable modal buttons (confirmBtn, continueBtn, etc.)
+    if (el.id === 'confirmBtn' || el.id === 'continueBtn' || el.closest('.modal-content')) {
+      return;
+    }
     el.setAttribute('disabled','true');
     el.classList.add('disabled');
   });
@@ -241,3 +246,67 @@ window.ER.enableBeforeUnloadWarning = enableBeforeUnloadWarning;
 window.ER.enableFullExamProtections = enableFullExamProtections;
 window.ER.requestFullScreen = requestFullScreen;
 window.ER.detectFullScreenExit = detectFullScreenExit;
+/* ======================================================
+   UNIFIED QUESTION NUMBERING SYSTEM
+   Works for all levels - renders clickable question buttons
+   ====================================================== */
+
+/**
+ * Renders question number buttons in the sidebar
+ * @param {Array} questions - Array of question objects
+ * @param {number} currentIndex - Currently active question index
+ * @param {Object} answeredState - Object tracking which questions are answered {0: true, 1: false, ...}
+ * @param {Function} onQuestionClick - Callback when question number is clicked
+ * @param {string} containerId - ID of container element (default: 'question-list')
+ */
+window.ER.renderQuestionNumbers = function(questions, currentIndex, answeredState, onQuestionClick, containerId) {
+  var container = document.getElementById(containerId || 'question-list');
+  if (!container) {
+    console.warn('Question number container not found:', containerId);
+    return;
+  }
+  
+  container.innerHTML = '';
+  
+  if (!Array.isArray(questions) || questions.length === 0) {
+    container.innerHTML = '<p style="color: var(--text-muted); font-size: 13px;">No questions loaded</p>';
+    return;
+  }
+  
+  questions.forEach(function(_, index) {
+    var btn = document.createElement('button');
+    btn.className = 'q-btn';
+    btn.type = 'button';
+    btn.textContent = index + 1;
+    
+    // Mark as active if current question
+    if (index === currentIndex) {
+      btn.classList.add('active');
+    }
+    
+    // Mark as answered if state indicates it's completed
+    if (answeredState && answeredState[index]) {
+      btn.classList.add('answered');
+    }
+    
+    // Click handler to navigate to question
+    btn.addEventListener('click', function() {
+      if (typeof onQuestionClick === 'function') {
+        onQuestionClick(index);
+      }
+    });
+    
+    container.appendChild(btn);
+  });
+};
+
+/**
+ * Simplified version that auto-detects container and uses default ID
+ * @param {Array} questions - Array of question objects
+ * @param {number} currentIndex - Currently active question index
+ * @param {Object} answeredState - Object tracking answered questions
+ * @param {Function} onQuestionClick - Callback when clicked
+ */
+window.ER.updateQuestionNumbers = function(questions, currentIndex, answeredState, onQuestionClick) {
+  window.ER.renderQuestionNumbers(questions, currentIndex, answeredState, onQuestionClick, 'question-list');
+};

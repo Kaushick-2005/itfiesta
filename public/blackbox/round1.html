@@ -3,208 +3,316 @@
 <head>
 <title>Round 1</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="../css/global.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
-    margin:0;
-    font-family:"Segoe UI",Arial;
-    background:linear-gradient(135deg,#0f172a,#1e1b4b);
-    color:white;
+/* Unified Professional Dark Mode - Round 1 */
+:root {
+    --bg-main: #0a0a0f;
+    --bg-card: rgba(25, 25, 32, 0.65);
+    --bg-input: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --text-primary: #e5e7eb;
+    --text-secondary: #9ca3af;
+    --accent-primary: #1e3a8a;
+    --accent-hover: #2563eb;
+    --error-red: #dc2626;
+    --warning-amber: #f59e0b;
 }
 
-.header{
-    background:#111827;
-    padding:15px 25px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+/* Body layout - Nebula Background */
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background:
+        radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+        radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+    background-color: #050508;
+    color: var(--text-primary);
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 100vh;
 }
 
-.title{
-    font-size:22px;
-    font-weight:bold;
-    color:#60a5fa;
+/* Mobile Container Fix */
+.container {
+    min-height: 100vh;
+    padding: 20px;
+    overflow: visible;
+    width: 90%;
+    max-width: 1000px;
+    margin: 40px auto;
+    position: relative;
+    z-index: 1;
 }
 
-.timer{
-    background:#1e293b;
-    padding:8px 18px;
-    border-radius:25px;
-    border:2px solid #3b82f6;
-    font-weight:bold;
+/* Dense Star Field */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+        radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+    background-repeat: repeat;
+    background-size: 800px 500px;
+    pointer-events: none;
+    z-index: -1;
 }
 
-.container{
-    width:90%;
-    max-width:900px;
-    margin:40px auto;
+.header {
+    background: var(--bg-card);
+    backdrop-filter: blur(18px);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
-.card{
-    background:#1e293b;
-    padding:25px;
-    border-radius:16px;
-    margin-bottom:25px;
-    box-shadow:0 10px 25px rgba(0,0,0,0.5);
+.title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text-primary);
 }
 
-input{
-    width:100%;
-    padding:14px;
-    border-radius:10px;
-    border:2px solid transparent;
-    background:#0f172a;
-    color:white;
-    font-size:16px;
-    margin-top:12px;
-    transition:0.3s;
+.timer {
+    background: var(--bg-input);
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
 }
 
-input:focus{
-    outline:none;
-    border:2px solid #3b82f6;
-    box-shadow:0 0 8px #3b82f6;
+.timer-label {
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
 }
 
-button{
-    margin-top:15px;
-    background:linear-gradient(90deg,#3b82f6,#2563eb);
-    padding:12px 25px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    color:white;
-    font-weight:bold;
-    transition:0.3s;
+.timer-value {
+    font-family: 'Orbitron', 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    font-weight: 600;
+    color: var(--accent-hover);
 }
 
-button:hover{
-    transform:scale(1.05);
-    box-shadow:0 5px 15px rgba(59,130,246,0.4);
+.card {
+    position: relative;
+    background: rgba(20, 20, 28, 0.75);
+    backdrop-filter: blur(18px);
+    padding: 30px;
+    border-radius: 16px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
 }
 
-.output-box{
-    margin-top:20px;
-    padding:18px;
-    background:#0f172a;
-    border-radius:12px;
-    font-size:18px;
-    color:#38bdf8;
-    border-left:4px solid #3b82f6;
+.card::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 18px;
+    background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+    z-index: -1;
 }
 
-textarea{
-    width:100%;
-    height:150px;
-    padding:15px;
-    border-radius:12px;
-    border:2px solid transparent;
-    background:#0f172a;
-    color:white;
-    font-size:15px;
-    margin-top:10px;
-    resize:none;
-    transition:0.3s;
+input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 16px;
+    margin-top: 12px;
+    transition: border-color 0.15s ease;
+    box-sizing: border-box;
 }
 
-textarea:focus{
-    outline:none;
-    border:2px solid #3b82f6;
-    box-shadow:0 0 8px #3b82f6;
+input:focus {
+    outline: none;
+    border: 1px solid var(--accent-hover);
 }
 
-.submit-btn{
-    margin-top:18px;
-}
-.instructions{
-    background:#0f172a;
-    padding:18px;
-    border-radius:12px;
-    margin-bottom:20px;
-    font-size:14px;
-    line-height:1.6;
-    border-left:4px solid #facc15;
-}
-.instructions h4{
-    margin:0 0 10px 0;
-    color:#facc15;
-}
-/* 🔵 RESULT MODAL */
-.modal{
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.65);
-    justify-content:center;
-    align-items:center;
-    z-index:1000;
+button {
+    margin-top: 15px;
+    background: var(--accent-primary);
+    padding: 12px 25px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-primary);
+    font-weight: 600;
+    transition: background 0.15s ease;
 }
 
-.modal-content{
-    background:#1e293b;
-    padding:30px;
-    border-radius:16px;
-    width:350px;
-    text-align:center;
-    box-shadow:0 10px 30px rgba(0,0,0,0.6);
-    animation:fadeIn 0.3s ease;
+button:hover {
+    background: var(--accent-hover);
 }
 
-.modal-content h3{
-    margin-bottom:10px;
+.output-box {
+    margin-top: 20px;
+    padding: 18px;
+    background: var(--bg-input);
+    border-radius: 10px;
+    font-size: 18px;
+    color: var(--accent-hover);
+    border: 1px solid var(--border-subtle);
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
-.modal-content p{
-    color:#cbd5e1;
-    margin-bottom:20px;
+textarea {
+    width: 100%;
+    height: 150px;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 15px;
+    margin-top: 10px;
+    resize: none;
+    transition: border-color 0.15s ease;
+    box-sizing: border-box;
 }
 
-
-.modal-cancel{
-    background:#64748b;
-    border:none;
-    padding:10px 20px;
-    border-radius:8px;
-    cursor:pointer;
-    color:white;
+textarea:focus {
+    outline: none;
+    border: 1px solid var(--accent-hover);
 }
 
-.modal-confirm{
-    background:#3b82f6;
-    border:none;
-    padding:10px 20px;
-    border-radius:8px;
-    cursor:pointer;
-    color:white;
+.submit-btn {
+    margin-top: 18px;
 }
 
-.modal-confirm:hover{
-    background:#2563eb;
+.instructions,
+.instructions-box {
+    background: var(--bg-input);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
 }
 
-@keyframes fadeIn{
-    from{opacity:0; transform:scale(0.9);}
-    to{opacity:1; transform:scale(1);}
+.instructions h4,
+.instructions-box h4 {
+    margin: 0 0 10px 0;
+    color: var(--warning-amber);
 }
 
+/* Professional Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(6px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    backdrop-filter: blur(18px);
+    padding: 30px;
+    border-radius: 10px;
+    width: 350px;
+    text-align: center;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.modal-content h3 {
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.modal-cancel {
+    background: var(--bg-hover);
+    border: 1px solid var(--border-subtle);
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.modal-confirm {
+    background: var(--accent-primary);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+.modal-confirm:hover {
+    background: var(--accent-hover);
+}
+
+.modal-cancel:hover {
+    background: var(--bg-input);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .container {
+        width: 95%;
+        margin: 20px auto;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+}
 </style>
 </head>
-<body>
+<body class="exam-mode">
 
 <div class="header">
     <div class="title">💻 ROUND 1</div>
-    <div class="timer" id="timer">⏱️ Loading...</div>
+    <div class="timer">
+        <span class="timer-label">Time Remaining</span>
+        <span class="timer-value" id="timer">Loading...</span>
+    </div>
 </div>
 
 <div class="container">
 
     <div class="card">
 
-        <div class="instructions">
+        <div class="instructions instructions-box">
             <h4>⚠ Instructions</h4>
             • Use variable <b>x</b> for single input problems.<br>
             • Use variables <b>x</b> and <b>y</b> for two-input problems.<br>
@@ -213,7 +321,7 @@ textarea:focus{
             • Use parenthesis for functions if requied. Sample: <code>factorial(x,y)</code><br>
         </div>
 
-        <h2>🔢 Test Your Input</h2>
+        <h2>#️⃣ Test Your Input</h2>
 
         <input type="number" id="input1" placeholder="Enter first number (x)">
 
@@ -250,6 +358,7 @@ const API = "/api/blackbox";
 let sessionId = null;
 let endTime = null;
 let variableCount = 1;
+const FALLBACK_DURATION_MS = 5 * 60 * 1000; // 5-minute safety window
 
 
 // 🔵 PAGE LOAD
@@ -262,15 +371,23 @@ window.onload = async function() {
         return;
     }
 
-    const startResponse = await fetch(`${API}/start`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            team_id: teamId
-        })
-    });
+    let data;
+    try {
+        const startResponse = await fetch(`${API}/start`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                team_id: teamId
+            })
+        });
 
-    const data = await startResponse.json();
+        data = await startResponse.json();
+    } catch (err) {
+        console.error("Start API failed, using fallback timer", err);
+        endTime = new Date(Date.now() + FALLBACK_DURATION_MS);
+        startTimer();
+        return;
+    }
 
     console.log("=== START API RESPONSE ===");
     console.log("Full response:", data);
@@ -298,6 +415,12 @@ window.onload = async function() {
         return;
     }
 
+    // 🔴 If batch not started or no session provisioned
+    if (data.status === "waiting" || data.error || !data.session_id) {
+        alert(data.message || data.error || "Session not initialized. Ask admin to start your batch or re-login.");
+        return;
+    }
+
     // Check if no questions found
     if (data.message === "No questions found for this round") {
         alert("No questions available. Please contact admin.");
@@ -312,7 +435,15 @@ window.onload = async function() {
 
     sessionId = data.session_id;
     variableCount = data.variables;
-    endTime = new Date(data.end_time);
+
+    const parsedEnd = data.end_time ? new Date(data.end_time) : null;
+    if (parsedEnd && !isNaN(parsedEnd.getTime())) {
+        endTime = parsedEnd;
+    } else {
+        console.warn("Invalid end_time, using fallback");
+        endTime = new Date(Date.now() + FALLBACK_DURATION_MS);
+        document.getElementById("timer").innerText = "⏱️ 05:00";
+    }
 
     // Show second input if needed
     if (variableCount === 2) {
@@ -394,23 +525,40 @@ async function generateOutput() {
 
 async function submitLogic() {
 
+    if (!sessionId) {
+        alert("Unable to submit: session not initialized. Please reload (server might be offline).");
+        return;
+    }
+
     const logic = document.getElementById("logicBox").value;
 
-    const response = await fetch(`${API}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            session_id: sessionId,
-            answer: logic
-        })
-    });
+    let data;
+    try {
+        const response = await fetch(`${API}/submit`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: sessionId,
+                answer: logic
+            })
+        });
 
-    const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Submit failed: ${response.status}`);
+        }
+
+        data = await response.json();
+    } catch (err) {
+        console.error("Submit failed", err);
+        alert("Submit failed. Please check connection/server and try again.");
+        return;
+    }
+
     console.log("Submit response:", data);
 
     if (data.moveTo) {
         showModal(
-            data.result === "correct" ? "✅ Correct!" : "Round Completed",
+            data.result === "correct" ? "✅Correct!" : "Round Completed",
             data.result === "correct"
                 ? "+20 points! Moving to next round."
                 : "+5 participation points. Moving to next round.",
@@ -424,6 +572,11 @@ async function submitLogic() {
 function startTimer() {
 
     const timer = document.getElementById("timer");
+
+    if (!endTime || isNaN(endTime.getTime())) {
+        timer.innerText = "⏱️ --:--";
+        return;
+    }
 
     const interval = setInterval(() => {
 

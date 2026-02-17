@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <title>Admin - Team Control</title>
     <style>
@@ -37,7 +38,7 @@
         .btn-advance {
             flex: 1;
             padding: 8px 12px;
-            background: #10b981;
+            background: #1e3a8a;
             color: white;
             border: none;
             border-radius: 6px;
@@ -63,7 +64,7 @@
             background: #dc2626;
         }
         .status-active {
-            color: #10b981;
+            color: #2563eb;
             font-weight: 600;
         }
         .status-eliminated {
@@ -111,6 +112,28 @@
         }
         .refresh-btn:hover {
             opacity: 0.8;
+        }
+        
+        /* Dropdown and input styling */
+        select, input[type="text"], input[type="number"] {
+            background: rgba(20, 20, 28, 0.75);
+            color: #e5e7eb;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+        
+        select option {
+            background: #0f0f16;
+            color: #e5e7eb;
+            padding: 12px;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border: 1px solid rgba(37, 99, 235, 0.6);
         }
     </style>
 </head>

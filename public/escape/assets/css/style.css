@@ -1,72 +1,554 @@
 /*
-	Mobile-first styling for IT Fiesta Escape Room
-	Blue & purple theme, touch-friendly buttons, readable typography
+	IT FIESTA - Unified Professional Dark Mode
+	Escape Room Interface
+	Navy Blue Accent, Glass Morphism, Subtle Space
 */
 
 :root{
-	--bg:#0f1724; /* deep navy */
-	--card:#0b1220;
-	--accent:#6d28d9; /* purple */
-	--accent-2:#2563eb; /* blue */
-	--muted:#94a3b8;
-	--text:#e6eef8;
-	--danger:#ef4444;
+	/* Core Backgrounds */
+	--bg-main: #0a0a0f;
+	--bg-card: rgba(25, 25, 32, 0.65); /* Matching blackbox glass effect */
+	--bg-input: rgba(255, 255, 255, 0.05);
+	--bg-hover: rgba(255, 255, 255, 0.06);
+	
+	/* Border System */
+	--border-subtle: rgba(255, 255, 255, 0.08);
+	--border-focus: rgba(30, 58, 138, 0.6);
+	
+	/* Text Hierarchy */
+	--text-primary: #e5e7eb;
+	--text-secondary: #9ca3af;
+	--text-muted: #6b7280;
+	
+	/* Navy Blue Accent - Primary */
+	--accent-primary: #1e3a8a;
+	--accent-hover: #2563eb;
+	
+	/* Status Colors */
+	--error-red: #dc2626;
+	--warning-amber: #f59e0b;
+	--success-status: #059669;
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
+*{
+	box-sizing:border-box;
+	margin:0;
+	padding:0;
+}
+
+html,body{
+	height:100%;
+	overflow-x:hidden;
+}
+
 body{
-	font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-	background:linear-gradient(180deg,var(--bg),#071029);
-	color:var(--text);
+	font-family:'Inter', 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+	background:
+		radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+		radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+		radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+	background-color: #050508;
+	color: var(--text-primary);
 	-webkit-font-smoothing:antialiased;
 	-moz-osx-font-smoothing:grayscale;
-	line-height:1.4;
+	line-height:1.6;
 	padding:16px;
+	position:relative;
+	min-height:100vh;
+	overflow-x:hidden;
 }
 
-header{padding:12px 0 20px}
-h1{font-size:1.4rem;color:var(--accent);text-align:center}
-main{max-width:920px;margin:0 auto}
+/* Dense Star Field - Nebula Style */
+body::before {
+	content:'';
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	min-height:100%;
+	pointer-events:none;
+	z-index:-1;
+	background-image:
+		radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+		radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+		radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+		radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+		radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+	background-repeat:repeat;
+	background-size:800px 500px;
+}
 
-section{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 6px 20px rgba(13,15,23,0.6)}
+header{
+	padding:20px 0 30px;
+	text-align:center;
+}
 
-.start-button,.submit-button,.restart-button{display:inline-block;width:100%;text-align:center;padding:14px 12px;margin-top:12px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;text-decoration:none;border:0;font-weight:600;font-size:1.05rem}
-.restart-button{width:auto;padding:10px 14px}
+h1{
+	font-size:1.8rem;
+	font-weight:700;
+	color: var(--text-primary);
+	margin-bottom:8px;
+	letter-spacing:0.5px;
+}
 
-.muted{color:var(--muted);font-size:.95rem}
+main{
+	max-width:920px;
+	margin:0 auto;
+	position:relative;
+	z-index:1;
+}
 
-/* Timer display */
-.timer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
-.timer .count{font-size:1.2rem;font-weight:700;color:#fff;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px}
+/* Glass Cards - Professional Style with Blue Glow */
+section{
+	background: rgba(20, 20, 28, 0.75);
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	border:1px solid rgba(37, 99, 235, 0.2);
+	border-radius:16px;
+	padding:24px;
+	margin-bottom:20px;
+	box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+	position:relative;
+	overflow:hidden;
+}
 
-/* Questions */
-.question{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
-.question p{font-weight:600;margin-bottom:8px}
-label{display:block;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px}
-input[type="radio"]{transform:scale(1.1);margin-right:8px}
+section::before {
+	content: "";
+	position: absolute;
+	inset: -3px;
+	border-radius: 18px;
+	background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+	z-index: -1;
+}
 
-/* Single question navigation */
-.controls{display:flex;gap:8px;margin-top:12px}
-.controls button{flex:1;padding:12px;border-radius:10px;border:0;background:#152033;color:var(--text)}
-.controls button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff}
+/* Navy Blue Primary Buttons */
+.start-button,.submit-button,.restart-button{
+	display:inline-block;
+	width:100%;
+	text-align:center;
+	padding:14px;
+	margin-top:16px;
+	border-radius:10px;
+	background: var(--accent-primary);
+	color: white;
+	text-decoration:none;
+	border:none;
+	font-weight:600;
+	font-size:1rem;
+	cursor:pointer;
+	transition: background 0.2s ease, transform 0.1s ease;
+	position:relative;
+	text-transform:uppercase;
+	letter-spacing:0.5px;
+}
 
-/* Disabled visuals */
-.disabled{opacity:.45;pointer-events:none}
+.start-button:hover,.submit-button:hover,.restart-button:hover {
+	background: var(--accent-hover);
+}
 
-/* Small screens adjustments */
+.start-button:active,.submit-button:active,.restart-button:active {
+	transform: scale(0.98);
+}
+
+.restart-button{
+	width:auto;
+	padding:12px 20px;
+	font-size:0.95rem;
+}
+
+.muted{
+	color: var(--text-secondary);
+	font-size:.95rem;
+}
+
+/* Clean Timer Display */
+.timer{
+	display:flex;
+	align-items:center;
+	justify-content:space-between;
+	gap:16px;
+	padding:12px 0;
+	margin:16px 0;
+}
+
+.timer .count{
+	font-size:1.4rem;
+	font-weight:700;
+	color: var(--accent-hover);
+	background: rgba(20, 20, 28, 0.8);
+	padding:12px 20px;
+	border-radius:10px;
+	border:1px solid rgba(37, 99, 235, 0.2);
+	font-family:'Consolas', 'Monaco', 'Courier New', monospace;
+	letter-spacing:2px;
+}
+
+/* Professional Question Styling */
+.question{
+	padding:16px 0;
+	border-bottom:1px solid var(--border-subtle);
+	margin:16px 0;
+}
+
+.question p{
+	font-weight:600;
+	margin-bottom:16px;
+	font-size:1.05rem;
+	color:var(--text-primary);
+}
+
+label{
+	display:block;
+	padding:14px 16px;
+	background: rgba(20, 20, 28, 0.5);
+	border:1px solid var(--border-subtle);
+	border-radius:10px;
+	margin-bottom:12px;
+	cursor:pointer;
+	transition: background 0.2s ease, border 0.2s ease;
+	position:relative;
+	color: var(--text-secondary);
+}
+
+label:hover{
+	background: var(--bg-hover);
+}
+
+label:has(input:checked) {
+	background: rgba(30, 58, 138, 0.2);
+	border-color: var(--accent-primary);
+}
+
+input[type="radio"]{
+	transform:scale(1.2);
+	margin-right:12px;
+	accent-color: var(--accent-hover);
+}
+
+/* Control Buttons */
+.controls{
+	display:flex;
+	gap:12px;
+	margin-top:20px;
+}
+
+.controls button{
+	flex:1;
+	padding:12px 20px;
+	border-radius:10px;
+	border:1px solid var(--border-subtle);
+	background: rgba(20, 20, 28, 0.6);
+	color:var(--text-primary);
+	font-weight:500;
+	cursor:pointer;
+	transition: background 0.2s ease, border 0.2s ease;
+}
+
+.controls button:hover{
+	background: var(--bg-hover);
+}
+
+.controls button.primary{
+	background: var(--accent-primary);
+	color: white;
+	border: none;
+}
+
+.controls button.primary:hover{
+	background: var(--accent-hover);
+}
+
+/* Disabled State */
+.disabled{
+	opacity:0.4;
+	pointer-events:none;
+}
+
+/* Responsive Typography */
 @media (min-width:420px){
-	h1{font-size:1.6rem}
-	.start-button,.submit-button{max-width:360px;margin-left:auto;margin-right:auto}
+	h1{font-size:2.2rem;}
+	.start-button,.submit-button{
+		max-width:400px;
+		margin-left:auto;
+		margin-right:auto;
+	}
 }
 
-/* Admin & result pages */
-footer{margin-top:8px;text-align:center;color:var(--muted);font-size:.9rem}
+@media (min-width:768px){
+	body{padding:24px;}
+	h1{font-size:2.6rem;}
+	section{padding:32px;}
+}
 
-/* Drag & drop puzzle area */
-#puzzle-container{min-height:160px;border:2px dashed rgba(255,255,255,0.03);border-radius:10px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
-.piece{background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));padding:10px;border-radius:8px;cursor:grab}
+/* Footer Styling */
+footer{
+	margin-top:40px;
+	text-align:center;
+	color: var(--text-secondary);
+	font-size:0.9rem;
+}
 
-/* Small helper */
-.note{font-size:.9rem;color:var(--muted);margin-top:8px}
+/* Professional Drag & Drop Puzzle */
+#puzzle-container{
+	min-height:200px;
+	border:2px dashed rgba(37, 99, 235, 0.3);
+	border-radius:10px;
+	padding:20px;
+	display:flex;
+	flex-wrap:wrap;
+	gap:12px;
+	align-items:flex-start;
+	background: rgba(20, 20, 28, 0.4);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+.piece{
+	background: rgba(20, 20, 28, 0.75);
+	border:1px solid rgba(37, 99, 235, 0.2);
+	padding:12px 16px;
+	border-radius:10px;
+	cursor:grab;
+	transition: border 0.2s ease, box-shadow 0.2s ease;
+	color: var(--text-secondary);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+.piece:hover{
+	border-color: var(--accent-primary);
+}
+
+.piece:active{
+	cursor:grabbing;
+}
+
+/* ========================================
+   UNIVERSAL ROUND HEADER STYLE
+   Global reusable header for all levels
+   ======================================== */
+
+.round-header {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	margin-bottom: 25px;
+	text-align: center;
+}
+
+/* Unified level shell for all rounds */
+.level-container {
+	max-width: 1000px;
+	margin: 0 auto;
+	padding: 40px 20px;
+	background: rgba(20, 25, 40, 0.45);
+	backdrop-filter: blur(15px);
+	-webkit-backdrop-filter: blur(15px);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 20px;
+	box-shadow: 0 0 40px rgba(0, 100, 255, 0.15);
+}
+
+@media (max-width: 768px) {
+	.level-container {
+		background: rgba(20, 25, 40, 0.35);
+		padding: 25px;
+		box-shadow: 0 0 25px rgba(0, 100, 255, 0.1);
+	}
+}
+
+.level-title {
+	font-size: 36px;
+	font-weight: 700;
+	text-align: center;
+	margin: 0 0 20px;
+	color: var(--text-primary);
+}
+
+.level-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	margin-bottom: 30px;
+}
+
+.round-icon {
+	font-size: 42px;
+	display: flex;
+	align-items: center;
+}
+
+.round-text {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.round-level {
+	font-size: 34px;
+	font-weight: 600;
+	color: #e5e5e5;
+	opacity: 0.8;
+}
+
+.round-title {
+	font-size: 34px;
+	font-weight: 700;
+	color: #ffffff;
+}
+
+
+.timer-box {
+	background: rgba(20, 20, 30, 0.35);
+	padding: 12px 20px;
+	border-radius: 12px;
+	text-align: center;
+	border: 1px solid var(--border-subtle);
+	margin-top: 20px;
+	margin-bottom: 25px;
+}
+
+.timer-box .timer-label {
+	font-size: 11px;
+	color: var(--text-secondary);
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	margin-bottom: 6px;
+}
+
+.timer-box .timer-display {
+	font-size: 32px;
+	font-weight: bold;
+	color: var(--accent-hover);
+	font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+
+.instruction-box {
+	background: rgba(20, 20, 28, 0.75);
+	border: 1px solid rgba(37, 99, 235, 0.3);
+	border-radius: 14px;
+	padding: 16px;
+	margin-top: 20px;
+	margin-bottom: 30px;
+	color: var(--text-secondary);
+	font-size: 14px;
+	line-height: 1.6;
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+}
+
+.warning-box {
+	margin-top: 20px;
+	margin-bottom: 30px;
+}
+
+/* ===== ESCAPE ROOM MAIN WRAPPER FIX ===== */
+.escape-container,
+.level-wrapper,
+.main-card,
+.exam-container,
+.escape-wrapper {
+	background: rgba(20, 20, 28, 0.75) !important;
+	backdrop-filter: blur(18px);
+	-webkit-backdrop-filter: blur(18px);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.warning-title {
+	color: #ff3b3b !important;
+	font-weight: 600;
+	margin: 0 0 10px 0;
+	text-shadow: 0 0 8px rgba(255, 59, 59, 0.4);
+}
+
+.warning-text {
+	color: #ffffff !important;
+	font-weight: 400;
+	margin: 0;
+}
+
+/* Drag & Drop - Level 2 Mobile Fix */
+.level2-item {
+	touch-action: none;
+}
+
+.question-container {
+	overflow: visible;
+}
+
+/* Helper Text Note */
+.note{
+	font-size:0.9rem;
+	color: var(--text-secondary);
+	margin-top:12px;
+	padding:12px;
+	background: rgba(20, 20, 28, 0.6);
+	border-radius:10px;
+	border-left:3px solid var(--accent-primary);
+	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
+}
+
+/* ========================================
+   MOBILE SCROLLING FIXES FOR ESCAPE ROOM
+   Prevents bottom content cutoff on mobile
+   ======================================== */
+
+/* Ensure proper scrolling on mobile */
+html, body {
+	height: auto !important;
+	min-height: 100% !important;
+	overflow-x: hidden !important;
+	overflow-y: auto !important;
+}
+
+body {
+	display: block !important;
+}
+
+/* iOS Safari Fix - Prevents bottom cutoff on iPhone */
+@supports (-webkit-touch-callout: none) {
+	body {
+		min-height: -webkit-fill-available !important;
+	}
+	
+	.main-container, .exam-container, .container {
+		min-height: -webkit-fill-available !important;
+		overflow: visible !important;
+	}
+}
+
+/* Mobile container fixes */
+@media (max-width: 768px) {
+	.main-container, .exam-container, .container {
+		min-height: 100vh !important;
+		padding: 20px !important;
+		overflow: visible !important;
+	}
+	
+	body {
+		overflow-y: auto !important;
+	}
+
+	.round-icon {
+		font-size: 32px;
+	}
+
+	.round-level,
+	.round-title {
+		font-size: 24px;
+	}
+
+	.timer-box .timer-display {
+		font-size: 24px;
+	}
+
+	.instruction-box {
+		font-size: 13px;
+		padding: 12px 16px;
+	}
+}
 

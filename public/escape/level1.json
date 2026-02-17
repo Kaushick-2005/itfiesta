@@ -1,0 +1,391 @@
+[
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I’m the silent core controlling hardware, memory, and processes, yet most users never see me directly.",
+    "options": ["Shell", "Kernel", "Scheduler", "Bootloader"],
+    "answer": "Kernel",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I rapidly switch the CPU between tasks so users feel programs run at the same time.",
+    "options": ["Paging", "Multitasking", "Spooling", "Buffering"],
+    "answer": "Multitasking",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "When RAM runs low, I borrow disk space to keep programs running.",
+    "options": ["Cache Memory", "Virtual Memory", "Register", "Stack"],
+    "answer": "Virtual Memory",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I decide which process runs next, keeping the system fair and responsive.",
+    "options": ["Compiler", "Interpreter", "Scheduler", "Loader"],
+    "answer": "Scheduler",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I allow users to interact with the operating system using typed commands.",
+    "options": ["Kernel", "GUI", "Shell", "Driver"],
+    "answer": "Shell",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I start the operating system immediately after hardware initialization.",
+    "options": ["Kernel", "BIOS", "Bootloader", "Shell"],
+    "answer": "Bootloader",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I organize files into directories so the OS can store and retrieve data efficiently.",
+    "options": ["File System", "Database", "Cache", "Scheduler"],
+    "answer": "File System",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "os",
+    "type": "mcq",
+    "question": "I control who can access system resources through permissions and privileges.",
+    "options": ["Encryption", "Access Control", "Backup System", "Multithreading"],
+    "answer": "Access Control",
+    "marks": 10
+  },
+
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "In Excel, which symbol must every formula begin with?",
+    "options": ["%", "+", "=", "#"],
+    "answer": "=",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "Which function would you use to find the highest value in a range of cells (A1 to A10)?",
+    "options": ["=UPPER(A1:A10)", "=MAX(A1:A10)", "=HIGH(A1:A10)", "=LARGE(A1:A10)"],
+    "answer": "=MAX(A1:A10)",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "What is the purpose of a \"VLOOKUP\" function?",
+    "options": [
+      "To delete duplicate values in a column.",
+      "To search for a value in the leftmost column and return a value in the same row from another column.",
+      "To create a visual chart based on a table.",
+      "To protect a worksheet with a password."
+    ],
+    "answer": "To search for a value in the leftmost column and return a value in the same row from another column.",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "What does \"SaaS\" stand for in cloud computing?",
+    "options": [
+      "Storage as a Service",
+      "Software as a Service",
+      "System as a Solution",
+      "Security as a Service"
+    ],
+    "answer": "Software as a Service",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "Which cloud deployment model is operated specifically for a single organization?",
+    "options": ["Public Cloud", "Hybrid Cloud", "Community Cloud", "Private Cloud"],
+    "answer": "Private Cloud",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cloud",
+    "type": "mcq",
+    "question": "Which of the following is an example of an \"IaaS\" (Infrastructure as a Service) provider?",
+    "options": ["Google Docs", "Amazon Web Services (AWS)", "Dropbox", "Slack"],
+    "answer": "Amazon Web Services (AWS)",
+    "marks": 10
+  },
+
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "Who is often referred to as the \"Father of Artificial Intelligence\"?",
+    "options": ["Alan Turing", "John McCarthy", "Marvin Minsky", "Herbert Simon"],
+    "answer": "John McCarthy",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "Which of the following best describes the \"Turing Test\"?",
+    "options": [
+      "A test to see if a machine can solve complex mathematical equations.",
+      "A test to measure a machine's ability to exhibit intelligent behavior equivalent to a human.",
+      "A hardware diagnostic for AI processors.",
+      "A method for training neural networks."
+    ],
+    "answer": "A test to measure a machine's ability to exhibit intelligent behavior equivalent to a human.",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "In AI, what does the \"Agent\" interact with through sensors and actuators?",
+    "options": ["The Database", "The Internet", "The Environment", "The User Interface"],
+    "answer": "The Environment",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "Which search algorithm is considered \"uninformed\" (blind search)?",
+    "options": ["A* Search", "Greedy Best-First Search", "Breadth-First Search (BFS)", "Heuristic Search"],
+    "answer": "Breadth-First Search (BFS)",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "What is the main purpose of an \"Activation Function\" in a neural network?",
+    "options": [
+      "To store the weights of the network.",
+      "To introduce non-linearity into the output of a neuron.",
+      "To increase the speed of data entry.",
+      "To clean the input data."
+    ],
+    "answer": "To introduce non-linearity into the output of a neuron.",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "ai",
+    "type": "mcq",
+    "question": "\"Supervised Learning\" differs from \"Unsupervised Learning\" because it requires:",
+    "options": [
+      "More computing power.",
+      "Labeled data (input-output pairs).",
+      "A human to watch the machine while it runs.",
+      "No data at all."
+    ],
+    "answer": "Labeled data (input-output pairs).",
+    "marks": 10
+  },
+
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "I connect CPU, RAM, storage, and expansion cards into one working system.",
+    "options": ["Cabinet", "Chipset", "Motherboard", "Processor"],
+    "answer": "Motherboard",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "Improper grounding during assembly may allow me to silently damage components.",
+    "options": ["Overheating", "Static Electricity", "Voltage Spike", "Dust"],
+    "answer": "Static Electricity",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "I convert AC power from the wall into regulated DC power inside the computer.",
+    "options": ["UPS", "Adapter", "Power Supply / SMPS", "Voltage Regulator"],
+    "answer": "Power Supply / SMPS",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "Applying me incorrectly between CPU and cooler may cause overheating.",
+    "options": ["Silicon Pad", "Thermal Paste", "CPU Gel", "Lubricant"],
+    "answer": "Thermal Paste",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "I determine whether a processor physically fits onto the motherboard.",
+    "options": ["Chipset", "BIOS Version", "Socket Type", "RAM Slot"],
+    "answer": "Socket Type",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "If I fail, system may power on but nothing appears on the display.",
+    "options": ["Monitor Cable", "GPU / Graphics Card", "RAM", "CMOS Battery"],
+    "answer": "GPU / Graphics Card",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "I store BIOS configuration even when the computer is powered off.",
+    "options": ["EEPROM", "CMOS Battery", "BIOS Chip", "SSD"],
+    "answer": "CMOS Battery",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "Incorrect airflow direction of me can increase cabinet temperature.",
+    "options": ["CPU Fan", "Exhaust Vent", "Case Fan", "Cooling Pipe"],
+    "answer": "Case Fan",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "I provide very fast storage using PCIe lanes without SATA cables.",
+    "options": ["SATA SSD", "NVMe Drive", "External HDD", "Flash Drive"],
+    "answer": "NVMe Drive",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "cam",
+    "type": "mcq",
+    "question": "Loose connection of me often causes storage devices not to appear.",
+    "options": ["Power Connector", "HDMI Cable", "SATA Cable", "PCI Cable"],
+    "answer": "SATA Cable",
+    "marks": 10
+  },
+
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language was originally designed mainly for system programming and OS development?",
+    "options": ["Java", "C", "Python", "JavaScript"],
+    "answer": "C",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which programming language is most associated with web page interactivity in browsers?",
+    "options": ["PHP", "Java", "JavaScript", "C#"],
+    "answer": "JavaScript",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language was created by Guido van Rossum and emphasizes readability?",
+    "options": ["Ruby", "Python", "Perl", "Swift"],
+    "answer": "Python",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language was primarily developed by Sun Microsystems for platform-independent applications?",
+    "options": ["Kotlin", "Java", "Scala", "Go"],
+    "answer": "Java",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language is widely used for statistical computing and data analysis?",
+    "options": ["MATLAB", "R", "Julia", "Rust"],
+    "answer": "R",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language is most commonly used for iOS app development today?",
+    "options": ["Objective-C", "Swift", "Dart", "Kotlin"],
+    "answer": "Swift",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language was developed at Bell Labs by Dennis Ritchie?",
+    "options": ["C++", "Assembly", "C", "Pascal"],
+    "answer": "C",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language is best known for front-end web page structure?",
+    "options": ["CSS", "HTML", "XML", "Markdown"],
+    "answer": "HTML",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language is popular for Android development alongside Java?",
+    "options": ["Dart", "Swift", "Kotlin", "Scala"],
+    "answer": "Kotlin",
+    "marks": 10
+  },
+  {
+    "level": 1,
+    "category": "programming",
+    "type": "mcq",
+    "question": "Which language was designed by Bjarne Stroustrup as an extension of C?",
+    "options": ["Rust", "C#", "C++", "Go"],
+    "answer": "C++",
+    "marks": 10
+  }
+]

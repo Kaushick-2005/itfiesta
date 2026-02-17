@@ -1,30 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leaderboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body{
-            background:#0f172a;
-            color:white;
-            font-family:Arial;
-            padding:40px;
-            text-align:center;
+        /* Unified Professional Dark Mode - Leaderboard */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-card: rgba(25, 25, 32, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-primary: #1e3a8a;
+            --accent-hover: #2563eb;
+            --error-red: #dc2626;
+            --warning-amber: #f59e0b;
+        }
+        
+        /* Body layout - Nebula Background */
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+                radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+            background-color: #050508;
+            color: var(--text-primary);
+            padding: 40px;
+            text-align: center;
+            min-height: 100vh;
+            position: relative;
+            margin: 0;
         }
 
-        table{
-            margin:30px auto;
-            border-collapse:collapse;
-            width:60%;
-            background:#1e293b;
+        /* Dense Star Field */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+            background-repeat: repeat;
+            background-size: 800px 500px;
+            pointer-events: none;
+            z-index: -1;
         }
 
-        th, td{
-            padding:12px;
-            border:1px solid #334155;
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 30px;
         }
 
-        th{
-            background:#3b82f6;
+        table {
+            position: relative;
+            margin: 30px auto;
+            border-collapse: collapse;
+            width: 60%;
+            background: rgba(20, 20, 28, 0.75);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+        }
+
+        table::before {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 18px;
+            background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        th {
+            background: var(--bg-input);
+            color: var(--accent-hover);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            color: var(--text-secondary);
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        @media (max-width: 768px) {
+            table {
+                width: 95%;
+            }
+            body {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -38,7 +126,7 @@
         <tr>
             <th>Rank</th>
             <th>Team Name</th>
-            <th>Total Score</th>
+            <th>Final Score</th>
         </tr>
     </thead>
     <tbody id="leaderboardBody">

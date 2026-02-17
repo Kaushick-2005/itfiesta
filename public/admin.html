@@ -1,35 +1,558 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fiestaa Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial; background: #111; color: white; padding: 20px; }
-        h1, h2 { text-align: center; }
-        select, input, button { padding: 6px; margin: 5px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #444; padding: 8px; text-align: center; }
-        th { background: #222; }
-        button { cursor: pointer; }
-        .danger { background: red; color: white; }
-        .success { background: green; color: white; }
-        .warning { background: orange; color: black; }
+        /* Unified Professional Dark Mode - Admin Panel */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-soft: #141418;
+            --bg-card: rgba(25, 25, 32, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-primary: #1e3a8a;
+            --accent-hover: #2563eb;
+            --error-red: #dc2626;
+            --warning-amber: #f59e0b;
+        }
+        
+        body {
+            font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background:
+                radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+                radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+            background-color: #050508;
+            color: var(--text-primary);
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        /* Dense Star Field - Nebula Style */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+            background-repeat: repeat;
+            background-size: 800px 500px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 32px;
+            border-bottom: 2px solid var(--accent-primary);
+            padding-bottom: 12px;
+            margin-bottom: 32px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin: 32px 0 20px 0;
+            color: var(--accent-hover);
+        }
+
+        /* Professional Form Controls */
+        select, input, button {
+            padding: 12px 16px;
+            margin: 8px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            background: rgba(20, 20, 28, 0.75);
+            color: #e5e7eb;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border 0.2s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select option {
+            background: #0f0f16;
+            color: #e5e7eb;
+            padding: 12px;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border: 1px solid rgba(37, 99, 235, 0.6);
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: 600;
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Professional Data Tables */
+        table {
+            position: relative;
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(20, 20, 28, 0.75);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+        }
+
+        table::before {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 18px;
+            background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        th {
+            background: rgba(25, 25, 32, 0.9);
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--accent-hover);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        tr:hover td {
+            background: var(--bg-hover);
+        }
+
+        /* Professional Filter Section - Nebula Glass Card */
+        .filter-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            gap: 15px;
+            flex-wrap: wrap;
+            background: rgba(20, 20, 28, 0.75);
+            backdrop-filter: blur(18px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+        }
+
+        .filter-container::before {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border-radius: 18px;
+            background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+            z-index: -1;
+        }
+
+        .filter-container label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-right: 5px;
+        }
+
+        .event-toggle-panel {
+            background: rgba(20, 20, 28, 0.75);
+            backdrop-filter: blur(18px);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+            margin-bottom: 32px;
+        }
+
+        .toggle-hint {
+            margin-top: -10px;
+            margin-bottom: 18px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .event-toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .event-toggle-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+            background: rgba(15, 15, 22, 0.8);
+            gap: 22px;
+        }
+
+        .toggle-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .toggle-status {
+            margin: 4px 0 0 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-status.active {
+            color: #34d399;
+        }
+
+        .toggle-status.inactive {
+            color: #f87171;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 54px;
+            height: 30px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.2);
+            transition: 0.3s;
+            border-radius: 30px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 24px;
+            width: 24px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        .switch input:checked + .slider {
+            background: var(--accent-primary);
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .toggle-feedback {
+            margin-top: 18px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toggle-feedback.success {
+            color: #34d399;
+        }
+
+        .toggle-feedback.error {
+            color: #f87171;
+        }
+
+        /* Status Button Styling */
+        .btn-danger {
+            background: var(--error-red) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 14px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+            margin: 2px !important;
+        }
+
+        .btn-danger:hover {
+            background: #b91c1c !important;
+        }
+
+        .btn-success {
+            background: var(--accent-primary) !important;
+            color: white !important;
+            border: none !important;
+            padding: 8px 14px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+            margin: 2px !important;
+        }
+
+        .btn-success:hover {
+            background: var(--accent-hover) !important;
+        }
+
+        .btn-warning {
+            background: var(--warning-amber) !important;
+            color: #0a0a0f !important;
+            border: none !important;
+            padding: 8px 14px !important;
+            border-radius: 10px !important;
+            font-size: 12px !important;
+            margin: 2px !important;
+        }
+
+        .btn-warning:hover {
+            background: #d97706 !important;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+            margin: 24px 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .filter-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+            }
+
+            select, input, button {
+                width: 100%;
+                margin: 4px 0;
+            }
+        }
+
+        /* Action Button Classes */
+        .danger {
+            background: var(--error-red) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .danger:hover {
+            background: #b91c1c !important;
+        }
+
+        .success {
+            background: var(--accent-primary) !important;
+            color: white !important;
+            border: none !important;
+        }
+
+        .success:hover {
+            background: var(--accent-hover) !important;
+        }
+
+        .warning {
+            background: var(--warning-amber) !important;
+            color: #0a0a0f !important;
+            border: none !important;
+        }
+
+        .warning:hover {
+            background: #d97706 !important;
+        }
+
+        /* Batch Control Styles */
+        .batch-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 8px;
+        }
+
+        .batch-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 80px;
+        }
+
+        .start-btn {
+            background: #059669;
+            color: white;
+        }
+
+        .start-btn:hover {
+            background: #047857;
+            transform: translateY(-1px);
+        }
+
+        .end-btn {
+            background: var(--error-red);
+            color: white;
+        }
+
+        .end-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .reset-btn {
+            background: var(--warning-amber);
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background: #d97706;
+            transform: translateY(-1px);
+        }
+
+        .view-btn {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .view-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Public leaderboard status pill */
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .status-pill.active {
+            color: #082b15;
+            border-color: rgba(34,197,94,0.35);
+            background: rgba(34,197,94,0.12);
+        }
+
+        .status-pill.inactive {
+            color: #f87171;
+            border-color: rgba(248,113,113,0.35);
+            background: rgba(248,113,113,0.12);
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Feedback styles */
+        .toggle-feedback.success,
+        #batchControlFeedback.success {
+            color: #054330;
+            font-weight: 600;
+        }
+
+        .toggle-feedback.error,
+        #batchControlFeedback.error {
+            color: #dc2626;
+            font-weight: 600;
+        }
     </style>
 </head>
-<body>
+<body class="admin-panel">
 
-<h1>Fiestaa Admin Control </h1>
+<h1>Fiestaa Admin Control Panel</h1>
 
 <!-- Filters -->
-<div>
-    
-    Event:
+<div class="filter-container">
+    <label>Event:</label>
     <select id="eventFilter">
         <option value="">All</option>
         <option value="blackbox">BlackBox</option>
         <option value="escape">Escape</option>
     </select>
 
-    Status:
+    <label>Status:</label>
     <select id="statusFilter">
         <option value="">All</option>
         <option value="not_started">Not Started</option>
@@ -42,9 +565,87 @@
     <button onclick="loadTeams()">Apply Filter</button>
 </div>
 
+<div class="event-toggle-panel">
+    <h2>Event Availability</h2>
+    <p class="toggle-hint">Enable or disable registrations for each event in real time.</p>
+    <div class="event-toggle-grid">
+        <div class="event-toggle-card">
+            <div>
+                <p class="toggle-title">Tech Escape Room</p>
+                <p class="toggle-status" id="escapeStatus">Loading...</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" class="event-toggle" data-event-key="escape">
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div class="event-toggle-card">
+            <div>
+                <p class="toggle-title">Black Box Challenge</p>
+                <p class="toggle-status" id="blackboxStatus">Loading...</p>
+            </div>
+            <label class="switch">
+                <input type="checkbox" class="event-toggle" data-event-key="blackbox">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+    <div class="toggle-feedback" id="eventToggleFeedback"></div>
+</div>
+
+<!-- 🔥 BATCH CONTROL PANEL -->
+<div class="event-toggle-panel">
+    <h2>Batch Control System</h2>
+    <p class="toggle-hint">Start and end batches for each event. Teams are auto-assigned when batch starts.</p>
+    
+    <div class="event-toggle-grid">
+        <div class="event-toggle-card">
+            <div>
+                <p class="toggle-title">Escape Room Batches</p>
+                <p class="toggle-status" id="escapeBatchStatus">Loading...</p>
+            </div>
+            <div class="batch-buttons">
+                <button onclick="startBatch('escape')" class="batch-btn start-btn">Start Batch</button>
+                <button onclick="endBatch('escape')" class="batch-btn end-btn">End Batch</button>
+                <button onclick="resetBatch('escape')" class="batch-btn reset-btn">Reset Batch</button>
+            </div>
+        </div>
+        
+        <div class="event-toggle-card">
+            <div>
+                <p class="toggle-title">BlackBox Batches</p>
+                <p class="toggle-status" id="blackboxBatchStatus">Loading...</p>
+            </div>
+            <div class="batch-buttons">
+                <button onclick="startBatch('blackbox')" class="batch-btn start-btn">Start Batch</button>
+                <button onclick="endBatch('blackbox')" class="batch-btn end-btn">End Batch</button>
+                <button onclick="resetBatch('blackbox')" class="batch-btn reset-btn">Reset Batch</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toggle-feedback" id="batchControlFeedback"></div>
+    
+    <!-- Batch Filter -->
+    <div class="filter-container" style="margin-top: 20px;">
+        <label>Filter by Batch:</label>
+        <select id="batchFilter">
+            <option value="">All Batches</option>
+            <option value="null">Waiting (No Batch)</option>
+            <option value="1">Batch 1</option>
+            <option value="2">Batch 2</option>
+            <option value="3">Batch 3</option>
+            <option value="4">Batch 4</option>
+            <option value="5">Batch 5</option>
+        </select>
+        <button onclick="loadTeams()">Apply Batch Filter</button>
+    </div>
+</div>
+
 <hr>
 
 <!-- Team Table -->
+<h2>Team Management</h2>
 <table>
     <thead>
         <tr>
@@ -55,9 +656,10 @@
             <th>Round</th>
             <th>Score</th>
             <th>Penalty</th>
-            <th>Total Score</th>
+            <th>Final Score</th>
             <th>Tab Switches</th>
             <th>Status</th>
+            <th>Batch</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -66,8 +668,22 @@
 
 <hr>
 
-<h2>Live Leaderboard</h2>
+<h2>🏆 Public Leaderboard Control</h2>
+<div class="batch-control-panel">
+    <div class="batch-status">
+        <div class="status-label">Public Leaderboard Status</div>
+        <div class="status-row">
+            <div id="leaderboardStatus" class="status-pill inactive">Checking...</div>
+            <button onclick="togglePublicLeaderboard(true)" class="start-btn">Enable Leaderboard</button>
+            <button onclick="togglePublicLeaderboard(false)" class="end-btn">Disable Leaderboard</button>
+            <button onclick="window.open('/leaderboard.html', '_blank')" class="view-btn"> View Public Page</button>
+        </div>
+    </div>
+</div>
 
+<hr>
+
+<h2>Live Leaderboard</h2>
 <table>
     <thead>
         <tr>
@@ -85,15 +701,313 @@
 
 <script>
 
+const eventToggleConfig = {
+    escape: {
+        title: "Tech Escape Room",
+        toggle: document.querySelector('.event-toggle[data-event-key="escape"]'),
+        statusEl: document.getElementById("escapeStatus")
+    },
+    blackbox: {
+        title: "Black Box Challenge",
+        toggle: document.querySelector('.event-toggle[data-event-key="blackbox"]'),
+        statusEl: document.getElementById("blackboxStatus")
+    }
+};
+
+const eventToggleFeedback = document.getElementById("eventToggleFeedback");
+
+function setToggleStatusLabel(key, isActive, titleOverride) {
+    const config = eventToggleConfig[key];
+    if (!config || !config.statusEl) return;
+    config.statusEl.textContent = isActive ? "Enabled" : "Disabled";
+    config.statusEl.classList.toggle("active", isActive);
+    config.statusEl.classList.toggle("inactive", !isActive);
+    if (titleOverride) {
+        config.title = titleOverride;
+    }
+}
+
+function showToggleFeedback(message = "", type = "") {
+    if (!eventToggleFeedback) return;
+    eventToggleFeedback.textContent = message;
+    eventToggleFeedback.classList.remove("success", "error");
+    if (type) {
+        eventToggleFeedback.classList.add(type);
+    }
+}
+
+async function loadEventAvailability() {
+    Object.values(eventToggleConfig).forEach(config => {
+        if (config.toggle) config.toggle.disabled = true;
+        if (config.statusEl) {
+            config.statusEl.textContent = "Loading...";
+            config.statusEl.classList.remove("active", "inactive");
+        }
+    });
+
+    try {
+        const res = await fetch("/api/events");
+        if (!res.ok) {
+            throw new Error("Failed to load events");
+        }
+
+        const events = await res.json();
+        const stateMap = {};
+        events.forEach(evt => {
+            stateMap[evt.key] = evt;
+        });
+
+        Object.entries(eventToggleConfig).forEach(([key, config]) => {
+            const evt = stateMap[key];
+            const isActive = evt ? !!evt.isActive : false;
+            if (config.toggle) {
+                config.toggle.checked = isActive;
+                config.toggle.disabled = false;
+            }
+            setToggleStatusLabel(key, isActive, evt?.title);
+        });
+
+        showToggleFeedback();
+    } catch (err) {
+        showToggleFeedback("Unable to load event availability.", "error");
+        Object.values(eventToggleConfig).forEach(config => {
+            if (config.toggle) config.toggle.disabled = false;
+        });
+    }
+}
+
+async function handleEventToggleChange(key, isActive, toggleEl) {
+    if (!toggleEl) return;
+    toggleEl.disabled = true;
+    showToggleFeedback(`Saving ${eventToggleConfig[key]?.title || key} settings...`);
+
+    try {
+        const res = await fetch(`/api/events/${key}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ isActive })
+        });
+
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.message || "Unable to update event.");
+        }
+
+        const updated = await res.json();
+        setToggleStatusLabel(key, updated.isActive, updated.title);
+        showToggleFeedback(`${updated.title} is now ${updated.isActive ? "enabled" : "disabled"}.`, "success");
+    } catch (err) {
+        toggleEl.checked = !isActive;
+        showToggleFeedback(err.message || "Unable to update event.", "error");
+    } finally {
+        toggleEl.disabled = false;
+    }
+}
+
+Object.entries(eventToggleConfig).forEach(([key, config]) => {
+    if (!config.toggle) return;
+    config.toggle.addEventListener("change", () => handleEventToggleChange(key, config.toggle.checked, config.toggle));
+});
+
+// 🔥 BATCH CONTROL FUNCTIONS
+async function startBatch(event) {
+    try {
+        showBatchFeedback("Starting batch...", "");
+        
+        const response = await fetch(`/api/admin/batch/start`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showBatchFeedback(`✅ Batch ${data.batch} started for ${event} (${data.teamsAssigned || 0} teams moved from WAITING)`, "success");
+            loadBatchStatus();
+            loadTeams(); // Refresh team list
+        } else {
+            showBatchFeedback(`❌ Error: ${data.message || "Failed to start batch"}`, "error");
+        }
+
+    } catch (err) {
+        console.error("Start batch error:", err);
+        showBatchFeedback(`❌ Error: ${err.message}`, "error");
+    }
+}
+
+async function endBatch(event) {
+    if (!confirm(`Are you sure you want to end the current ${event} batch?`)) {
+        return;
+    }
+
+    try {
+        showBatchFeedback("Ending batch...", "");
+        
+        const response = await fetch(`/api/admin/batch/stop`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showBatchFeedback(`✅ Batch stopped for ${event}`, "success");
+            loadBatchStatus();
+            loadTeams(); // Refresh team list
+        } else {
+            showBatchFeedback(`❌ Error: ${data.message || "Failed to end batch"}`, "error");
+        }
+
+    } catch (err) {
+        console.error("End batch error:", err);
+        showBatchFeedback(`❌ Error: ${err.message}`, "error");
+    }
+}
+
+async function resetBatch(event) {
+    if (!confirm(`Are you sure you want to reset the ${event} batch back to 1?\n\nThis will:\n- Set batch number back to 0\n- Remove all team batch assignments\n- Stop current batch if active`)) {
+        return;
+    }
+
+    try {
+        showBatchFeedback("Resetting batch...", "");
+        
+        const response = await fetch(`/api/admin/batch/reset`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ event })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showBatchFeedback(`✅ Batch reset for ${event} - next start will be Batch 1`, "success");
+            loadBatchStatus();
+            loadTeams(); // Refresh team list
+        } else {
+            showBatchFeedback(`❌ Error: ${data.message || "Failed to reset batch"}`, "error");
+        }
+
+    } catch (err) {
+        console.error("Reset batch error:", err);
+        showBatchFeedback(`❌ Error: ${err.message}`, "error");
+    }
+}
+
+async function loadBatchStatus() {
+    try {
+        const escapeRes = await fetch("/api/admin/batch/status/escape");
+        const escapeData = await escapeRes.json();
+        
+        const blackboxRes = await fetch("/api/admin/batch/status/blackbox");
+        const blackboxData = await blackboxRes.json();
+
+        // Update Escape status
+        const escapeStatus = document.getElementById("escapeBatchStatus");
+        if (escapeData.isActive) {
+            escapeStatus.textContent = `Batch ${escapeData.currentBatchNumber} - ACTIVE`;
+            escapeStatus.style.color = "#059669";
+        } else if (escapeData.currentBatchNumber > 0) {
+            escapeStatus.textContent = `Batch ${escapeData.currentBatchNumber} - ENDED`;
+            escapeStatus.style.color = "#f59e0b";
+        } else {
+            escapeStatus.textContent = "No batch created";
+            escapeStatus.style.color = "#9ca3af";
+        }
+
+        // Update BlackBox status
+        const blackboxStatus = document.getElementById("blackboxBatchStatus");
+        if (blackboxData.isActive) {
+            blackboxStatus.textContent = `Batch ${blackboxData.currentBatchNumber} - ACTIVE`;
+            blackboxStatus.style.color = "#059669";
+        } else if (blackboxData.currentBatchNumber > 0) {
+            blackboxStatus.textContent = `Batch ${blackboxData.currentBatchNumber} - ENDED`;
+            blackboxStatus.style.color = "#f59e0b";
+        } else {
+            blackboxStatus.textContent = "No batch created";
+            blackboxStatus.style.color = "#9ca3af";
+        }
+
+    } catch (err) {
+        console.error("Load batch status error:", err);
+    }
+}
+
+function showBatchFeedback(message = "", type = "") {
+    const feedback = document.getElementById("batchControlFeedback");
+    if (!feedback) return;
+    
+    feedback.textContent = message;
+    feedback.classList.remove("success", "error");
+    if (type) {
+        feedback.classList.add(type);
+    }
+    
+    // Clear after 5 seconds
+    if (message) {
+        setTimeout(() => {
+            feedback.textContent = "";
+            feedback.classList.remove("success", "error");
+        }, 5000);
+    }
+}
+
+/* ===============================
+   LEADERBOARD CONTROL FUNCTIONS
+================================= */
+
+async function loadLeaderboardStatus() {
+    try {
+        const res = await fetch("/api/admin/leaderboard/status");
+        const data = await res.json();
+        
+        const statusEl = document.getElementById("leaderboardStatus");
+        if (statusEl) {
+            const isEnabled = Boolean(data && data.enabled);
+            statusEl.textContent = isEnabled ? "Enabled" : "Disabled";
+            statusEl.className = isEnabled ? "status-pill active" : "status-pill inactive";
+        }
+    } catch (err) {
+        console.error("Failed to load leaderboard status:", err);
+    }
+}
+
+async function togglePublicLeaderboard(enabled) {
+    try {
+        const res = await fetch("/api/admin/leaderboard/toggle", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ enabled })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            alert(` ${data.message}`);
+            await loadLeaderboardStatus();
+        } else {
+            alert(" Failed to update leaderboard status");
+        }
+    } catch (err) {
+        console.error("Error toggling leaderboard:", err);
+        alert("Server error");
+    }
+}
+
 async function loadTeams() {
 
     const eventElement = document.getElementById("eventFilter");
     const statusElement = document.getElementById("statusFilter");
+    const batchElement = document.getElementById("batchFilter");
 
     let eventType = eventElement.value;
     let status = statusElement.value;
+    let batch = batchElement ? batchElement.value : "";
 
     let query = `?eventType=${eventType}&status=${status}`;
+    if (batch) query += `&batch=${batch}`;
 
     const res = await fetch("/api/admin/teams" + query);
     const teams = await res.json();
@@ -106,7 +1020,10 @@ async function loadTeams() {
         const maxRound = team.eventType === 'escape' ? 5 : 3;
         const roundLabel = team.eventType === 'escape' ? 'L' : 'R';
         const roundDisplay = team.currentRound > maxRound ? "Done" : `${roundLabel}${team.currentRound || 1}`;
-        const totalScore = (team.score || 0);
+        const totalScore = Math.max(0, (team.score || 0) - (team.penalty || 0));
+        
+        const batchDisplay = team.batch === "waiting" ? "waiting" : `Batch ${team.batch}`;
+        const batchColor = team.batch === "waiting" ? '#f59e0b' : '#059669';
 
         table.innerHTML += `
             <tr>
@@ -120,6 +1037,9 @@ async function loadTeams() {
                 <td><b>${totalScore}</b></td>
                 <td>${team.tabSwitchCount || 0}</td>
                 <td>${team.status}</td>
+                <td>
+                    <span class="batch-indicator" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: ${batchColor}; color: white; font-weight: 600;">${batchDisplay}</span>
+                </td>
                 <td>
                     <button onclick="editScore('${team._id}')">Edit</button>
                     <button class="success" onclick="changeStatus('${team._id}', 'active')">Activate</button>
@@ -192,10 +1112,15 @@ async function loadLeaderboard() {
 document.addEventListener("DOMContentLoaded", () => {
     loadTeams();
     loadLeaderboard();
+    loadEventAvailability();
+    loadBatchStatus(); // Load batch status on page load
+    loadLeaderboardStatus(); // Load public leaderboard status
 
     setInterval(() => {
         loadTeams();
         loadLeaderboard();
+        loadBatchStatus(); // Refresh batch status every 5 seconds
+        loadLeaderboardStatus(); // Refresh leaderboard status
     }, 5000);
 });
 

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../../css/global.css">
     <link rel="stylesheet" href="../assets/css/style.css">
     <title>Waiting</title>
 </head>
@@ -64,14 +65,14 @@
                         return;
                     }
                     if (team.winner || Number(team.currentLevel || 1) >= 5 && team.level5_submitted){
-                        statusEl.innerHTML = '<strong style="color: #10b981">Congratulations! Winner announcement is ready.</strong>';
+                        statusEl.innerHTML = '<strong style="color: #2563eb">Congratulations! Winner announcement is ready.</strong>';
                         setTimeout(function(){ window.location.href = '../result/winner.html'; }, 1200);
                         return;
                     }
 
                     if (Number(team.currentLevel || 1) > currentLevel){
                         var nextLevel = Number(team.currentLevel || 1);
-                        statusEl.innerHTML = '<strong style="color: #10b981">You have been advanced to Level ' + nextLevel + '.</strong>';
+                        statusEl.innerHTML = '<strong style="color: #2563eb">You have been advanced to Level ' + nextLevel + '.</strong>';
                         setTimeout(function(){ goToNextLevel(nextLevel); }, 1200);
                         return;
                     }

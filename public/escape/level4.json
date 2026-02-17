@@ -1,0 +1,243 @@
+[
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Ransomware Containment",
+    "incident": "File server files are encrypted. Suspicious outbound traffic detected. Backups available from last night.",
+    "constraints": [
+      "No data loss",
+      "Stop spread immediately",
+      "Do NOT pay ransom",
+      "Preserve forensic evidence"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Disconnect server from network",
+      "Restart server",
+      "Activate incident response protocol",
+      "Restore from backup",
+      "Pay ransom",
+      "Identify affected systems",
+      "Delete suspicious logs",
+      "Inform all users immediately"
+    ],
+    "correct_order": [1, 3, 6, 4]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Database Corruption After Deployment",
+    "incident": "Production database shows inconsistent records after new deployment.",
+    "constraints": [
+      "No permanent data loss",
+      "Service interruption under 5 minutes",
+      "Logs must be preserved"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Stop new write operations",
+      "Restart database server",
+      "Check transaction logs",
+      "Roll back to last stable version",
+      "Delete corrupted tables",
+      "Notify marketing team",
+      "Take fresh backup",
+      "Disable all user accounts"
+    ],
+    "correct_order": [1, 3, 7, 4]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Brute Force Attack",
+    "incident": "Authentication server facing 1500 failed logins per minute targeting admin accounts.",
+    "constraints": [
+      "Do not log out active users",
+      "Prevent credential compromise",
+      "Downtime under 3 minutes"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Enable rate limiting",
+      "Restart authentication server",
+      "Block suspicious IP ranges",
+      "Force password reset for admins",
+      "Shut down entire network",
+      "Ignore until confirmed",
+      "Activate backup auth service",
+      "Pull power cable"
+    ],
+    "correct_order": [3, 1, 7, 4]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Network Routing Failure",
+    "incident": "Academic block loses internet. Core switch routing table abnormal.",
+    "constraints": [
+      "Do not affect other blocks",
+      "No hardware replacement",
+      "Must identify root cause"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Verify routing configuration",
+      "Restart entire campus network",
+      "Isolate affected VLAN",
+      "Analyze recent configuration changes",
+      "Replace hardware",
+      "Inform students of permanent outage",
+      "Disconnect fiber backbone",
+      "Apply corrected routing rules"
+    ],
+    "correct_order": [3, 1, 4, 8]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Insider Data Leak",
+    "incident": "Sensitive student data uploaded externally. Suspicious admin login detected.",
+    "constraints": [
+      "Preserve evidence",
+      "Do not alert suspect immediately",
+      "Prevent further data exfiltration"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Collect and preserve logs",
+      "Immediately suspend suspected account",
+      "Block external upload traffic",
+      "Monitor active sessions",
+      "Delete suspicious logs",
+      "Shut down system",
+      "Inform entire staff",
+      "Change all admin credentials"
+    ],
+    "correct_order": [3, 1, 4, 2]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "DDoS Attack",
+    "incident": "Public website receiving massive traffic spike. Services slowing down.",
+    "constraints": [
+      "Keep service partially available",
+      "No full shutdown",
+      "Minimize customer impact"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Enable traffic filtering rules",
+      "Shut down server",
+      "Activate CDN protection",
+      "Monitor traffic patterns",
+      "Inform attackers publicly",
+      "Restart server",
+      "Scale server resources",
+      "Ignore temporary spike"
+    ],
+    "correct_order": [4, 1, 3, 7]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Email Phishing Campaign",
+    "incident": "Multiple users report phishing email with malicious link.",
+    "constraints": [
+      "Prevent credential theft",
+      "Do not panic users",
+      "Preserve mail logs"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Analyze email headers",
+      "Delete all mail server logs",
+      "Block malicious domain",
+      "Send advisory to users",
+      "Shut down email server",
+      "Reset all passwords immediately",
+      "Ignore single complaints",
+      "Quarantine suspicious emails"
+    ],
+    "correct_order": [1, 8, 3, 4]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Cloud Storage Breach",
+    "incident": "Unauthorized access detected in cloud storage bucket.",
+    "constraints": [
+      "No data deletion",
+      "Prevent further access",
+      "Maintain service continuity"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Revoke exposed access keys",
+      "Delete entire storage bucket",
+      "Review access logs",
+      "Apply stricter access policies",
+      "Shut down cloud provider account",
+      "Ignore minor anomaly",
+      "Inform external press",
+      "Rotate credentials"
+    ],
+    "correct_order": [1, 3, 4, 8]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Server CPU Overload",
+    "incident": "Production server CPU at 100% continuously. Services slowing.",
+    "constraints": [
+      "No immediate shutdown",
+      "No data loss",
+      "Must identify root cause"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Analyze running processes",
+      "Restart server immediately",
+      "Kill malicious/high CPU process",
+      "Enable monitoring alerts",
+      "Ignore temporary spike",
+      "Disconnect power supply",
+      "Delete system logs",
+      "Schedule hardware upgrade"
+    ],
+    "correct_order": [1, 3, 4, 8]
+  },
+  {
+    "level": 4,
+    "category": "scenario",
+    "type": "ordered_actions",
+    "scenario": "Backup Failure Detected",
+    "incident": "Daily backup reports failure for last 3 days. System still operational.",
+    "constraints": [
+      "No service interruption",
+      "Ensure future recovery possible",
+      "Identify failure cause"
+    ],
+    "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+    "actions": [
+      "Investigate backup logs",
+      "Ignore since system working",
+      "Fix backup configuration",
+      "Perform manual backup",
+      "Delete old backups",
+      "Shut down production system",
+      "Inform media",
+      "Enable backup alerts"
+    ],
+    "correct_order": [1, 3, 4, 8]
+  }
+]

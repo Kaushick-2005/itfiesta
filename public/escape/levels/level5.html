@@ -5,25 +5,208 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Level 5 - Coding Final</title>
   <link rel="stylesheet" href="../assets/css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { background:#0b1020; color:#e6eef8; font-family:Segoe UI,Roboto,Arial; margin:0; padding:0; }
-    .topbar { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid #17324a; background:#071028; position:sticky; top:0; z-index:3; }
+    /* Unified Professional Dark Mode - Level 5 */
+    :root {
+        --bg-main: #0a0a0f;
+        --bg-card: rgba(25, 25, 32, 0.65);
+        --bg-input: rgba(255, 255, 255, 0.05);
+        --bg-hover: rgba(255, 255, 255, 0.06);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --text-primary: #e5e7eb;
+        --text-secondary: #9ca3af;
+        --accent-primary: #1e3a8a;
+        --accent-hover: #2563eb;
+        --error-red: #dc2626;
+    }
+
+    body {
+      background:
+          radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+          radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+          radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+      background-color: #050508;
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      position: relative;
+    }
+
+    /* Dense Star Field */
+    body::before {
+      content:'';
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background-image:
+          radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+          radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+          radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+          radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+          radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+      background-repeat:repeat;
+      background-size:800px 500px;
+      pointer-events:none;
+      z-index:-1;
+    }
+
+    .topbar { 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center; 
+      padding:14px 20px; 
+      border-bottom:1px solid var(--border-subtle); 
+      background: var(--bg-card); 
+      backdrop-filter: blur(18px);
+      position:sticky; 
+      top:0; 
+      z-index:3; 
+    }
+
+    .topbar strong {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
     .timer-wrap { text-align:right; }
-    .timer-label { font-size:11px; color:#9fb1c8; text-transform:uppercase; }
-    .timer-display { font-size:26px; font-weight:700; color:#7ed957; font-family:'Courier New', monospace; }
-    .container { display:flex; height:100vh; }
-    .left { flex:1; padding:18px; overflow:auto; }
-    .right { width:420px; background:#071028; border-left:1px solid #17324a; padding:16px; display:flex; flex-direction:column; }
-    h2 { color:#7ed957; }
-    textarea { width:100%; min-height:140px; background:#071a2b; color:#e6eef8; border:1px solid #123246; padding:10px; border-radius:6px; font-family:monospace; }
-    .controls { margin-top:12px; display:flex; gap:8px; }
-    button { padding:10px 12px; border-radius:6px; border:0; cursor:pointer; background:#1f8fff; color:#fff; }
-    .btn-test { background:#ff9f1c; }
-    .previewWrap { height:100%; border:1px solid #123246; border-radius:6px; overflow:hidden; }
-    .status { margin-top:10px; font-size:14px; }
-    .muted { color:#9fb1c8; }
+    .timer-label { 
+      font-size:11px; 
+      color: var(--text-secondary); 
+      text-transform:uppercase; 
+      letter-spacing: 1px;
+    }
+    .timer-display { 
+      font-size:26px; 
+      font-weight:700; 
+      color: var(--accent-hover); 
+      font-family:'Consolas', monospace;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .container { display:flex; height:calc(100vh - 60px); }
     
-    /* 🔵 RESULT MODAL */
+    .left { 
+      flex:1; 
+      padding:20px; 
+      overflow:auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(18px);
+    }
+    
+    .right { 
+      width:420px; 
+      background: var(--bg-card); 
+      border-left:1px solid var(--border-subtle); 
+      padding:20px; 
+      display:flex; 
+      flex-direction:column;
+      backdrop-filter: blur(18px);
+    }
+
+    h2 { 
+      color: var(--text-primary); 
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    textarea { 
+      width:100%; 
+      min-height:140px; 
+      background: var(--bg-input); 
+      color: var(--text-primary); 
+      border:1px solid var(--border-subtle); 
+      padding:12px; 
+      border-radius:10px; 
+      font-family:monospace;
+      font-size: 14px;
+      resize: vertical;
+      transition: border 0.2s ease;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    textarea[readonly] {
+      opacity: 0.7;
+    }
+
+    .controls { 
+      margin-top:16px; 
+      display:flex; 
+      gap:12px; 
+    }
+
+    button { 
+      padding:12px 16px; 
+      border-radius:10px; 
+      border:0; 
+      cursor:pointer; 
+      background: var(--accent-primary); 
+      color:#fff;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    button:hover {
+      background: var(--accent-hover);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-test { 
+      background: var(--accent-primary);
+    }
+
+    .btn-test:hover {
+      background: var(--accent-hover);
+    }
+
+    .previewWrap { 
+      height:100%; 
+      border:1px solid var(--border-subtle); 
+      border-radius:10px; 
+      overflow:hidden;
+      background: rgba(0,0,0,0.2);
+    }
+
+    .status { 
+      margin-top:12px; 
+      font-size:14px; 
+      color: var(--text-primary);
+    }
+
+    .muted { 
+      color: var(--text-secondary); 
+      line-height: 1.6;
+    }
+    
+    /* Custom Modal */
     .modal{
         display:none;
         position:fixed;
@@ -31,66 +214,80 @@
         left:0;
         width:100%;
         height:100%;
-        background:rgba(0,0,0,0.75);
+        background:rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
         justify-content:center;
         align-items:center;
         z-index:1000;
     }
 
     .modal-content{
-        background:#1e293b;
+        background: var(--bg-card);
+        backdrop-filter: blur(18px);
         padding:30px;
-        border-radius:16px;
-        width:350px;
+        border-radius:14px;
+        width:400px;
+        max-width:90vw;
         text-align:center;
-        box-shadow:0 10px 30px rgba(0,0,0,0.6);
-        animation:fadeIn 0.3s ease;
-        color: #e6eef8;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
     }
 
     .modal-content h3{
-        margin-bottom:15px;
-        color: #16c784;
+        margin-bottom:16px;
+        font-size: 20px;
+        color: var(--text-primary);
+        font-weight: 600;
     }
 
     .modal-content p{
-        color:#cbd5e1;
+        color: var(--text-secondary);
         margin-bottom:20px;
         line-height: 1.5;
+        font-size: 15px;
     }
 
     .modal-confirm{
-        background:#16c784;
+        background: var(--accent-primary);
         border:none;
-        padding:12px 24px;
-        border-radius:8px;
+        padding:14px 28px;
+        border-radius:10px;
         cursor:pointer;
-        color:#0f3460;
-        font-weight: bold;
-        font-size: 16px;
+        color: white;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: background 0.2s ease, transform 0.1s ease;
     }
 
     .modal-confirm:hover{
-        background:#00d4ff;
+        background: var(--accent-hover);
     }
 
-    @keyframes fadeIn{
-        from{opacity:0; transform:scale(0.9);}
-        to{opacity:1; transform:scale(1);}
+    .modal-confirm:active{
+        transform: scale(0.98);
     }
   </style>
 </head>
-<body>
-  <div class="topbar">
-    <div><strong>Level 5 — Coding Final</strong></div>
-    <div class="timer-wrap">
-      <div class="timer-label">Time Remaining</div>
+<body class="exam-mode">
+  <div class="level-container">
+    <h1 class="level-title">Level 5: Coding Final</h1>
+
+    <div class="timer-box" style="margin: 0 auto 25px; max-width: 220px;">
+      <span class="timer-label">TIME REMAINING</span>
       <div class="timer-display" id="timer-count">10:00</div>
     </div>
-  </div>
-  <div class="container">
+
+    <div class="instruction-box">
+      <h3 class="warning-title">No Tab Switching</h3>
+      <p class="warning-text">Stay on this window while you code. Switching tabs can trigger penalties.</p>
+    </div>
+
+    <div class="container">
     <div class="left">
-      <h2>Level 5 — HTML/CSS/JS Coding Final</h2>
+      <h3 style="margin-bottom: 12px; font-size: 18px; color: var(--text-secondary);">HTML/CSS/JS Implementation Challenge</h3>
       <p class="muted">Implement vertical-to-horizontal scroll synchronization inside the provided template. Do not change the base HTML structure. No external libraries. You have 10 minutes.</p>
 
       <div class="previewWrap">
@@ -114,6 +311,7 @@
       </div>
 
       <div class="status" id="status"></div>
+    </div>
     </div>
   </div>
 

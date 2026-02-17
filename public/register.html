@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IT Fiesta - Team Registration</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>IT Fiesta - Team Registration</title>    <link rel="stylesheet" href="css/global.css">    <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -12,11 +11,8 @@
     <div class="auth-container">
         <div class="auth-card register-card">
             <div class="auth-header">
-                <div class="logo">
-                    <i class="fas fa-code"></i>
-                    <h1>IT Fiesta</h1>
-                </div>
-                <p class="subtitle">Create your team account and join the competition</p>
+                <h1>Registration</h1>
+                <p>Create your team account and join the competition</p>
             </div>
             
             <form id="registerForm" class="auth-form">
@@ -83,15 +79,16 @@
                             <i class="fas fa-calendar-check"></i>
                             Select Event
                         </label>
-                        <select id="eventType" required>
-                            <option value="">Choose your competition</option>
-                            <option value="blackbox">Black Box Challenge</option>
-                            <option value="escape">Tech Escape Room</option>
+                        <select id="eventType" required disabled>
+                            <option value="" disabled selected hidden>Loading events...</option>
                         </select>
+                        <div id="registrationStatus" class="registration-status" hidden>
+                            Registrations are currently closed.
+                        </div>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn-primary">
+                <button type="submit" class="btn-primary" id="registerSubmit" disabled>
                     <i class="fas fa-user-plus"></i>
                     Register Team
                 </button>

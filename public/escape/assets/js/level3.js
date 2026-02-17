@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function(){
   var QUESTION_COUNT = 3;
   var questionContent = document.getElementById('question-content');
   var controls = document.querySelector('.controls');
-  var questionList = document.getElementById('question-list');
   var timerController = null;
 
   var QUESTIONS = [];
@@ -53,22 +52,6 @@ document.addEventListener('DOMContentLoaded', function(){
     return norm(val) === norm(q.final_code || '');
   }
 
-  function buildQuestionList(){
-    if (!questionList) return;
-    questionList.innerHTML = '';
-    for (var i = 0; i < QUESTIONS.length; i++) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'q-button';
-      b.textContent = String(i + 1);
-      b.disabled = true;
-      if (i === currentIndex) b.classList.add('active');
-      var q = QUESTIONS[i];
-      if (q && String(answers[q._qid] || '').trim()) b.classList.add('answered');
-      questionList.appendChild(b);
-    }
-  }
-
   function renderQuestion(){
     var q = QUESTIONS[currentIndex];
     if (!q) {
@@ -105,12 +88,10 @@ document.addEventListener('DOMContentLoaded', function(){
     input.style.marginTop = '14px';
     input.addEventListener('input', function(){
       answers[q._qid] = input.value;
-      buildQuestionList();
       renderControls();
     });
     questionContent.appendChild(input);
 
-    buildQuestionList();
     renderControls();
   }
 
@@ -177,7 +158,13 @@ document.addEventListener('DOMContentLoaded', function(){
     const modal = document.getElementById("resultModal");
     modal.style.display = "flex";
     
-    document.getElementById("confirmBtn").onclick = function() {
+    // Ensure Continue button is enabled and clickable
+    var confirmBtn = document.getElementById("confirmBtn");
+    confirmBtn.removeAttribute('disabled');
+    confirmBtn.classList.remove('disabled');
+    confirmBtn.style.pointerEvents = 'auto';
+    
+    confirmBtn.onclick = function() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {

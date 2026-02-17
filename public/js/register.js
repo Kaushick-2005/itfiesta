@@ -1,5 +1,78 @@
+const eventSelect = document.getElementById("eventType");
+const registrationStatus = document.getElementById("registrationStatus");
+const registerButton = document.getElementById("registerSubmit");
+
+async function loadAvailableEvents() {
+    try {
+        const res = await fetch("/api/events/active");
+        if (!res.ok) {
+            throw new Error("Failed to load events");
+        }
+        const events = await res.json();
+
+        renderEventOptions(Array.isArray(events) ? events : []);
+    } catch (err) {
+        renderEventOptions([]);
+        showRegistrationStatus("Unable to load events. Please refresh or try again.");
+    }
+}
+
+function renderEventOptions(events) {
+    eventSelect.innerHTML = "";
+
+    if (!events.length) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = "Registrations closed";
+        option.disabled = true;
+        eventSelect.appendChild(option);
+
+        eventSelect.disabled = true;
+        registerButton.disabled = true;
+        showRegistrationStatus("Registrations are currently closed.");
+        return;
+    }
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Choose your competition";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.hidden = true;
+    eventSelect.appendChild(placeholder);
+
+    events.forEach(event => {
+        const option = document.createElement("option");
+        option.value = event.key;
+        option.textContent = event.title;
+        eventSelect.appendChild(option);
+    });
+
+    eventSelect.disabled = false;
+    registerButton.disabled = false;
+    hideRegistrationStatus();
+}
+
+function showRegistrationStatus(message) {
+    if (!registrationStatus) return;
+    registrationStatus.textContent = message;
+    registrationStatus.hidden = false;
+}
+
+function hideRegistrationStatus() {
+    if (!registrationStatus) return;
+    registrationStatus.hidden = true;
+}
+
+loadAvailableEvents();
+
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (eventSelect.disabled || !eventSelect.value) {
+        alert("Registrations are currently closed.");
+        return;
+    }
 
     const data = {
         teamName: document.getElementById("teamName").value,
@@ -7,7 +80,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
         leaderMobile: document.getElementById("leaderMobile").value,
         member2: document.getElementById("member2").value,
         member3: document.getElementById("member3").value,
-        eventType: document.getElementById("eventType").value
+        eventType: eventSelect.value
     };
 
     try {

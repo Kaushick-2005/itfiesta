@@ -6,51 +6,101 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <title>IT Fiesta Escape Room</title>
     <style>
+        /* Unified Professional Dark Mode - Escape Room Home */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-card: rgba(25, 25, 32, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-primary: #1e3a8a;
+            --accent-hover: #2563eb;
+            --error-red: #dc2626;
+            --warning-amber: #f59e0b;
+        }
+
+        body {
+            background:
+                radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+                radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+            background-color: #050508;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+            background-repeat: repeat;
+            background-size: 800px 500px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
         .instructions {
-            max-width: 700px;
-            margin: 30px auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            border-left: 4px solid var(--primary-color);
+            max-width: 750px;
+            margin: 35px auto;
+            padding: 32px;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
         }
+
         .instructions h3 {
-            color: var(--primary-color);
-            margin-bottom: 15px;
-            font-size: 18px;
+            color: var(--accent-hover);
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 700;
         }
-        .instructions ol {
+
+        .instructions ol,
+        .instructions ul {
             margin: 0;
-            padding-left: 20px;
+            padding-left: 24px;
             line-height: 1.8;
         }
+
         .instructions li {
-            margin-bottom: 12px;
-            font-size: 14px;
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: var(--text-secondary);
         }
-        .instructions ul {
-            margin: 8px 0 0 0;
-            padding-left: 20px;
-            font-size: 13px;
-        }
-        .instructions ul li {
-            margin-bottom: 4px;
-        }
+
         .card-button {
             display: inline-block;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 14px 24px;
+            background: var(--accent-primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             text-decoration: none;
             font-weight: 600;
-            transition: transform 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: background 0.2s ease, transform 0.1s ease;
+            font-size: 16px;
         }
+
+        .card-button:hover {
+            background: var(--accent-hover);
+        }
+
         .card-button:active {
             transform: scale(0.98);
         }
+
         .card-button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
@@ -77,22 +127,22 @@
                         <li>Level 5 – Coding Final: 10 minutes</li>
                     </ul>
                 </li>
-                <li><strong>Anti-Cheat:</strong> Tab switching = immediate elimination, Full-screen required</li>
+                <li><strong>Anti-Cheat:</strong> Tab switching = -10 points penalty</li>
                 <li><strong>After Each Level:</strong> You wait on a waiting page while admin reviews your score</li>
                 <li><strong>Admin Decision:</strong> Admin can advance you to next level OR eliminate you based on performance</li>
                 <li><strong>Admin Control Panel:</strong> Admin panel is restricted — contact the event admin to access.</li>
             </ol>
         </div>
 
-        <div style="max-width: 500px; margin: 30px auto; padding: 25px; background: rgba(22, 199, 132, 0.1); border: 2px solid #16c784; border-radius: 12px; text-align: center;">
-            <h3 style="color: #16c784; margin-bottom: 15px;">Ready to Start?</h3>
+        <div style="max-width: 500px; margin: 30px auto; padding: 32px; background: var(--bg-card); backdrop-filter: blur(18px); border: 1px solid var(--border-subtle); border-radius: 16px; text-align: center;">
+            <h3 style="color: var(--accent-hover); margin-bottom: 15px; font-weight: 700;">Ready to Start?</h3>
             <p style="margin-bottom: 14px; font-size: 14px; line-height: 1.6;">Enter your Team details, then click start to begin Level 1.</p>
             <input id="teamNumberInput" type="text" placeholder="Enter Team ID (e.g. TEAM12)"
-                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
+                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid var(--border-subtle);background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
             <input id="teamNameInput" type="text" placeholder="Enter Team Name (e.g. Debug Ninjas)"
-                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
+                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid var(--border-subtle);background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
             <textarea id="teamMembersInput" rows="2" placeholder="Enter Team Members (comma separated)"
-                      style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;resize:vertical;"></textarea>
+                      style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid var(--border-subtle);background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;resize:vertical;"></textarea>
             <br>
             <button onclick="startTesting(this)" class="card-button" style="padding: 14px 30px; font-size: 16px;">
                 🚀 Start Testing
@@ -100,7 +150,7 @@
         </div>
 
         <div id="loading" style="display:none; text-align:center; margin-top: 20px;">
-            <p style="color: #16c784;">⏳ Initializing exam system...</p>
+            <p style="color: var(--accent-hover);">⏳ Initializing exam system...</p>
             <p style="font-size: 12px; color: #999;">Registering team • Loading Level 1</p>
         </div>
     </main>

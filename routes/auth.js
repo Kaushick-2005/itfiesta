@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const Team = require("../models/Team");
+const Event = require("../models/Event");
+const BatchControl = require("../models/BatchControl");
+
 // 🔹 Generate Unique Team ID (No duplicates)
 async function generateTeamId(eventType) {
     let teamId;
@@ -36,10 +39,20 @@ router.get("/register", (req, res) => {
 // 🔹 Handle Registration
 router.post("/register", async (req, res) => {
     try {
-        const { teamName, leaderName, leaderMobile, member2, member3, eventType } = req.body;
+        const { teamName, leaderName, leaderMobile, member2, member3 } = req.body;
+        const requestedEvent = String(req.body.eventType || "").toLowerCase();
+        
+        if (!requestedEvent) {
+            return res.status(400).json({ success: false, message: "Event selection is required." });
+        }
 
-        const random = Math.floor(1000 + Math.random() * 9000);
-        const teamId = `${eventType.toUpperCase()}-${random}`;
+        const eventRecord = await Event.findOne({ key: requestedEvent });
+        if (!eventRecord || !eventRecord.isActive) {
+            return res.status(400).json({ success: false, message: "Registrations are currently closed for the selected event." });
+        }
+
+        // Set all new registrations to WAITING batch
+        const teamId = await generateTeamId(requestedEvent);
 
         const newTeam = new Team({
             teamId,
@@ -48,7 +61,8 @@ router.post("/register", async (req, res) => {
             leaderMobile,
             member2,
             member3,
-            eventType,
+            eventType: requestedEvent,
+            batch: "waiting",  // Always set to waiting on registration
             score: 0,
             penalty: 0,
             tabSwitchCount: 0,
@@ -57,11 +71,16 @@ router.post("/register", async (req, res) => {
 
         await newTeam.save();
 
-        res.json({ success: true, teamId });
+        res.json({ 
+            success: true, 
+            teamId,
+            batch: "waiting",
+            message: "Registration successful! You can start playing immediately."
+        });
 
     } catch (error) {
         console.error(error);
-        res.json({ success: false });
+        res.status(500).json({ success: false, message: "Unable to complete registration." });
     }
 });
 

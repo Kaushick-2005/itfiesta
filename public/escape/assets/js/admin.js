@@ -149,7 +149,7 @@ function renderLevelBoards() {
         <div class="muted-small" style="margin-bottom:6px;">Qualified Team Numbers (DB)</div>
         <div class="mini-list" style="margin-bottom:8px;">${qualifiedHtml}</div>
         <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">
-          <input id="qualifiedInputLevel${level}" type="text" value="${presetValue.replace(/"/g, '&quot;')}" placeholder="TEAM01, TEAM02" style="flex:1;padding:8px;border-radius:6px;border:1px solid #123246;background:var(--card);color:#fff;" />
+          <input id="qualifiedInputLevel${level}" type="text" value="${presetValue.replace(/"/g, '&quot;')}" placeholder="TEAM01, TEAM02" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255, 255, 255, 0.08);background:var(--card);color:#fff;" />
           <button class="qualify-btn" onclick="saveQualifiedTeamNumbers(${level})">Save Team Numbers</button>
         </div>
         <div class="muted-small" style="margin-bottom:6px;">Completed Teams</div>

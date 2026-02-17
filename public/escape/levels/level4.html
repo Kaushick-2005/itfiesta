@@ -5,277 +5,267 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Level 4 - Proctored Exam</title>
     <link rel="stylesheet" href="../assets/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Unified Professional Dark Mode - Level 4 */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-card: rgba(25, 25, 32, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-primary: #1e3a8a;
+            --accent-hover: #2563eb;
+            --error-red: #dc2626;
+        }
+
         body {
-            background: #1a1a2e;
-            color: #e6eef8;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:
+                radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+                radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+            background-color: #050508;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Dense Star Field */
+        body::before {
+            content:'';
+            position:fixed;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            background-image:
+                radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+            background-repeat:repeat;
+            background-size:800px 500px;
+            pointer-events:none;
+            z-index:-1;
         }
         
-        .exam-container {
-            display: flex;
-            height: 100vh;
-            width: 100vw;
+        .main-container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
         }
         
-        /* Left: Question display */
         .question-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 20px;
-            border-right: 2px solid #6c5ce7;
-            overflow-y: auto;
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-subtle);
         }
         
-        /* Right: Question list */
-        .sidebar {
-            width: 250px;
-            background: #16213e;
-            border-left: 2px solid #6c5ce7;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .header {
+        .level-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #6c5ce7;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
         }
         
         .level-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #6c5ce7;
-        }
-        
-        .timer {
+            font-size: 36px;
+            font-weight: 700;
             text-align: center;
+            margin: 0 0 20px;
+            color: var(--text-primary);
         }
         
-        .timer-label {
-            font-size: 12px;
-            color: #b0b3b8;
+        .timer-box {
+            background: rgba(20, 20, 30, 0.7);
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-subtle);
+        }
+        
+        .timer-box .timer-label {
+            font-size: 11px;
+            color: var(--text-secondary);
             text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        
+        .instruction-box {
+            background: rgba(30, 30, 40, 0.7);
+            border: 1px solid rgba(255, 0, 0, 0.4);
+            border-radius: 14px;
+            padding: 16px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            color: #ff4d4d;
+            font-size: 14px;
+            line-height: 1.6;
         }
         
         .timer-display {
             font-size: 32px;
             font-weight: bold;
-            color: #6c5ce7;
-            font-family: 'Courier New', monospace;
+            color: var(--accent-hover);
+            font-family: 'Consolas', monospace;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 18px;
+            border-radius: 10px;
+            border: 1px solid var(--border-subtle);
         }
         
         .timer-display.warning {
-            color: #ff6b6b;
+            color: var(--error-red);
             animation: blink 0.5s infinite;
         }
         
         @keyframes blink {
             0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.5; }
+            51%, 100% { opacity: 0.6; }
         }
         
         .question-display {
-            flex: 1;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         
         .question-text {
             font-size: 18px;
-            margin-bottom: 25px;
-            line-height: 1.6;
-            color: #e6eef8;
+            margin-bottom: 24px;
+            line-height: 1.7;
+            color: var(--text-primary);
+            padding: 20px;
+            background: var(--bg-input);
+            border-radius: 14px;
+            border: 1px solid var(--border-subtle);
         }
         
         .question-text strong {
-            color: #6c5ce7;
+            color: var(--accent-hover);
         }
         
         .options {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
         
         .option-label {
             display: flex;
             align-items: center;
-            padding: 12px 15px;
-            background: #0f3460;
-            border: 2px solid #6c5ce7;
-            border-radius: 5px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.2s ease, border 0.2s ease;
         }
         
         .option-label:hover {
-            background: #16213e;
-            border-color: #a29bfe;
+            background: var(--bg-hover);
+        }
+
+        .option-label:has(input:checked) {
+            background: rgba(30, 58, 138, 0.2);
+            border-color: var(--accent-primary);
         }
         
         .option-label input[type="radio"] {
-            margin-right: 12px;
+            margin-right: 16px;
             width: 18px;
             height: 18px;
             cursor: pointer;
-            accent-color: #6c5ce7;
+            accent-color: var(--accent-hover);
         }
         
         .option-label input[type="radio"]:checked + span {
-            font-weight: bold;
-            color: #a29bfe;
+            font-weight: 600;
+            color: var(--accent-hover);
         }
         
         .option-text {
             font-size: 16px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
         
         .controls {
             display: flex;
-            gap: 10px;
+            gap: 16px;
             justify-content: space-between;
-            margin-top: 30px;
+            margin-top: 24px;
         }
         
         button {
             flex: 1;
-            padding: 12px 20px;
+            padding: 14px 24px;
             font-size: 14px;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.2s ease, transform 0.1s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .btn-prev {
-            background: #545454;
-            color: #e6eef8;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
         }
         
         .btn-prev:hover:not(:disabled) {
-            background: #707070;
+            background: var(--bg-hover);
         }
         
         .btn-prev:disabled {
-            background: #333;
-            color: #666;
+            opacity: 0.4;
             cursor: not-allowed;
         }
         
         .btn-next {
-            background: #6c5ce7;
-            color: #1a1a2e;
-            font-weight: bold;
+            background: var(--accent-primary);
+            color: white;
         }
         
         .btn-next:hover:not(:disabled) {
-            background: #a29bfe;
-            box-shadow: 0 0 10px rgba(108, 92, 231, 0.5);
+            background: var(--accent-hover);
+        }
+        
+        .btn-next:active:not(:disabled) {
+            transform: scale(0.98);
         }
         
         .btn-next:disabled {
-            background: #333;
-            color: #666;
+            opacity: 0.4;
             cursor: not-allowed;
         }
         
         .btn-submit {
-            background: #ff6b6b;
+            background: var(--error-red);
             color: white;
-            font-weight: bold;
         }
         
         .btn-submit:hover:not(:disabled) {
-            background: #ff8787;
-            box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+            background: #b91c1c;
         }
         
-        /* Sidebar question list */
-        .sidebar-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: #6c5ce7;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-        
-        .question-list {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .q-button {
-            width: 100%;
-            aspect-ratio: 1;
-            padding: 0;
-            background: #0f3460;
-            border: 2px solid #6c5ce7;
-            color: #e6eef8;
-            font-weight: bold;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 13px;
-        }
-        
-        .q-button:hover {
-            border-color: #a29bfe;
-            background: #1a4d6d;
-        }
-        
-        .q-button.active {
-            background: #6c5ce7;
-            color: #1a1a2e;
-            border-color: #6c5ce7;
-        }
-        
-        .q-button.answered {
-            background: #4a3f7f;
-            border-color: #6c5ce7;
-        }
-        
-        .q-button.answered.active {
-            background: #a29bfe;
-            color: #1a1a2e;
-            border-color: #a29bfe;
-        }
-        
-        .exam-note {
-            font-size: 12px;
-            color: #b0b3b8;
-            background: #0f3460;
-            padding: 12px;
-            border-radius: 5px;
-            margin-top: auto;
-            text-align: center;
-        }
-        
-        .exam-note strong {
-            color: #ff6b6b;
-        }
-        
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 200px;
-            }
-            .question-list {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-        
-        /* 🔵 RESULT MODAL */
+        /* Custom Modal */
         .modal{
             display:none;
             position:fixed;
@@ -283,65 +273,76 @@
             left:0;
             width:100%;
             height:100%;
-            background:rgba(0,0,0,0.75);
+            background:rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
             justify-content:center;
             align-items:center;
             z-index:1000;
         }
 
         .modal-content{
-            background:#1e293b;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
             padding:30px;
-            border-radius:16px;
-            width:350px;
+            border-radius:14px;
+            width:400px;
+            max-width:90vw;
             text-align:center;
-            box-shadow:0 10px 30px rgba(0,0,0,0.6);
-            animation:fadeIn 0.3s ease;
-            color: #e6eef8;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            color: var(--text-primary);
+            border: 1px solid var(--border-subtle);
         }
 
         .modal-content h3{
-            margin-bottom:15px;
-            color: #16c784;
+            margin-bottom:16px;
+            font-size: 20px;
+            color: var(--text-primary);
+            font-weight: 600;
         }
 
         .modal-content p{
-            color:#cbd5e1;
+            color: var(--text-secondary);
             margin-bottom:20px;
             line-height: 1.5;
+            font-size: 15px;
         }
 
         .modal-confirm{
-            background:#16c784;
+            background: var(--accent-primary);
             border:none;
-            padding:12px 24px;
-            border-radius:8px;
+            padding:14px 28px;
+            border-radius:10px;
             cursor:pointer;
-            color:#0f3460;
-            font-weight: bold;
-            font-size: 16px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: background 0.2s ease, transform 0.1s ease;
         }
 
         .modal-confirm:hover{
-            background:#00d4ff;
+            background: var(--accent-hover);
         }
 
-        @keyframes fadeIn{
-            from{opacity:0; transform:scale(0.9);}
-            to{opacity:1; transform:scale(1);}
+        .modal-confirm:active{
+            transform: scale(0.98);
         }
     </style>
 </head>
-<body>
-    <div class="exam-container">
-        <!-- Left Panel: Question Display -->
+<body class="exam-mode">
+    <div class="main-container level-container">
         <div class="question-panel">
-            <div class="header">
-                <div class="level-title">📝 Level 4: Master Challenge</div>
-                <div class="timer">
-                    <div class="timer-label">Time Remaining</div>
-                    <div class="timer-display" id="timer-count">06:00</div>
-                </div>
+            <h1 class="level-title">Level 4: Master Challenge</h1>
+            
+            <div class="timer-box">
+                <span class="timer-label">TIME REMAINING</span>
+                <div class="timer-display" id="timer-count">06:00</div>
+            </div>
+
+            <div class="instruction-box">
+                <h3 class="warning-title">⚠️ No Tab Switching</h3>
+                <p class="warning-text">Switching tabs = -10 points penalty.</p>
             </div>
 
             <div class="question-display">
@@ -350,20 +351,7 @@
             </div>
 
             <div class="controls">
-                <button class="btn-prev" id="prevBtn">← Previous</button>
-                <button class="btn-next" id="nextBtn" disabled>Next (0/8) →</button>
-            </div>
-        </div>
-
-        <!-- Right Sidebar: Question List & Info -->
-        <div class="sidebar">
-            <div class="sidebar-title">Questions</div>
-            <div class="question-list" id="question-list"></div>
-            
-            <div class="exam-note">
-                <strong>⚠️ No Tab Switching</strong><br>
-                Switching tabs = -10 points penalty<br><br>
-                Full-screen required
+                <button class="btn-next" id="nextBtn">Next (0/8) →</button>
             </div>
         </div>
     </div>

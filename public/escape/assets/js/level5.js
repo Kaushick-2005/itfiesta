@@ -132,7 +132,13 @@ document.addEventListener('DOMContentLoaded', function(){
     const modal = document.getElementById("resultModal");
     modal.style.display = "flex";
     
-    document.getElementById("confirmBtn").onclick = function() {
+    // Ensure Continue button is enabled and clickable
+    var confirmBtn = document.getElementById("confirmBtn");
+    confirmBtn.removeAttribute('disabled');
+    confirmBtn.classList.remove('disabled');
+    confirmBtn.style.pointerEvents = 'auto';
+    
+    confirmBtn.onclick = function() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {

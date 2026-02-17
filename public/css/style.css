@@ -1,5 +1,6 @@
 /* ========================================
-   IT FIESTA - Dark Space Tech Theme
+   IT FIESTA - Unified Professional Dark Mode
+   Navy Blue Accent, Glass Morphism, Subtle Space
    ======================================== */
 
 /* Reset */
@@ -9,24 +10,54 @@
     box-sizing: border-box;
 }
 
-/* Body - Dark Space Background */
+/* Unified Color System */
+:root {
+    /* Core Backgrounds */
+    --bg-main: #0a0a0f;
+    --bg-soft: #141418;
+    --bg-card: rgba(25, 25, 32, 0.65);
+    --bg-input: rgba(255, 255, 255, 0.05);
+    --bg-hover: rgba(255, 255, 255, 0.06);
+    
+    /* Border System */
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-focus: rgba(30, 58, 138, 0.6);
+    
+    /* Text Hierarchy */
+    --text-primary: #e5e7eb;
+    --text-secondary: #9ca3af;
+    --text-muted: #6b7280;
+    
+    /* Navy Blue Accent - Primary */
+    --accent-primary: #1e3a8a;
+    --accent-hover: #2563eb;
+    
+    /* Status Colors */
+    --error-red: #dc2626;
+    --warning-amber: #f59e0b;
+    --success-status: #059669;
+}
+
+/* Body - Nebula Space Background */
 body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0a0e1a;
-    background-image: 
-        radial-gradient(ellipse at top, #1a237e 0%, transparent 50%),
-        radial-gradient(ellipse at bottom, #0d47a1 0%, transparent 50%);
+    font-family: 'Inter', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background:
+        radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+        radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+        radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+    background-color: #050508;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 30px 20px;
-    color: #ffffff;
+    padding: 20px;
+    color: var(--text-primary);
     position: relative;
+    line-height: 1.6;
     overflow-x: hidden;
 }
 
-/* Animated Stars Background */
+/* Dense Star Field - Nebula Style */
 body::before {
     content: '';
     position: fixed;
@@ -34,281 +65,241 @@ body::before {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: 
-        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
-        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
-        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
-        radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.3), transparent),
-        radial-gradient(1px 1px at 230px 80px, rgba(255,255,255,0.2), transparent),
-        radial-gradient(2px 2px at 300px 150px, rgba(255,255,255,0.4), transparent),
-        radial-gradient(1px 1px at 370px 50px, rgba(255,255,255,0.3), transparent),
-        radial-gradient(2px 2px at 450px 180px, rgba(255,255,255,0.2), transparent);
-    background-size: 500px 500px;
-    animation: twinkle 8s ease-in-out infinite;
     pointer-events: none;
-    z-index: 0;
+    z-index: -1;
+    background-image:
+        radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+        radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+    background-repeat: repeat;
+    background-size: 800px 500px;
 }
 
-@keyframes twinkle {
-    0%, 100% { opacity: 0.5; }
-    50% { opacity: 1; }
-}
 
-/* Container */
+/* Professional Auth Container - Mobile Responsive */
 .auth-container {
     position: relative;
     z-index: 2;
     width: 100%;
-    max-width: 440px;
+    max-width: 420px;
     margin: 0 auto;
+    padding: 20px;
 }
 
-/* Card - Clean Professional */
+/* Glass Card - Registration + Login - Mobile Responsive */
 .auth-card,
-.register-card {
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(10, 15, 30, 0.98));
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(100, 150, 200, 0.15);
-    border-radius: 24px;
-    padding: 45px 40px;
-    box-shadow: 
-        0 4px 30px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+.register-card,
+.glass-card {
     position: relative;
+    width: 100%;
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 30px 25px;
+    background: rgba(20, 20, 28, 0.75);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
     overflow: hidden;
 }
 
-/* Subtle top accent line */
-.auth-card::before,
-.register-card::before {
-    content: '';
+.glass-card::before {
+    content: "";
     position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
+    inset: -3px;
+    border-radius: 18px;
+    background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+    z-index: -1;
+}
+
+/* Header styling - Clean and Professional */
+.auth-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.auth-header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: #e5e7eb;
+    margin-bottom: 8px;
+}
+
+.auth-header h1::after {
+    content: "";
+    display: block;
+    width: 60px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(100, 180, 255, 0.4), transparent);
+    margin: 10px auto 0;
+    background: linear-gradient(to right, #1e3a8a, #2563eb);
     border-radius: 2px;
 }
 
-/* Header */
-.auth-header {
-    text-align: center;
-    margin-bottom: 32px;
-}
-
-.logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin-bottom: 14px;
-}
-
-.logo i {
-    font-size: 32px;
-    color: #60a5fa;
-}
-
-.logo h1 {
-    font-size: 28px;
-    font-weight: 700;
-    color: #ffffff;
-    letter-spacing: -0.5px;
-}
-
-.subtitle {
-    color: #94a3b8;
+.auth-header p {
     font-size: 14px;
-    font-weight: 400;
-    line-height: 1.5;
+    color: #9ca3af;
 }
 
-/* Form */
+/* Professional Form Styling */
 .auth-form {
-    text-align: left;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 0;
 }
 
-/* Form Row */
 .form-row {
     width: 100%;
 }
 
-/* Form Group */
 .form-group {
     width: 100%;
-    text-align: left;
 }
 
 .form-group label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    display: block;
+    font-size: 14px;
     font-weight: 600;
-    color: #94a3b8;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
 }
 
 .form-group label i {
-    color: #60a5fa;
-    font-size: 13px;
-    width: 16px;
-    text-align: center;
+    color: var(--accent-hover);
+    margin-right: 8px;
+    font-size: 14px;
 }
 
-/* Inputs */
+/* Clean Professional Input Fields - Mobile Optimized */
 .form-group input,
-.form-group select {
-    display: block;
+.form-group select,
+.form-group textarea,
+input,
+select,
+textarea {
     width: 100%;
     padding: 14px 16px;
-    font-size: 15px;
-    font-weight: 400;
-    color: #ffffff;
-    background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(100, 150, 200, 0.15);
+    margin-top: 8px;
+    margin-bottom: 24px;
+    background: rgba(20, 20, 28, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
+    color: #e5e7eb;
+    font-size: 16px; /* 16px prevents iOS zoom */
+    font-family: inherit;
     outline: none;
-    transition: all 0.25s ease;
-}
-
-.form-group input::placeholder {
-    color: #64748b;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-    background: rgba(30, 41, 59, 0.9);
-    border-color: #60a5fa;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
-}
-
-/* Select Dropdown */
-.form-group select {
-    cursor: pointer;
+    transition: border 0.2s ease;
     appearance: none;
     -webkit-appearance: none;
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2360a5fa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 18px;
-    padding-right: 45px;
+    -moz-appearance: none;
 }
 
-.form-group select option {
-    background: #1e293b;
-    color: #ffffff;
+/* Dropdown options styling */
+select option {
+    background: #0f0f16;
+    color: #e5e7eb;
     padding: 12px;
 }
 
-/* Form Section (Team Members) */
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+input:focus,
+select:focus,
+textarea:focus {
+    border: 1px solid rgba(37, 99, 235, 0.6);
+    outline: none;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Professional Form Sections */
 .form-section {
-    background: rgba(30, 41, 59, 0.4);
-    border: 1px solid rgba(100, 150, 200, 0.12);
-    border-radius: 14px;
-    padding: 22px 20px;
-    margin: 4px 0;
+    background: var(--bg-input);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 20px;
+    margin: 4px 0 24px 0;
 }
 
 .form-section h3 {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
+    gap: 8px;
+    font-size: 14px;
     font-weight: 600;
-    color: #e2e8f0;
-    margin-bottom: 18px;
+    color: var(--text-primary);
+    margin-bottom: 16px;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
 }
 
 .form-section h3 i {
-    color: #60a5fa;
-    font-size: 15px;
+    color: var(--accent-hover);
+    font-size: 16px;
 }
 
 .form-section .form-row {
-    margin-bottom: 16px;
+    margin-bottom: 0;
 }
 
 .form-section .form-row:last-of-type {
     margin-bottom: 0;
 }
 
-.form-section .form-group input {
-    padding: 12px 14px;
-    font-size: 14px;
-}
-
-/* Primary Button */
-.btn-primary {
+/* Navy Blue Primary Button - Use Everywhere */
+.btn-primary,
+.start-button,
+.submit-button {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 15px 24px;
-    margin-top: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: #ffffff;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+    gap: 8px;
+    text-decoration: none;
     position: relative;
-    overflow: hidden;
 }
 
-.btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.5s ease;
+.btn-primary:hover,
+.start-button:hover,
+.submit-button:hover {
+    background: var(--accent-hover);
 }
 
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0 8px 30px rgba(37, 99, 235, 0.5),
-        0 0 60px rgba(37, 99, 235, 0.2);
+.btn-primary:active,
+.start-button:active,
+.submit-button:active {
+    transform: scale(0.98);
 }
 
-.btn-primary:hover::before {
-    left: 100%;
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-.btn-primary i {
-    font-size: 14px;
-}
-
-/* Footer */
+/* Professional Footer Styling */
 .auth-footer {
     text-align: center;
-    margin-top: 28px;
-    padding-top: 22px;
-    border-top: 1px solid rgba(100, 150, 200, 0.1);
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-subtle);
 }
 
 .auth-footer p {
-    color: #64748b;
+    color: var(--text-secondary);
     font-size: 14px;
     margin-bottom: 12px;
 }
@@ -316,39 +307,32 @@ body::before {
 .link-secondary {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: #60a5fa;
-    font-size: 14px;
-    font-weight: 600;
+    gap: 6px;
+    color: var(--accent-hover);
     text-decoration: none;
-    padding: 10px 18px;
-    background: rgba(96, 165, 250, 0.08);
-    border: 1px solid rgba(96, 165, 250, 0.15);
+    font-weight: 500;
+    font-size: 14px;
+    transition: color 0.15s ease;
+    padding: 8px 16px;
     border-radius: 10px;
-    transition: all 0.25s ease;
+    border: 1px solid transparent;
 }
 
 .link-secondary:hover {
-    background: rgba(96, 165, 250, 0.15);
-    border-color: rgba(96, 165, 250, 0.4);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent-hover);
+    border-radius: 0;
+    padding-bottom: 6px;
 }
 
 .link-secondary i {
-    font-size: 13px;
+    font-size: 12px;
 }
 
 /* ========================================
-   SUCCESS MESSAGE (Team ID Display)
+   SUCCESS MESSAGE - Professional Style
    ======================================== */
 
-/* Success container alignment */
-.auth-card,
-.register-card {
-    text-align: center;
-}
-
-/* Success Header - Icon + Title Wrapper */
 .success-header {
     display: flex;
     flex-direction: column;
@@ -356,349 +340,873 @@ body::before {
     justify-content: center;
     text-align: center;
     gap: 16px;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
 }
 
 .success-header i.fa-check-circle {
-    font-size: 60px;
-    color: #22c55e;
+    font-size: 48px;
+    color: var(--success-status);
 }
 
 .success-header h1 {
     font-size: 24px;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--text-primary);
     margin: 0;
 }
 
 .success-header .subtitle {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 14px;
     margin: 0;
 }
 
 .auth-card p,
 .register-card p {
-    color: #94a3b8;
+    color: var(--text-secondary);
     font-size: 15px;
     line-height: 1.6;
     margin: 15px 0;
     text-align: center;
 }
 
+/* Monospaced labels/badges for coder aesthetic */
 .auth-card h2,
 .register-card h2 {
-    font-size: 28px;
+    font-size: 24px;
     font-weight: 700;
-    color: #60a5fa;
-    padding: 16px 24px;
+    color: var(--accent-hover);
+    padding: 16px 20px;
     margin: 20px 0;
-    background: rgba(59, 130, 246, 0.08);
-    border: 1px solid rgba(59, 130, 246, 0.25);
-    border-radius: 12px;
-    letter-spacing: 2px;
+    background: rgba(30, 58, 138, 0.15);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    letter-spacing: 1px;
     display: block;
     width: 100%;
     text-align: center;
-    font-family: 'Courier New', monospace;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
 }
 
-/* Success state specific styling */
 .register-card .link-secondary {
-    margin-top: 25px;
+    margin-top: 20px;
 }
 
-/* Background Decoration - Hidden */
-.background-decoration,
-.floating-shape {
-    display: none;
+.registration-status {
+    margin-top: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    background: rgba(220, 38, 38, 0.08);
+    color: #f87171;
+    font-weight: 600;
+    text-align: center;
 }
 
 /* ========================================
-   RESPONSIVE DESIGN - ALL SCREEN SIZES
+   RESPONSIVE DESIGN - Mobile-First, Fluid Layout
    ======================================== */
 
-/* Tablets and Large Phones (768px and below) */
+/* Tablets and Large Phones */
 @media screen and (max-width: 768px) {
     body {
-        padding: 30px 20px;
+        padding: 16px;
+        font-size: 15px;
     }
     
     .auth-container {
         max-width: 100%;
-        padding: 0 10px;
-    }
-    
-    .auth-card,
-    .register-card {
-        padding: 38px 30px;
-        max-width: 100%;
-    }
-}
-
-/* Standard Phones - iPhone 8+, Samsung Galaxy (480px and below) */
-@media screen and (max-width: 480px) {
-    body {
-        padding: 20px 15px;
-        min-height: 100vh;
-        min-height: -webkit-fill-available;
-    }
-    
-    html {
-        height: -webkit-fill-available;
-    }
-    
-    .auth-container {
-        padding: 0 8px;
-        width: 100%;
-    }
-    
-    .auth-card,
-    .register-card {
-        padding: 32px 24px;
-        border-radius: 16px;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    .logo i {
-        font-size: 28px;
-    }
-    
-    .logo h1 {
-        font-size: 24px;
-    }
-    
-    .subtitle {
-        font-size: 13px;
-        padding: 0 10px;
-    }
-    
-    .auth-form {
-        gap: 18px;
-    }
-    
-    .form-group input,
-    .form-group select {
-        padding: 13px 14px;
-        font-size: 16px; /* Prevents iOS zoom on focus */
-    }
-    
-    .form-section {
-        padding: 18px 16px;
-    }
-    
-    .btn-primary {
-        padding: 14px 20px;
-        font-size: 14px;
-        width: 100%;
-    }
-    
-    .auth-card h2,
-    .register-card h2 {
-        font-size: 26px;
-        padding: 14px 16px;
-        letter-spacing: 2px;
-        word-break: break-all;
-    }
-}
-
-/* Small Phones - iPhone SE, older devices (375px and below) */
-@media screen and (max-width: 375px) {
-    body {
-        padding: 15px 12px;
-    }
-    
-    .auth-container {
-        padding: 0 5px;
+        padding: 16px;
     }
     
     .auth-card,
     .register-card {
         padding: 28px 20px;
-        border-radius: 14px;
+        max-width: 100%;
+        margin: 30px auto;
     }
     
-    .logo {
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-    
-    .logo i {
+    .auth-header h1 {
         font-size: 24px;
+    }
+    
+    /* Make buttons more touch-friendly */
+    .btn-primary,
+    button[type="submit"] {
+        min-height: 50px;
+        font-size: 16px;
+    }
+    
+    /* Stack form sections better on mobile */
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-group {
+        width: 100%;
+    }
+}
+
+/* Mobile Phones */
+@media screen and (max-width: 480px) {
+    body {
+        padding: 12px;
+        font-size: 15px;
+    }
+    
+    .auth-container {
+        padding: 12px;
+    }
+    
+    .auth-card,
+    .register-card {
+        padding: 24px;
+        border-radius: 4px;
     }
     
     .logo h1 {
         font-size: 22px;
     }
     
-    .subtitle {
-        font-size: 12px;
-        margin-bottom: 24px;
+    .logo i {
+        font-size: 24px;
     }
     
-    .form-group label {
-        font-size: 11px;
+    .subtitle {
+        font-size: 14px;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 12px 14px;
+        font-size: 16px; /* Prevents iOS zoom */
+    }
+    
+    .form-section {
+        padding: 16px;
+    }
+    
+    .btn-primary {
+        padding: 14px 20px;
+        font-size: 16px; /* Keep 16px for accessibility */
+    }
+    
+    .auth-header h1 {
+        font-size: 20px;
+    }
+    
+    .auth-header p {
+        font-size: 13px;
+    }
+}
+
+/* Extra Small Devices */
+@media screen and (max-width: 375px) {
+    .auth-card,
+    .register-card {
+        padding: 20px 16px;
     }
     
     .form-group input,
     .form-group select {
         padding: 12px;
-        font-size: 16px;
-    }
-    
-    .form-section {
-        padding: 16px 14px;
-    }
-    
-    .section-title {
-        font-size: 11px;
-    }
-    
-    .btn-primary {
-        padding: 13px 18px;
-        font-size: 13px;
-    }
-    
-    .auth-card h2,
-    .register-card h2 {
-        font-size: 22px;
-        padding: 12px 14px;
-        letter-spacing: 1px;
-    }
-    
-    .auth-footer {
-        margin-top: 24px;
-        gap: 14px;
     }
 }
 
-/* Extra Small Phones - Galaxy Fold, very old devices (320px and below) */
-@media screen and (max-width: 320px) {
-    body {
-        padding: 10px 8px;
+/* ========================================
+   EXAM LAYOUT RESPONSIVE (Escape Room & BlackBox)
+   ======================================== */
+
+/* Desktop exam layout */
+.exam-layout,
+.exam-container {
+    display: flex;
+    gap: 20px;
+}
+
+/* Make exam layouts stack on tablets */
+@media (max-width: 900px) {
+    .exam-layout,
+    .exam-container {
+        flex-direction: column;
     }
     
+    /* Question sidebar goes to top on mobile */
+    .questions-panel,
+    .sidebar,
+    .right-panel {
+        width: 100% !important;
+        position: static !important;
+        margin-top: 20px;
+        max-height: 300px;
+    }
+    
+    /* Question buttons grid responsive */
+    .question-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .q-button,
+    .question-btn {
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* Mobile phones - further optimization */
+@media (max-width: 600px) {
+    .q-button,
+    .question-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Make timers full width */
+    .timer-box,
+    .timer {
+        width: 100%;
+        text-align: center;
+        font-size: clamp(18px, 5vw, 28px);
+    }
+    
+    /* Stack exam headers */
+    .exam-header,
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+}
+
+/* Small Mobile */
+@media screen and (max-width: 375px) {
     .auth-card,
     .register-card {
-        padding: 24px 16px;
-        border-radius: 12px;
-    }
-    
-    .logo i {
-        font-size: 22px;
+        padding: 20px;
     }
     
     .logo h1 {
         font-size: 20px;
     }
     
-    .subtitle {
-        font-size: 11px;
-    }
-    
-    .form-group label {
-        font-size: 10px;
-        letter-spacing: 0.5px;
-    }
-    
-    .form-group input,
-    .form-group select {
-        padding: 11px 10px;
-        font-size: 14px;
-    }
-    
     .form-section {
-        padding: 14px 12px;
-    }
-    
-    .btn-primary {
-        padding: 12px 16px;
-        font-size: 12px;
-    }
-    
-    .auth-card h2,
-    .register-card h2 {
-        font-size: 18px;
-        padding: 10px 12px;
-        letter-spacing: 0.5px;
-    }
-    
-    .auth-footer p {
-        font-size: 12px;
+        padding: 14px;
     }
 }
 
 /* ========================================
-   LANDSCAPE MODE FIX
+   ADMIN PANEL STYLES - Professional Dark Theme
    ======================================== */
 
-@media screen and (max-height: 500px) and (orientation: landscape) {
-    body {
-        padding: 15px;
-    }
-    
-    .auth-card,
-    .register-card {
-        padding: 20px 24px;
-    }
-    
-    .logo {
-        margin-bottom: 15px;
-    }
-    
-    .subtitle {
-        margin-bottom: 15px;
-    }
-    
-    .auth-form {
-        gap: 12px;
-    }
-    
-    .auth-footer {
-        margin-top: 15px;
-    }
+/* Admin specific background */
+body.admin-panel {
+    background: radial-gradient(circle at 20% 20%, #141418, #0a0a0f 60%);
+    padding: 20px;
+    min-height: 100vh;
+    display: block;
+}
+
+body.admin-panel::before {
+    background-image: 
+        radial-gradient(1px 1px at 200px 100px, rgba(255, 255, 255, 0.2), transparent),
+        radial-gradient(1px 1px at 600px 200px, rgba(255, 255, 255, 0.15), transparent),
+        radial-gradient(1px 1px at 1000px 50px, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 1200px 300px;
+    animation: none;
+}
+
+/* Admin headings */
+h1, h2 {
+    text-align: center;
+    color: var(--text-primary);
+    margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 28px;
+    font-weight: 700;
+    border-bottom: 2px solid var(--accent-primary);
+    padding-bottom: 12px;
+    margin-bottom: 32px;
+}
+
+h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 32px 0 16px 0;
+    color: var(--accent-hover);
+}
+
+/* Professional Form Controls */
+select, input, button {
+    padding: 10px 14px;
+    margin: 6px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border 0.2s ease;
+}
+
+select:focus, input:focus {
+    outline: none;
+    border: 1px solid var(--accent-primary);
+}
+
+button {
+    cursor: pointer;
+    font-weight: 600;
+    background: var(--accent-primary);
+    border: none;
+    color: white;
+    transition: background 0.2s ease, transform 0.1s ease;
+    text-transform: none;
+}
+
+button:hover {
+    background: var(--accent-hover);
+}
+
+button:active {
+    transform: scale(0.98);
 }
 
 /* ========================================
-   ACCESSIBILITY
+   DATA TABLES - Professional Dark Style & Mobile Responsive
+   ======================================== */
+
+/* Table wrapper for horizontal scroll on mobile */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 16px 0;
+    border: 1px solid var(--border-subtle);
+}
+
+th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+th {
+    background: rgba(25, 25, 32, 0.9);
+    font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+}
+
+td {
+    color: var(--text-secondary);
+}
+
+tr:hover td {
+    background: var(--bg-hover);
+}
+
+/* Status Indicators */
+.status-active {
+    color: var(--success-status);
+    font-weight: 600;
+}
+
+.status-inactive {
+    color: var(--error-red);
+    font-weight: 600;
+}
+
+/* Admin Action Buttons */
+.btn-danger {
+    background: var(--error-red);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+}
+
+.btn-danger:active {
+    transform: scale(0.98);
+}
+
+.btn-success {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-success:hover {
+    background: var(--accent-hover);
+}
+
+.btn-success:active {
+    transform: scale(0.98);
+}
+
+.btn-warning {
+    background: var(--warning-amber);
+    color: #0a0a0f;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.btn-warning:hover {
+    background: #d97706;
+}
+
+.btn-warning:active {
+    transform: scale(0.98);
+}
+
+/* Professional Form Labels in Admin */
+.admin-card label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Horizontal Rule Styling */
+hr {
+    border: none;
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 24px 0;
+}
+
+/* Professional Cards for Admin Sections */
+.admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 16px 0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(18px);
+}
+
+.admin-card h3 {
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* ========================================
+   ACCESSIBILITY & FOCUS STATES
    ======================================== */
 
 .btn-primary:focus-visible,
 .link-secondary:focus-visible,
 .form-group input:focus-visible,
-.form-group select:focus-visible {
-    outline: 2px solid #63b3ed;
+.form-group select:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--accent-hover);
     outline-offset: 2px;
 }
 
 /* ========================================
-   iOS & SAFARI FIXES
+   CUSTOM ALERT MODAL - Professional Style
    ======================================== */
 
-@supports (-webkit-touch-callout: none) {
-    .form-group input,
-    .form-group select {
-        font-size: 16px; /* Prevents auto-zoom on input focus */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal-box {
+    position: relative;
+    width: 400px;
+    max-width: 90%;
+    padding: 30px;
+    background: rgba(20, 20, 28, 0.75);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(30, 58, 138, 0.15);
+}
+
+.modal-box::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 18px;
+    background: radial-gradient(circle at top left, rgba(37,99,235,0.25), transparent 60%);
+    z-index: -1;
+}
+
+.modal-box h3 {
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.modal-box p {
+    color: var(--text-secondary);
+    font-size: 15px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.modal-box .btn-primary {
+    margin-top: 20px;
+}
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 1rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.hidden {
+    display: none;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-center {
+    justify-content: center;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* Monospace Badge Labels - Coder Aesthetic */
+.badge,
+.label-badge {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(30, 58, 138, 0.3);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-new {
+    background: var(--accent-primary);
+}
+
+.badge-update {
+    background: var(--accent-hover);
+}
+
+/* Filter Container for Admin */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 20px 0;
+    backdrop-filter: blur(18px);
+}
+
+.filter-container label {
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-right: 5px;
+}
+
+/* ========================================
+   ESCAPE ROOM LAYOUT - Proper Alignment
+   ======================================== */
+
+.main-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 24px;
+}
+
+.header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 32px;
+}
+
+@media (max-width: 900px) {
+    .content-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-/* Safe area for notched phones (iPhone X+) */
-@supports (padding: max(0px)) {
+/* Question Card */
+.question-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 28px;
+    backdrop-filter: blur(18px);
+}
+
+/* Options - Clean, No Neon */
+.option {
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 16px;
+    cursor: pointer;
+    transition: background 0.2s ease, border 0.2s ease;
+}
+
+.option:hover {
+    background: var(--bg-hover);
+}
+
+.option.selected {
+    border: 1px solid var(--accent-primary);
+    background: rgba(30, 58, 138, 0.2);
+}
+
+/* Timer - Clean Version */
+.timer-box {
+    padding: 10px 18px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-subtle);
+    font-weight: 600;
+    color: var(--accent-hover);
+    font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* Sidebar - Unified Style */
+.sidebar {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    padding: 20px;
+    backdrop-filter: blur(18px);
+}
+
+/* Question Number Buttons */
+.q-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s ease, border 0.2s ease;
+}
+
+.q-number:hover {
+    background: var(--bg-hover);
+}
+
+.q-number.active {
+    background: var(--accent-primary);
+    border: none;
+}
+
+.q-number.answered {
+    background: rgba(30, 58, 138, 0.3);
+    border-color: var(--accent-primary);
+}
+
+/* ========================================
+   PRINT STYLES - Clean Professional Output
+   ======================================== */
+
+@media print {
     body {
-        padding-left: max(15px, env(safe-area-inset-left));
-        padding-right: max(15px, env(safe-area-inset-right));
-        padding-bottom: max(20px, env(safe-area-inset-bottom));
+        background: white !important;
+        color: black !important;
+    }
+    
+    .auth-card,
+    .register-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
     }
 }
 
 /* ========================================
-   HIGH DPI / RETINA DISPLAYS
+   ADDITIONAL MOBILE OPTIMIZATIONS
    ======================================== */
 
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-    .auth-card,
-    .register-card {
-        border-width: 0.5px;
+/* Table mobile responsiveness */
+@media (max-width: 768px) {
+    .table-wrapper {
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+    }
+    
+    table {
+        min-width: 600px; /* Force horizontal scroll on small screens */
+    }
+    
+    th, td {
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+    
+    /* Compact admin panels */
+    .admin-panel {
+        padding: 16px;
     }
 }
+
+@media (max-width: 600px) {
+    table {
+        min-width: 500px;
+    }
+    
+    th, td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    
+    /* Compact buttons on mobile */
+    .btn-danger,
+    .btn-success {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
+
+/* Prevent layout shift from scrollbars */
+html {
+    overflow-y: scroll;
+}
+
+/* Touch device optimization */
+@media (hover: none) and (pointer: coarse) {
+    /* Larger tap targets for touch devices */
+    button,
+    .btn,
+    a {
+        min-height: 48px;
+        padding: 12px 18px;
+    }
+    
+    /* Easier to tap links */
+    .link-secondary {
+        padding: 12px 20px;
+    }
+}
+
+/* ========================================
+   MOBILE SCROLLING FIXES 
+   Prevents bottom content cutoff on mobile
+   ======================================== */
+
+/* Ensure all containers can scroll properly */
+html, body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+body {
+    display: block !important;
+}
+
+/* iOS Safari Fix - Prevents bottom cutoff on iPhone */
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available !important;
+    }
+    
+    .main-container, .exam-container, .container, .escape-room-container {
+        min-height: -webkit-fill-available !important;
+        overflow: visible !important;
+    }
+}
+
+/* Mobile container fixes */
+@media (max-width: 768px) {
+    .container, .main-container, .exam-container {
+        min-height: 100vh !important;
+        padding: 20px !important;
+        overflow: visible !important;
+    }
+    
+    body {
+        overflow-y: auto !important;
+    }
+}
+

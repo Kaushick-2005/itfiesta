@@ -79,7 +79,7 @@ function isSubsequence(s1, s2) {
 
 /**
  * POST /api/blackbox/start
- * Start current round for a team (round controlled by backend)
+ * Start current round for a team - no batch restrictions
  */
 router.post("/start", async (req, res) => {
     try {
@@ -91,9 +91,22 @@ router.post("/start", async (req, res) => {
             return res.status(404).json({ error: "Team not found" });
         }
 
-        // Check if team is already eliminated or completed in main system
+        // Set batch to waiting if null (for existing teams without batch)
+        if (team.batch === null) {
+            team.batch = "waiting";
+            await team.save();
+        }
+
+        // Check if team is already eliminated or completed
         if (team.status === "eliminated" || team.status === "disqualified") {
             return res.json({ status: "blocked", message: "Team already eliminated" });
+        }
+
+        // Record exam start time if not already recorded
+        if (!team.examStartTime) {
+            team.examStartTime = new Date();
+            team.status = "active";
+            await team.save();
         }
 
         // Get current round from team (backend-controlled)
@@ -101,8 +114,14 @@ router.post("/start", async (req, res) => {
 
         // If currentRound > 3, team has completed all rounds
         if (round > 3) {
-            team.status = "completed";
-            await team.save();
+            // Record exam end time if not already recorded
+            if (!team.examEndTime && team.examStartTime) {
+                team.examEndTime = new Date();
+                team.totalExamTime = team.examEndTime - team.examStartTime;
+                team.status = "completed";
+                await team.save();
+            }
+            
             return res.json({ 
                 status: "completed", 
                 message: "All rounds completed!",
@@ -111,11 +130,11 @@ router.post("/start", async (req, res) => {
         }
 
         console.log("=== START DEBUG ===");
-        console.log("Team:", team_id, "Current Round:", round);
+        console.log("Team:", team.teamId, "Current Round:", round, "Batch:", team.batch);
 
         // Check if active session exists (refresh case)
         const existingSession = await BlackBoxSession.findOne({
-            team_id,
+            team_id: team.teamId,
             round,
             status: "active"
         });
@@ -126,7 +145,8 @@ router.post("/start", async (req, res) => {
                 session_id: existingSession._id,
                 round: round,
                 variables: question?.variables || 1,
-                end_time: existingSession.end_time
+                end_time: existingSession.end_time,
+                batch: team.batch
             });
         }
 
@@ -161,7 +181,7 @@ router.post("/start", async (req, res) => {
         const end = new Date(start.getTime() + durationSeconds * 1000);
 
         const session = await BlackBoxSession.create({
-            team_id,
+            team_id: team.teamId,
             question_id: question._id,
             round,
             start_time: start,
@@ -173,7 +193,8 @@ router.post("/start", async (req, res) => {
             session_id: session._id,
             round: round,
             variables: question.variables || 1,
-            end_time: end
+            end_time: end,
+            batch: team.batch
         });
 
     } catch (error) {
@@ -437,7 +458,7 @@ router.post("/tab-switch", async (req, res) => {
 
         res.json({
             action: "penalty",
-            message: `⚠ Tab switch detected!\n-10 marks deducted.\nTotal tab switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
+            message: `TAB SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
             scoreDeducted: 10,
             penalty: team.penalty,
             currentScore: team.score,
@@ -492,7 +513,7 @@ router.get("/leaderboard", async (req, res) => {
             _id: team.teamName || team.teamId,
             score: team.score || 0,
             penalty: team.penalty || 0,
-            totalScore: (team.score || 0) - (team.penalty || 0)
+            totalScore: Math.max(0, (team.score || 0) - (team.penalty || 0))
         }));
 
         formatted.sort((a, b) => b.totalScore - a.totalScore);

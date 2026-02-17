@@ -13,7 +13,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var questionContent = document.getElementById('question-content');
   var controls = document.getElementById('controls');
-  var questionList = document.getElementById('question-list');
   var timerController = null;
 
   var QUESTIONS = [];
@@ -23,30 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function shuffle(arr) {
     return arr.slice().sort(function () { return Math.random() - 0.5; });
-  }
-
-  function buildQuestionList() {
-    questionList.innerHTML = '';
-    for (var i = 0; i < totalQuestions; i++) {
-      var badge = document.createElement('button');
-      badge.type = 'button';
-      badge.className = 'q-button';
-      badge.textContent = String(i + 1);
-      badge.disabled = true; // linear mode: no jumping
-      if (i === currentIndex) badge.classList.add('active');
-      questionList.appendChild(badge);
-    }
-    updateQuestionListState();
-  }
-
-  function updateQuestionListState() {
-    var badges = questionList.querySelectorAll('.q-button');
-    badges.forEach(function (badge, idx) {
-      badge.classList.remove('active', 'answered');
-      if (idx === currentIndex) badge.classList.add('active');
-      var q = QUESTIONS[idx];
-      if (q && answers[q._id]) badge.classList.add('answered');
-    });
   }
 
   function renderCurrentQuestion() {
@@ -77,7 +52,6 @@ document.addEventListener('DOMContentLoaded', function () {
       input.addEventListener('change', function () {
         answers[q._id] = opt;
         renderControls();
-        updateQuestionListState();
       });
 
       if (answers[q._id] === opt) input.checked = true;
@@ -93,7 +67,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     questionContent.appendChild(opts);
     renderControls();
-    updateQuestionListState();
   }
 
   function renderControls() {
@@ -159,7 +132,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const modal = document.getElementById("resultModal");
     modal.style.display = "flex";
     
-    document.getElementById("confirmBtn").onclick = function() {
+    // Ensure Continue button is enabled and clickable
+    var confirmBtn = document.getElementById("confirmBtn");
+    confirmBtn.removeAttribute('disabled');
+    confirmBtn.classList.remove('disabled');
+    confirmBtn.style.pointerEvents = 'auto';
+    
+    confirmBtn.onclick = function() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {
@@ -211,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
       currentIndex = 0;
       answers = {};
 
-      buildQuestionList();
       renderCurrentQuestion();
     }).catch(function (err) {
       console.error('Failed loading questions', err);

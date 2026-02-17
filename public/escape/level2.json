@@ -1,0 +1,288 @@
+[
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the correct boot sequence in order.",
+    "items": ["OS Loads", "BIOS Start", "Power Button", "Bootloader"],
+    "answer": ["Power Button", "BIOS Start", "Bootloader", "OS Loads"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the process lifecycle in correct order.",
+    "items": ["Running", "New", "Terminated", "Ready"],
+    "answer": ["New", "Ready", "Running", "Terminated"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the memory hierarchy from fastest to slowest.",
+    "items": ["Cache", "Hard Disk", "RAM", "Registers"],
+    "answer": ["Registers", "Cache", "RAM", "Hard Disk"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the Linux directory structure order.",
+    "items": ["/home", "/boot", "/etc", "/"],
+    "answer": ["/", "/boot", "/etc", "/home"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the kernel interaction flow.",
+    "items": ["Hardware", "User Application", "Kernel", "System Call"],
+    "answer": ["User Application", "System Call", "Kernel", "Hardware"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "os",
+    "type": "drag_drop_order",
+    "question": "Arrange the file permission order correctly.",
+    "items": ["Execute", "Read", "Write"],
+    "answer": ["Read", "Write", "Execute"],
+    "marks": 20
+  },
+
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange the OSI layers from top to bottom.",
+    "items": ["Physical", "Transport", "Application", "Network"],
+    "answer": ["Application", "Transport", "Network", "Physical"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange the secure login flow.",
+    "items": ["Authentication", "Authorization", "Access Granted", "Enter Password"],
+    "answer": ["Enter Password", "Authentication", "Authorization", "Access Granted"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange the phishing detection steps.",
+    "items": ["Check URL", "Verify Sender", "Click Link", "Identify Threat"],
+    "answer": ["Verify Sender", "Check URL", "Identify Threat", "Click Link"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange the network troubleshooting steps.",
+    "items": ["Check Cable", "Ping Test", "Restart Router", "Replace Hardware"],
+    "answer": ["Check Cable", "Restart Router", "Ping Test", "Replace Hardware"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange the encryption flow.",
+    "items": ["Encryption", "Cipher Text", "Decryption", "Plain Text"],
+    "answer": ["Plain Text", "Encryption", "Cipher Text", "Decryption"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cyber",
+    "type": "drag_drop_order",
+    "question": "Arrange password strength from strongest to weakest.",
+    "items": ["123456", "Password", "P@ssW0rd!92", "qwerty"],
+    "answer": ["P@ssW0rd!92", "Password", "qwerty", "123456"],
+    "marks": 20
+  },
+
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the correct Java program structure.",
+    "items": [
+      "public static void main(String[] args) {",
+      "System.out.println(\"Hi\");",
+      "}",
+      "}",
+      "class Test {"
+    ],
+    "answer": [
+      "class Test {",
+      "public static void main(String[] args) {",
+      "System.out.println(\"Hi\");",
+      "}",
+      "}"
+    ],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the correct HTML structure.",
+    "items": ["<html>", "<body>", "<head>", "</html>"],
+    "answer": ["<html>", "<head>", "<body>", "</html>"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the web request flow.",
+    "items": ["Server Process", "Database Query", "Response", "Browser Request"],
+    "answer": ["Browser Request", "Server Process", "Database Query", "Response"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the variable lifecycle.",
+    "items": ["Initialize", "Use", "Destroy", "Declare"],
+    "answer": ["Declare", "Initialize", "Use", "Destroy"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the compiler flow.",
+    "items": ["Compilation", "Machine Code", "Execution", "Source Code"],
+    "answer": ["Source Code", "Compilation", "Machine Code", "Execution"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "programming",
+    "type": "drag_drop_order",
+    "question": "Arrange the debugging steps.",
+    "items": ["Error Found", "Fix Code", "Test Again", "Run Program"],
+    "answer": ["Run Program", "Error Found", "Fix Code", "Test Again"],
+    "marks": 20
+  },
+
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the PC assembly order.",
+    "items": ["Apply Thermal Paste", "Attach Cooler", "Install RAM", "Install CPU"],
+    "answer": ["Install CPU", "Apply Thermal Paste", "Attach Cooler", "Install RAM"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the cooling flow process.",
+    "items": ["Thermal Paste", "Heat Sink", "Fan Exhaust", "Heat Generated"],
+    "answer": ["Heat Generated", "Thermal Paste", "Heat Sink", "Fan Exhaust"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the power flow.",
+    "items": ["SMPS", "Motherboard", "Components", "Wall Power"],
+    "answer": ["Wall Power", "SMPS", "Motherboard", "Components"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the storage access flow.",
+    "items": ["OS Request", "Storage Access", "Data Returned", "Application Request"],
+    "answer": ["Application Request", "OS Request", "Storage Access", "Data Returned"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the GPU rendering flow.",
+    "items": ["GPU Processing", "Frame Render", "Display Output", "CPU Sends Data"],
+    "answer": ["CPU Sends Data", "GPU Processing", "Frame Render", "Display Output"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cam",
+    "type": "drag_drop_order",
+    "question": "Arrange the BIOS startup sequence.",
+    "items": ["POST", "BIOS Load", "Boot Device Selection", "Power On"],
+    "answer": ["Power On", "POST", "BIOS Load", "Boot Device Selection"],
+    "marks": 20
+  },
+
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the website rendering flow.",
+    "items": ["CSS Apply", "JS Execute", "Page Render", "HTML Load"],
+    "answer": ["HTML Load", "CSS Apply", "JS Execute", "Page Render"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the cloud service flow.",
+    "items": ["Internet Transfer", "Cloud Server", "Response", "User Request"],
+    "answer": ["User Request", "Internet Transfer", "Cloud Server", "Response"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the database query flow.",
+    "items": ["API Call", "DB Query", "Result Response", "Client Request"],
+    "answer": ["Client Request", "API Call", "DB Query", "Result Response"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the API authentication flow.",
+    "items": ["Token Generate", "API Call", "Response", "Login"],
+    "answer": ["Login", "Token Generate", "API Call", "Response"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the Git workflow.",
+    "items": ["Add", "Commit", "Push", "Modify File"],
+    "answer": ["Modify File", "Add", "Commit", "Push"],
+    "marks": 20
+  },
+  {
+    "level": 2,
+    "category": "cloud",
+    "type": "drag_drop_order",
+    "question": "Arrange the deployment flow.",
+    "items": ["Testing", "Build", "Deployment", "Code Written"],
+    "answer": ["Code Written", "Testing", "Build", "Deployment"],
+    "marks": 20
+  }
+]

@@ -156,6 +156,7 @@ document.addEventListener('DOMContentLoaded', function(){
       d.style.boxShadow = '0 4px 14px rgba(0,0,0,0.2)';
       d.setAttribute('draggable', 'true');
       d.dataset.index = String(idx);
+      d.style.touchAction = 'none';
 
       var orderTag = document.createElement('span');
       orderTag.textContent = '#' + (idx + 1);
@@ -199,6 +200,58 @@ document.addEventListener('DOMContentLoaded', function(){
         var dropIndex = Number(d.dataset.index);
         reorderAndRender(draggedItemIndex, dropIndex);
       });
+
+      // Touch support for mobile drag
+      (function(el, elIdx){
+        var touchStartY = 0;
+        var touchStartX = 0;
+
+        el.addEventListener('touchstart', function(e){
+          e.preventDefault();
+          var touch = e.touches[0];
+          touchStartX = touch.clientX;
+          touchStartY = touch.clientY;
+          draggedItemIndex = elIdx;
+          el.style.opacity = '0.45';
+          el.style.transform = 'scale(1.05)';
+          el.style.zIndex = '999';
+          el.style.position = 'relative';
+        }, { passive: false });
+
+        el.addEventListener('touchmove', function(e){
+          e.preventDefault();
+          if (draggedItemIndex < 0) return;
+          var touch = e.touches[0];
+          var dx = touch.clientX - touchStartX;
+          var dy = touch.clientY - touchStartY;
+          el.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(1.05)';
+        }, { passive: false });
+
+        el.addEventListener('touchend', function(e){
+          if (draggedItemIndex < 0) return;
+          el.style.opacity = '1';
+          el.style.transform = '';
+          el.style.zIndex = '';
+          el.style.position = '';
+
+          var touch = e.changedTouches[0];
+          el.style.display = 'none';
+          var target = document.elementFromPoint(touch.clientX, touch.clientY);
+          el.style.display = '';
+
+          if (target) {
+            var targetItem = target.closest('.level2-item');
+            if (targetItem && targetItem.dataset.index !== undefined) {
+              var dropIdx = Number(targetItem.dataset.index);
+              var fromIdx = draggedItemIndex;
+              draggedItemIndex = -1;
+              reorderAndRender(fromIdx, dropIdx);
+              return;
+            }
+          }
+          draggedItemIndex = -1;
+        });
+      })(d, idx);
 
       itemsWrap.appendChild(d);
     });
@@ -285,7 +338,13 @@ document.addEventListener('DOMContentLoaded', function(){
     const modal = document.getElementById("resultModal");
     modal.style.display = "flex";
     
-    document.getElementById("confirmBtn").onclick = function() {
+    // Ensure Continue button is enabled and clickable
+    var confirmBtn = document.getElementById("confirmBtn");
+    confirmBtn.removeAttribute('disabled');
+    confirmBtn.classList.remove('disabled');
+    confirmBtn.style.pointerEvents = 'auto';
+    
+    confirmBtn.onclick = function() {
       if (redirectUrl) {
         window.location.href = redirectUrl;
       } else {

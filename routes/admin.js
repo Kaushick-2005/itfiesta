@@ -1,7 +1,128 @@
 const express = require("express");
 const router = express.Router();
 const Team = require("../models/Team");
+const BatchControl = require("../models/BatchControl");
+const Settings = require("../models/Settings");
 
+
+/* ===============================
+    BATCH CONTROL ROUTES
+================================= */
+
+/* Start Batch (Auto Assign Waiting Teams) */
+router.post("/batch/start", async (req, res) => {
+    try {
+        const { event } = req.body;
+
+        let batch = await BatchControl.findOne({ event });
+
+        const nextBatch = batch ? batch.currentBatchNumber + 1 : 1;
+
+        await BatchControl.updateOne(
+            { event },
+            {
+                $set: {
+                    event,
+                    currentBatchNumber: nextBatch,
+                    isActive: true,
+                    startedAt: new Date()
+                }
+            },
+            { upsert: true }
+        );
+
+        // Move all waiting teams into new batch
+        const waitingTeams = await Team.updateMany(
+            { eventType: event, batch: "waiting" },
+            { 
+                $set: { 
+                    batch: nextBatch,
+                    batchAssignedAt: new Date()
+                }
+            }
+        );
+
+        res.json({
+            success: true,
+            batch: nextBatch,
+            teamsAssigned: waitingTeams.modifiedCount
+        });
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
+
+/* Stop Batch */
+router.post("/batch/stop", async (req, res) => {
+    try {
+        const { event } = req.body;
+
+        await BatchControl.updateOne(
+            { event },
+            { $set: { isActive: false } }
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
+
+/* Reset Batch */
+router.post("/batch/reset", async (req, res) => {
+    try {
+        const { event } = req.body;
+
+        await BatchControl.updateOne(
+            { event },
+            {
+                $set: {
+                    currentBatchNumber: 0,
+                    isActive: false
+                }
+            }
+        );
+
+        // Set all teams back to waiting
+        await Team.updateMany(
+            { eventType: event },
+            { 
+                $set: { batch: "waiting" },
+                $unset: { batchAssignedAt: "" }
+            }
+        );
+
+        res.json({ success: true });
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
+
+/* Get Batch Status */
+router.get("/batch/status/:event", async (req, res) => {
+    try {
+        const { event } = req.params;
+        
+        const batch = await BatchControl.findOne({ event });
+        
+        if (!batch) {
+            return res.json({
+                event,
+                currentBatchNumber: 0,
+                isActive: false,
+                message: "No batch created yet"
+            });
+        }
+
+        res.json(batch);
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
 
 /* ===============================
    1️⃣ Get Teams (With Filters)
@@ -9,14 +130,15 @@ const Team = require("../models/Team");
 router.get("/teams", async (req, res) => {
     try {
 
-        const { eventType, status } = req.query;
+        const { eventType, status, batch } = req.query;
 
         let filter = {};
 
         if (eventType) filter.eventType = eventType;
         if (status) filter.status = status;
+        if (batch !== undefined) filter.batch = batch === 'null' ? null : Number(batch);
 
-        const teams = await Team.find(filter).sort({ score: -1 });
+        const teams = await Team.find(filter).sort({ score: -1, registeredAt: 1 });
 
         res.json(teams);
 
@@ -117,10 +239,23 @@ router.patch("/end-event", async (req, res) => {
 /* ===============================
    🏆 Leaderboard
 ================================= */
-router.get("/leaderboard", async (req, res) => {
+router.get("/leaderboard/:eventType", async (req, res) => {
     try {
+        const { eventType } = req.params;
+        const { batch } = req.query;
 
-        const teams = await Team.find().sort({ score: -1 });
+        let filter = { eventType };
+        
+        // If batch specified, filter by batch number
+        if (batch !== undefined) {
+            filter.batch = batch === 'null' ? null : Number(batch);
+        }
+
+        const teams = await Team.find(filter).sort({ 
+            score: -1, 
+            totalExamTime: 1,
+            registeredAt: 1 
+        });
 
         res.json(teams);
 
@@ -129,11 +264,24 @@ router.get("/leaderboard", async (req, res) => {
     }
 });
 
+/* Get All Leaderboards */
+router.get("/leaderboard", async (req, res) => {
+    try {
+        const teams = await Team.find().sort({ 
+            score: -1, 
+            totalExamTime: 1,
+            registeredAt: 1 
+        });
 
-module.exports = router;
+        res.json(teams);
+
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 /* ===============================
-   🎮 Advance Team to Next Round/Level
+    Advance Team to Next Round/Level
 ================================= */
 router.patch("/next-round/:id", async (req, res) => {
     try {
@@ -160,6 +308,48 @@ router.patch("/next-round/:id", async (req, res) => {
         });
     } catch (err) {
         res.status(500).json({ message: "Server error" });
+    }
+});
+
+/* ===============================
+   LEADERBOARD CONTROL
+================================= */
+
+/* Get Leaderboard Status */
+router.get("/leaderboard/status", async (req, res) => {
+    try {
+        const setting = await Settings.findOne({ key: "leaderboardEnabled" });
+        
+        res.json({
+            enabled: setting ? setting.value : true,
+            updatedAt: setting ? setting.updatedAt : null
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
+    }
+});
+
+/* Toggle Leaderboard ON/OFF */
+router.post("/leaderboard/toggle", async (req, res) => {
+    try {
+        const { enabled } = req.body;
+        
+        const setting = await Settings.findOneAndUpdate(
+            { key: "leaderboardEnabled" },
+            { 
+                value: enabled,
+                updatedAt: new Date()
+            },
+            { upsert: true, new: true }
+        );
+
+        res.json({
+            success: true,
+            enabled: setting.value,
+            message: `Leaderboard ${setting.value ? 'enabled' : 'disabled'}`
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Server error", error: err.message });
     }
 });
 

@@ -25,6 +25,13 @@ const teamSchema = new mongoose.Schema({
         required: true
     },
 
+    batch: {
+        type: mongoose.Schema.Types.Mixed,  // Allow both numbers and "waiting" string
+        default: "waiting"
+    },
+
+    batchAssignedAt: Date,
+
     currentRound: {
         type: Number,
         default: 1
@@ -47,6 +54,10 @@ const teamSchema = new mongoose.Schema({
 
     startTime: Date,
     endTime: Date,
+    
+    examStartTime: Date,
+    examEndTime: Date,
+    totalExamTime: Number,
 
     status: {
         type: String,
@@ -58,6 +69,11 @@ const teamSchema = new mongoose.Schema({
             "disqualified"
         ],
         default: "not_started"
+    },
+
+    registeredAt: {
+        type: Date,
+        default: Date.now
     }
 });
 

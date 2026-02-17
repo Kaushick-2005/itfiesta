@@ -6,80 +6,142 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <title>Login - IT Fiesta Escape Room</title>
     <style>
-        .login-container {
-            max-width: 400px;
-            margin: 40px auto;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        /* Unified Professional Dark Mode - Escape Room Login */
+        :root {
+            --bg-main: #0a0a0f;
+            --bg-card: rgba(25, 25, 32, 0.65);
+            --bg-input: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.06);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --text-primary: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --accent-primary: #1e3a8a;
+            --accent-hover: #2563eb;
+            --error-red: #dc2626;
+            --warning-amber: #f59e0b;
         }
+
+        body {
+            background:
+                radial-gradient(circle at 15% 30%, rgba(30, 58, 138, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(37, 99, 235, 0.25), transparent 45%),
+                radial-gradient(circle at 50% 50%, #07070c 0%, #050508 100%);
+            background-color: #050508;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1.5px 1.5px at 120px 80px, rgba(255,255,255,0.6), transparent),
+                radial-gradient(1px 1px at 350px 180px, rgba(255,255,255,0.5), transparent),
+                radial-gradient(1.5px 1.5px at 580px 100px, rgba(255,255,255,0.4), transparent),
+                radial-gradient(2px 2px at 820px 280px, rgba(255,255,255,0.7), transparent),
+                radial-gradient(1px 1px at 200px 300px, rgba(255,255,255,0.5), transparent);
+            background-repeat: repeat;
+            background-size: 800px 500px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .login-container {
+            max-width: 450px;
+            margin: 50px auto;
+            padding: 32px;
+            background: var(--bg-card);
+            backdrop-filter: blur(18px);
+            border-radius: 16px;
+            border: 1px solid var(--border-subtle);
+        }
+
         .login-container h2 {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 30px;
+            color: var(--text-primary);
+            margin-bottom: 35px;
+            font-size: 28px;
+            font-weight: 700;
         }
+
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
+
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
-            color: var(--text-color);
+            color: var(--text-primary);
+            font-size: 15px;
         }
+
         .form-group input {
             width: 100%;
-            padding: 12px;
-            border: 2px solid var(--primary-color);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-color);
+            padding: 14px 16px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            background: var(--bg-input);
+            color: var(--text-primary);
             font-size: 16px;
             box-sizing: border-box;
-            transition: border-color 0.3s;
+            transition: border 0.2s ease;
         }
+
         .form-group input:focus {
             outline: none;
-            border-color: var(--secondary-color);
-            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--accent-primary);
         }
+
         .btn-login {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            background: var(--accent-primary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.2s ease, transform 0.1s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
+
+        .btn-login:hover {
+            background: var(--accent-hover);
+        }
+
         .btn-login:active {
             transform: scale(0.98);
         }
+
         .error-message {
-            color: #ef4444;
+            color: var(--error-red);
             text-align: center;
             margin-top: 15px;
             font-size: 14px;
         }
+
         .success-message {
-            color: #10b981;
+            color: var(--accent-hover);
             text-align: center;
             margin-top: 15px;
             font-size: 14px;
         }
+
         .back-link {
             text-align: center;
             margin-top: 20px;
         }
+
         .back-link a {
-            color: var(--primary-color);
+            color: var(--accent-hover);
             text-decoration: none;
             font-size: 14px;
         }
+
         .back-link a:hover {
             text-decoration: underline;
         }
