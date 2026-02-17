@@ -29,9 +29,6 @@
         <option value="escape">Escape</option>
     </select>
 
-    Batch:
-    <input type="number" id="batchFilter" placeholder="Batch">
-
     Status:
     <select id="statusFilter">
         <option value="">All</option>
@@ -52,11 +49,14 @@
     <thead>
         <tr>
             <th>#</th>
+            <th>Team ID</th>
             <th>Team</th>
             <th>Event</th>
-            <th>Batch</th>
+            <th>Round</th>
             <th>Score</th>
             <th>Penalty</th>
+            <th>Total Score</th>
+            <th>Tab Switches</th>
             <th>Status</th>
             <th>Actions</th>
         </tr>
@@ -72,9 +72,12 @@
     <thead>
         <tr>
             <th>Rank</th>
+            <th>Team ID</th>
             <th>Team</th>
             <th>Event</th>
             <th>Score</th>
+            <th>Penalty</th>
+            <th>Total Score</th>
         </tr>
     </thead>
     <tbody id="leaderboardTable"></tbody>
@@ -85,14 +88,12 @@
 async function loadTeams() {
 
     const eventElement = document.getElementById("eventFilter");
-    const batchElement = document.getElementById("batchFilter");
     const statusElement = document.getElementById("statusFilter");
 
     let eventType = eventElement.value;
-    let batch = batchElement.value;
     let status = statusElement.value;
 
-    let query = `?eventType=${eventType}&batch=${batch}&status=${status}`;
+    let query = `?eventType=${eventType}&status=${status}`;
 
     const res = await fetch("/api/admin/teams" + query);
     const teams = await res.json();
@@ -101,20 +102,28 @@ async function loadTeams() {
     table.innerHTML = "";
 
     teams.forEach((team, index) => {
+        // BlackBox has 3 rounds, Escape has 5 levels
+        const maxRound = team.eventType === 'escape' ? 5 : 3;
+        const roundLabel = team.eventType === 'escape' ? 'L' : 'R';
+        const roundDisplay = team.currentRound > maxRound ? "Done" : `${roundLabel}${team.currentRound || 1}`;
+        const totalScore = (team.score || 0);
 
         table.innerHTML += `
             <tr>
                 <td>${index + 1}</td>
+                <td>${team.teamId}</td>
                 <td>${team.teamName}</td>
                 <td>${team.eventType}</td>
-                <td>${team.batch}</td>
-                <td>${team.score}</td>
-                <td>${team.penalty}</td>
+                <td>${roundDisplay}</td>
+                <td>${team.score || 0}</td>
+                <td>${team.penalty || 0}</td>
+                <td><b>${totalScore}</b></td>
+                <td>${team.tabSwitchCount || 0}</td>
                 <td>${team.status}</td>
                 <td>
                     <button onclick="editScore('${team._id}')">Edit</button>
-                    <button class="warning" onclick="addPenalty('${team._id}')">Penalty</button>
                     <button class="success" onclick="changeStatus('${team._id}', 'active')">Activate</button>
+                    <button class="warning" onclick="advanceTeam('${team._id}')">Next</button>
                     <button class="danger" onclick="changeStatus('${team._id}', 'disqualified')">DQ</button>
                 </td>
             </tr>
@@ -135,24 +144,22 @@ async function editScore(id) {
     loadTeams();
 }
 
-async function addPenalty(id) {
-    let points = prompt("Enter penalty points:");
-    if (!points) return;
-
-    await fetch(`/api/admin/add-penalty/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ points })
-    });
-
-    loadTeams();
-}
-
 async function changeStatus(id, status) {
     await fetch(`/api/admin/status/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status })
+    });
+
+    loadTeams();
+}
+
+async function advanceTeam(id) {
+    if (!confirm("Advance this team to the next round/level?")) return;
+    
+    await fetch(`/api/admin/next-round/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" }
     });
 
     loadTeams();
@@ -167,12 +174,16 @@ async function loadLeaderboard() {
     table.innerHTML = "";
 
     teams.forEach((team, index) => {
+        const totalScore = (team.score || 0);
         table.innerHTML += `
             <tr>
                 <td>${index + 1}</td>
+                <td>${team.teamId}</td>
                 <td>${team.teamName}</td>
                 <td>${team.eventType}</td>
-                <td>${team.score}</td>
+                <td>${team.score || 0}</td>
+                <td>${team.penalty || 0}</td>
+                <td><b>${totalScore}</b></td>
             </tr>
         `;
     });

@@ -25,7 +25,7 @@ const teamSchema = new mongoose.Schema({
         required: true
     },
 
-    batch: {
+    currentRound: {
         type: Number,
         default: 1
     },
@@ -41,11 +41,6 @@ const teamSchema = new mongoose.Schema({
     },
 
     tabSwitchCount: {
-        type: Number,
-        default: 0
-    },
-
-    currentQuestionIndex: {
         type: Number,
         default: 0
     },

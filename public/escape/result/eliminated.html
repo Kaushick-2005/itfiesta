@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Eliminated</title>
+</head>
+<body>
+    <header>
+        <h1>Eliminated</h1>
+    </header>
+    <main>
+        <section>
+            <p id="elimMessage">Sorry, you have been eliminated from the game.</p>
+            <div id="elimDetails" style="margin-top:12px;color:#fff;background:var(--card);padding:10px;border-radius:6px;display:none;">
+                <strong>Recent Violations</strong>
+                <div id="violationsTimeline" style="margin-top:8px;">
+                    <!-- filled dynamically -->
+                </div>
+                <small class="muted" style="display:block;margin-top:8px">If you believe this is an error, contact the admin.</small>
+            </div>
+            <p class="muted" style="margin-top:14px;">Access is controlled by admin. Re-entry/restart is disabled.</p>
+        </section>
+    </main>
+    <script src="../assets/js/api.js"></script>
+    <script>
+        (function(){
+            try{
+                var teamId = sessionStorage.getItem('teamId');
+                if (!teamId) return;
+
+                function goToNextLevel(nextLevel){
+                    window.location.href = '../levels/level' + nextLevel + '.html';
+                }
+
+                function renderViolationTimeline(team){
+                    var recs = team.violationRecords || [];
+                    if (recs.length === 0) return;
+                    recs.sort(function(a,b){ return new Date(b.timestamp) - new Date(a.timestamp); });
+                    var container = document.getElementById('violationsTimeline');
+                    container.innerHTML = recs.map(function(r){
+                        var when = r.timestamp ? new Date(r.timestamp).toLocaleString() : '-';
+                        return '<div style="padding:8px;border-bottom:1px solid rgba(255,255,255,0.06);">' +
+                            '<div style="font-weight:600;color:#fff">' + (r.reason || 'rule_violation') + '</div>' +
+                            '<div style="font-size:12px;color:#cfd8dc">' + when + '</div>' +
+                        '</div>';
+                    }).join('');
+                    document.getElementById('elimDetails').style.display = 'block';
+                    document.getElementById('elimMessage').textContent = 'You were eliminated. See timeline below for rule violations:';
+                }
+
+                function handleTeamState(team){
+                    if (!team) return;
+
+                    // Admin override path: leave eliminated page immediately.
+                    if (!team.eliminated) {
+                        if (team.winner || (Number(team.currentLevel || 1) >= 5 && team.level5_submitted)) {
+                            window.location.href = '../result/winner.html';
+                            return;
+                        }
+                        goToNextLevel(Number(team.currentLevel || 1));
+                        return;
+                    }
+
+                    renderViolationTimeline(team);
+                }
+
+                function pollRecovery(){
+                    API.getTeam(teamId)
+                      .then(handleTeamState)
+                      .catch(function(e){ console.warn('Failed to fetch team details', e); });
+                }
+
+                pollRecovery();
+                setInterval(pollRecovery, 3000);
+            }catch(e){ console.warn(e); }
+        })();
+    </script>
+    <footer>
+        <p>&copy; 2026 IT Fiesta</p>
+    </footer>
+</body>
+</html>

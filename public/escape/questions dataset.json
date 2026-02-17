@@ -1,0 +1,2236 @@
+[{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aeb"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I’m the silent core controlling hardware, memory, and processes, yet most users never see me directly.",
+  "options": [
+    "Shell",
+    "Kernel",
+    "Scheduler",
+    "Bootloader"
+  ],
+  "answer": "Kernel",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aec"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I rapidly switch the CPU between tasks so users feel programs run at the same time.",
+  "options": [
+    "Paging",
+    "Multitasking",
+    "Spooling",
+    "Buffering"
+  ],
+  "answer": "Multitasking",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aed"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "When RAM runs low, I borrow disk space to keep programs running.",
+  "options": [
+    "Cache Memory",
+    "Virtual Memory",
+    "Register",
+    "Stack"
+  ],
+  "answer": "Virtual Memory",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aee"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I decide which process runs next, keeping the system fair and responsive.",
+  "options": [
+    "Compiler",
+    "Interpreter",
+    "Scheduler",
+    "Loader"
+  ],
+  "answer": "Scheduler",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aef"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I allow users to interact with the operating system using typed commands.",
+  "options": [
+    "Kernel",
+    "GUI",
+    "Shell",
+    "Driver"
+  ],
+  "answer": "Shell",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af0"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I start the operating system immediately after hardware initialization.",
+  "options": [
+    "Kernel",
+    "BIOS",
+    "Bootloader",
+    "Shell"
+  ],
+  "answer": "Bootloader",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af1"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I organize files into directories so the OS can store and retrieve data efficiently.",
+  "options": [
+    "File System",
+    "Database",
+    "Cache",
+    "Scheduler"
+  ],
+  "answer": "File System",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af2"
+  },
+  "level": 1,
+  "category": "os",
+  "type": "mcq",
+  "question": "I control who can access system resources through permissions and privileges.",
+  "options": [
+    "Encryption",
+    "Access Control",
+    "Backup System",
+    "Multithreading"
+  ],
+  "answer": "Access Control",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af3"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "In Excel, which symbol must every formula begin with?",
+  "options": [
+    "%",
+    "+",
+    "=",
+    "#"
+  ],
+  "answer": "=",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af4"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "Which function would you use to find the highest value in a range of cells (A1 to A10)?",
+  "options": [
+    "=UPPER(A1:A10)",
+    "=MAX(A1:A10)",
+    "=HIGH(A1:A10)",
+    "=LARGE(A1:A10)"
+  ],
+  "answer": "=MAX(A1:A10)",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af5"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "What is the purpose of a \"VLOOKUP\" function?",
+  "options": [
+    "To delete duplicate values in a column.",
+    "To search for a value in the leftmost column and return a value in the same row from another column.",
+    "To create a visual chart based on a table.",
+    "To protect a worksheet with a password."
+  ],
+  "answer": "To search for a value in the leftmost column and return a value in the same row from another column.",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af6"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "What does \"SaaS\" stand for in cloud computing?",
+  "options": [
+    "Storage as a Service",
+    "Software as a Service",
+    "System as a Solution",
+    "Security as a Service"
+  ],
+  "answer": "Software as a Service",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af7"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "Which cloud deployment model is operated specifically for a single organization?",
+  "options": [
+    "Public Cloud",
+    "Hybrid Cloud",
+    "Community Cloud",
+    "Private Cloud"
+  ],
+  "answer": "Private Cloud",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af8"
+  },
+  "level": 1,
+  "category": "cloud",
+  "type": "mcq",
+  "question": "Which of the following is an example of an \"IaaS\" (Infrastructure as a Service) provider?",
+  "options": [
+    "Google Docs",
+    "Amazon Web Services (AWS)",
+    "Dropbox",
+    "Slack"
+  ],
+  "answer": "Amazon Web Services (AWS)",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251af9"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "Who is often referred to as the \"Father of Artificial Intelligence\"?",
+  "options": [
+    "Alan Turing",
+    "John McCarthy",
+    "Marvin Minsky",
+    "Herbert Simon"
+  ],
+  "answer": "John McCarthy",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251afa"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "Which of the following best describes the \"Turing Test\"?",
+  "options": [
+    "A test to see if a machine can solve complex mathematical equations.",
+    "A test to measure a machine's ability to exhibit intelligent behavior equivalent to a human.",
+    "A hardware diagnostic for AI processors.",
+    "A method for training neural networks."
+  ],
+  "answer": "A test to measure a machine's ability to exhibit intelligent behavior equivalent to a human.",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251afb"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "In AI, what does the \"Agent\" interact with through sensors and actuators?",
+  "options": [
+    "The Database",
+    "The Internet",
+    "The Environment",
+    "The User Interface"
+  ],
+  "answer": "The Environment",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251afc"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "Which search algorithm is considered \"uninformed\" (blind search)?",
+  "options": [
+    "A* Search",
+    "Greedy Best-First Search",
+    "Breadth-First Search (BFS)",
+    "Heuristic Search"
+  ],
+  "answer": "Breadth-First Search (BFS)",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251afd"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "What is the main purpose of an \"Activation Function\" in a neural network?",
+  "options": [
+    "To store the weights of the network.",
+    "To introduce non-linearity into the output of a neuron.",
+    "To increase the speed of data entry.",
+    "To clean the input data."
+  ],
+  "answer": "To introduce non-linearity into the output of a neuron.",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251afe"
+  },
+  "level": 1,
+  "category": "ai",
+  "type": "mcq",
+  "question": "\"Supervised Learning\" differs from \"Unsupervised Learning\" because it requires:",
+  "options": [
+    "More computing power.",
+    "Labeled data (input-output pairs).",
+    "A human to watch the machine while it runs.",
+    "No data at all."
+  ],
+  "answer": "Labeled data (input-output pairs).",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251aff"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "I connect CPU, RAM, storage, and expansion cards into one working system.",
+  "options": [
+    "Cabinet",
+    "Chipset",
+    "Motherboard",
+    "Processor"
+  ],
+  "answer": "Motherboard",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b00"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "Improper grounding during assembly may allow me to silently damage components.",
+  "options": [
+    "Overheating",
+    "Static Electricity",
+    "Voltage Spike",
+    "Dust"
+  ],
+  "answer": "Static Electricity",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b01"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "I convert AC power from the wall into regulated DC power inside the computer.",
+  "options": [
+    "UPS",
+    "Adapter",
+    "Power Supply / SMPS",
+    "Voltage Regulator"
+  ],
+  "answer": "Power Supply / SMPS",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b02"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "Applying me incorrectly between CPU and cooler may cause overheating.",
+  "options": [
+    "Silicon Pad",
+    "Thermal Paste",
+    "CPU Gel",
+    "Lubricant"
+  ],
+  "answer": "Thermal Paste",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b03"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "I determine whether a processor physically fits onto the motherboard.",
+  "options": [
+    "Chipset",
+    "BIOS Version",
+    "Socket Type",
+    "RAM Slot"
+  ],
+  "answer": "Socket Type",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b04"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "If I fail, system may power on but nothing appears on the display.",
+  "options": [
+    "Monitor Cable",
+    "GPU / Graphics Card",
+    "RAM",
+    "CMOS Battery"
+  ],
+  "answer": "GPU / Graphics Card",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b05"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "I store BIOS configuration even when the computer is powered off.",
+  "options": [
+    "EEPROM",
+    "CMOS Battery",
+    "BIOS Chip",
+    "SSD"
+  ],
+  "answer": "CMOS Battery",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b06"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "Incorrect airflow direction of me can increase cabinet temperature.",
+  "options": [
+    "CPU Fan",
+    "Exhaust Vent",
+    "Case Fan",
+    "Cooling Pipe"
+  ],
+  "answer": "Case Fan",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b07"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "I provide very fast storage using PCIe lanes without SATA cables.",
+  "options": [
+    "SATA SSD",
+    "NVMe Drive",
+    "External HDD",
+    "Flash Drive"
+  ],
+  "answer": "NVMe Drive",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b08"
+  },
+  "level": 1,
+  "category": "cam",
+  "type": "mcq",
+  "question": "Loose connection of me often causes storage devices not to appear.",
+  "options": [
+    "Power Connector",
+    "HDMI Cable",
+    "SATA Cable",
+    "PCI Cable"
+  ],
+  "answer": "SATA Cable",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b09"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language was originally designed mainly for system programming and OS development?",
+  "options": [
+    "Java",
+    "C",
+    "Python",
+    "JavaScript"
+  ],
+  "answer": "C",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0a"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which programming language is most associated with web page interactivity in browsers?",
+  "options": [
+    "PHP",
+    "Java",
+    "JavaScript",
+    "C#"
+  ],
+  "answer": "JavaScript",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0b"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language was created by Guido van Rossum and emphasizes readability?",
+  "options": [
+    "Ruby",
+    "Python",
+    "Perl",
+    "Swift"
+  ],
+  "answer": "Python",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0c"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language was primarily developed by Sun Microsystems for platform-independent applications?",
+  "options": [
+    "Kotlin",
+    "Java",
+    "Scala",
+    "Go"
+  ],
+  "answer": "Java",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0d"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language is widely used for statistical computing and data analysis?",
+  "options": [
+    "MATLAB",
+    "R",
+    "Julia",
+    "Rust"
+  ],
+  "answer": "R",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0e"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language is most commonly used for iOS app development today?",
+  "options": [
+    "Objective-C",
+    "Swift",
+    "Dart",
+    "Kotlin"
+  ],
+  "answer": "Swift",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b0f"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language was developed at Bell Labs by Dennis Ritchie?",
+  "options": [
+    "C++",
+    "Assembly",
+    "C",
+    "Pascal"
+  ],
+  "answer": "C",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b10"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language is best known for front-end web page structure?",
+  "options": [
+    "CSS",
+    "HTML",
+    "XML",
+    "Markdown"
+  ],
+  "answer": "HTML",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b11"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language is popular for Android development alongside Java?",
+  "options": [
+    "Dart",
+    "Swift",
+    "Kotlin",
+    "Scala"
+  ],
+  "answer": "Kotlin",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81d3bc56204817251b12"
+  },
+  "level": 1,
+  "category": "programming",
+  "type": "mcq",
+  "question": "Which language was designed by Bjarne Stroustrup as an extension of C?",
+  "options": [
+    "Rust",
+    "C#",
+    "C++",
+    "Go"
+  ],
+  "answer": "C++",
+  "marks": 10
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b13"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the correct boot sequence in order.",
+  "items": [
+    "OS Loads",
+    "BIOS Start",
+    "Power Button",
+    "Bootloader"
+  ],
+  "answer": [
+    "Power Button",
+    "BIOS Start",
+    "Bootloader",
+    "OS Loads"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b14"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the process lifecycle in correct order.",
+  "items": [
+    "Running",
+    "New",
+    "Terminated",
+    "Ready"
+  ],
+  "answer": [
+    "New",
+    "Ready",
+    "Running",
+    "Terminated"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b15"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the memory hierarchy from fastest to slowest.",
+  "items": [
+    "Cache",
+    "Hard Disk",
+    "RAM",
+    "Registers"
+  ],
+  "answer": [
+    "Registers",
+    "Cache",
+    "RAM",
+    "Hard Disk"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b16"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the Linux directory structure order.",
+  "items": [
+    "/home",
+    "/boot",
+    "/etc",
+    "/"
+  ],
+  "answer": [
+    "/",
+    "/boot",
+    "/etc",
+    "/home"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b17"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the kernel interaction flow.",
+  "items": [
+    "Hardware",
+    "User Application",
+    "Kernel",
+    "System Call"
+  ],
+  "answer": [
+    "User Application",
+    "System Call",
+    "Kernel",
+    "Hardware"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b18"
+  },
+  "level": 2,
+  "category": "os",
+  "type": "drag_drop_order",
+  "question": "Arrange the file permission order correctly.",
+  "items": [
+    "Execute",
+    "Read",
+    "Write"
+  ],
+  "answer": [
+    "Read",
+    "Write",
+    "Execute"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b19"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange the OSI layers from top to bottom.",
+  "items": [
+    "Physical",
+    "Transport",
+    "Application",
+    "Network"
+  ],
+  "answer": [
+    "Application",
+    "Transport",
+    "Network",
+    "Physical"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1a"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange the secure login flow.",
+  "items": [
+    "Authentication",
+    "Authorization",
+    "Access Granted",
+    "Enter Password"
+  ],
+  "answer": [
+    "Enter Password",
+    "Authentication",
+    "Authorization",
+    "Access Granted"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1b"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange the phishing detection steps.",
+  "items": [
+    "Check URL",
+    "Verify Sender",
+    "Click Link",
+    "Identify Threat"
+  ],
+  "answer": [
+    "Verify Sender",
+    "Check URL",
+    "Identify Threat",
+    "Click Link"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1c"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange the network troubleshooting steps.",
+  "items": [
+    "Check Cable",
+    "Ping Test",
+    "Restart Router",
+    "Replace Hardware"
+  ],
+  "answer": [
+    "Check Cable",
+    "Restart Router",
+    "Ping Test",
+    "Replace Hardware"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1d"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange the encryption flow.",
+  "items": [
+    "Encryption",
+    "Cipher Text",
+    "Decryption",
+    "Plain Text"
+  ],
+  "answer": [
+    "Plain Text",
+    "Encryption",
+    "Cipher Text",
+    "Decryption"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1e"
+  },
+  "level": 2,
+  "category": "cyber",
+  "type": "drag_drop_order",
+  "question": "Arrange password strength from strongest to weakest.",
+  "items": [
+    "123456",
+    "Password",
+    "P@ssW0rd!92",
+    "qwerty"
+  ],
+  "answer": [
+    "P@ssW0rd!92",
+    "Password",
+    "qwerty",
+    "123456"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b1f"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the correct Java program structure.",
+  "items": [
+    "public static void main(String[] args) {",
+    "System.out.println(\"Hi\");",
+    "}",
+    "}",
+    "class Test {"
+  ],
+  "answer": [
+    "class Test {",
+    "public static void main(String[] args) {",
+    "System.out.println(\"Hi\");",
+    "}",
+    "}"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b20"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the correct HTML structure.",
+  "items": [
+    "<html>",
+    "<body>",
+    "<head>",
+    "</html>"
+  ],
+  "answer": [
+    "<html>",
+    "<head>",
+    "<body>",
+    "</html>"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b21"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the web request flow.",
+  "items": [
+    "Server Process",
+    "Database Query",
+    "Response",
+    "Browser Request"
+  ],
+  "answer": [
+    "Browser Request",
+    "Server Process",
+    "Database Query",
+    "Response"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b22"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the variable lifecycle.",
+  "items": [
+    "Initialize",
+    "Use",
+    "Destroy",
+    "Declare"
+  ],
+  "answer": [
+    "Declare",
+    "Initialize",
+    "Use",
+    "Destroy"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b23"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the compiler flow.",
+  "items": [
+    "Compilation",
+    "Machine Code",
+    "Execution",
+    "Source Code"
+  ],
+  "answer": [
+    "Source Code",
+    "Compilation",
+    "Machine Code",
+    "Execution"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b24"
+  },
+  "level": 2,
+  "category": "programming",
+  "type": "drag_drop_order",
+  "question": "Arrange the debugging steps.",
+  "items": [
+    "Error Found",
+    "Fix Code",
+    "Test Again",
+    "Run Program"
+  ],
+  "answer": [
+    "Run Program",
+    "Error Found",
+    "Fix Code",
+    "Test Again"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b25"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the PC assembly order.",
+  "items": [
+    "Apply Thermal Paste",
+    "Attach Cooler",
+    "Install RAM",
+    "Install CPU"
+  ],
+  "answer": [
+    "Install CPU",
+    "Apply Thermal Paste",
+    "Attach Cooler",
+    "Install RAM"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b26"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the cooling flow process.",
+  "items": [
+    "Thermal Paste",
+    "Heat Sink",
+    "Fan Exhaust",
+    "Heat Generated"
+  ],
+  "answer": [
+    "Heat Generated",
+    "Thermal Paste",
+    "Heat Sink",
+    "Fan Exhaust"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b27"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the power flow.",
+  "items": [
+    "SMPS",
+    "Motherboard",
+    "Components",
+    "Wall Power"
+  ],
+  "answer": [
+    "Wall Power",
+    "SMPS",
+    "Motherboard",
+    "Components"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b28"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the storage access flow.",
+  "items": [
+    "OS Request",
+    "Storage Access",
+    "Data Returned",
+    "Application Request"
+  ],
+  "answer": [
+    "Application Request",
+    "OS Request",
+    "Storage Access",
+    "Data Returned"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b29"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the GPU rendering flow.",
+  "items": [
+    "GPU Processing",
+    "Frame Render",
+    "Display Output",
+    "CPU Sends Data"
+  ],
+  "answer": [
+    "CPU Sends Data",
+    "GPU Processing",
+    "Frame Render",
+    "Display Output"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2a"
+  },
+  "level": 2,
+  "category": "cam",
+  "type": "drag_drop_order",
+  "question": "Arrange the BIOS startup sequence.",
+  "items": [
+    "POST",
+    "BIOS Load",
+    "Boot Device Selection",
+    "Power On"
+  ],
+  "answer": [
+    "Power On",
+    "POST",
+    "BIOS Load",
+    "Boot Device Selection"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2b"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the website rendering flow.",
+  "items": [
+    "CSS Apply",
+    "JS Execute",
+    "Page Render",
+    "HTML Load"
+  ],
+  "answer": [
+    "HTML Load",
+    "CSS Apply",
+    "JS Execute",
+    "Page Render"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2c"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the cloud service flow.",
+  "items": [
+    "Internet Transfer",
+    "Cloud Server",
+    "Response",
+    "User Request"
+  ],
+  "answer": [
+    "User Request",
+    "Internet Transfer",
+    "Cloud Server",
+    "Response"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2d"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the database query flow.",
+  "items": [
+    "API Call",
+    "DB Query",
+    "Result Response",
+    "Client Request"
+  ],
+  "answer": [
+    "Client Request",
+    "API Call",
+    "DB Query",
+    "Result Response"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2e"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the API authentication flow.",
+  "items": [
+    "Token Generate",
+    "API Call",
+    "Response",
+    "Login"
+  ],
+  "answer": [
+    "Login",
+    "Token Generate",
+    "API Call",
+    "Response"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b2f"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the Git workflow.",
+  "items": [
+    "Add",
+    "Commit",
+    "Push",
+    "Modify File"
+  ],
+  "answer": [
+    "Modify File",
+    "Add",
+    "Commit",
+    "Push"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f81dcbc56204817251b30"
+  },
+  "level": 2,
+  "category": "cloud",
+  "type": "drag_drop_order",
+  "question": "Arrange the deployment flow.",
+  "items": [
+    "Testing",
+    "Build",
+    "Deployment",
+    "Code Written"
+  ],
+  "answer": [
+    "Code Written",
+    "Testing",
+    "Build",
+    "Deployment"
+  ],
+  "marks": 20
+},
+{
+  "_id": {
+    "$oid": "698f820243c5f5de38d27469"
+  },
+  "level": 3,
+  "title": "Level 3 – Logic Code Master Set",
+  "total_questions": 25,
+  "questions": [
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the clues and generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 13?",
+          "answer": "1101"
+        },
+        {
+          "clue": "Hexadecimal of 26?",
+          "answer": "1A"
+        },
+        {
+          "clue": "How many sides does a pentagon have?",
+          "answer": "5"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Hex + Number",
+      "final_code": "11011A5",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the clues and calculate the final code.",
+      "clues": [
+        {
+          "clue": "ASCII value of B?",
+          "answer": "66"
+        },
+        {
+          "clue": "Reverse of 240?",
+          "answer": "42"
+        },
+        {
+          "clue": "How many bits in 1 byte?",
+          "answer": "8"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(66 + 42) × 8 = 864",
+      "final_code": "864",
+      "marks": 30
+    },
+    {
+      "category": "networking",
+      "type": "logic_code",
+      "question": "Solve the networking clues and generate the final code.",
+      "clues": [
+        {
+          "clue": "How many layers in the OSI model?",
+          "answer": "7"
+        },
+        {
+          "clue": "Default HTTP port?",
+          "answer": "80"
+        },
+        {
+          "clue": "IPv4 address contains how many octets?",
+          "answer": "4"
+        }
+      ],
+      "final_rule": "Multiply Clue1 × Clue3, then append Clue2",
+      "calculation": "7 × 4 = 28, append 80",
+      "final_code": "2880",
+      "marks": 30
+    },
+    {
+      "category": "programming",
+      "type": "logic_code",
+      "question": "Solve the programming logic clues and compute the final code.",
+      "clues": [
+        {
+          "clue": "Output of print(2 ** 3)?",
+          "answer": "8"
+        },
+        {
+          "clue": "Length of string \"Escape\"?",
+          "answer": "6"
+        },
+        {
+          "clue": "How many keywords in C language (classic standard)?",
+          "answer": "32"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(8 + 6) × 32 = 448",
+      "final_code": "448",
+      "marks": 30
+    },
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber + encoding clues and generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 9?",
+          "answer": "1001"
+        },
+        {
+          "clue": "Caesar cipher shift +1 of \"DOG\"?",
+          "answer": "EPH"
+        },
+        {
+          "clue": "SHA-1 produces how many bits?",
+          "answer": "160"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "10013160",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, decimal, and shape logic clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 21?",
+          "answer": "10101"
+        },
+        {
+          "clue": "Decimal value of Hex 1F?",
+          "answer": "31"
+        },
+        {
+          "clue": "How many diagonals does a square have?",
+          "answer": "2"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Decimal + Number",
+      "final_code": "10101312",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and bit logic clues to compute the final code.",
+      "clues": [
+        {
+          "clue": "ASCII value of C?",
+          "answer": "67"
+        },
+        {
+          "clue": "Reverse of 305?",
+          "answer": "503"
+        },
+        {
+          "clue": "How many bits are there in 2 bytes?",
+          "answer": "16"
+        }
+      ],
+      "final_rule": "(67 + 503) ÷ 16",
+      "calculation": "(67 + 503) ÷ 16 = 35.625 (rounded down → 35)",
+      "final_code": "35",
+      "marks": 30
+    },
+    {
+      "category": "networking",
+      "type": "logic_code",
+      "question": "Solve the networking clues and generate the final code.",
+      "clues": [
+        {
+          "clue": "How many bits are there in an IPv4 address?",
+          "answer": "32"
+        },
+        {
+          "clue": "How many layers are there in TCP/IP model?",
+          "answer": "4"
+        },
+        {
+          "clue": "Default HTTPS port number?",
+          "answer": "443"
+        }
+      ],
+      "final_rule": "Multiply Clue1 × Clue2, then append Clue3",
+      "calculation": "32 × 4 = 128, append 443",
+      "final_code": "128443",
+      "marks": 30
+    },
+    {
+      "category": "programming",
+      "type": "logic_code",
+      "question": "Solve the programming logic clues and compute the final code.",
+      "clues": [
+        {
+          "clue": "Output of 5 % 2?",
+          "answer": "1"
+        },
+        {
+          "clue": "Length of the string \"System\"?",
+          "answer": "6"
+        },
+        {
+          "clue": "How many primitive data types are there in Java?",
+          "answer": "8"
+        }
+      ],
+      "final_rule": "(1 + 6) × 8",
+      "final_code": "56",
+      "marks": 30
+    },
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber, encoding, and math clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 12?",
+          "answer": "1100"
+        },
+        {
+          "clue": "Caesar cipher shift +2 of \"CAT\"?",
+          "answer": "ECV"
+        },
+        {
+          "clue": "MD5 produces how many bits?",
+          "answer": "128"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + MD5 bits",
+      "final_code": "11003128",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, hexadecimal, and geometry clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 18?",
+          "answer": "10010"
+        },
+        {
+          "clue": "Hexadecimal of 45?",
+          "answer": "2D"
+        },
+        {
+          "clue": "How many degrees are there in a right angle?",
+          "answer": "90"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Hex + Number",
+      "final_code": "100102D90",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and bit clues to compute the final code.",
+      "clues": [
+        {
+          "clue": "ASCII value of D?",
+          "answer": "68"
+        },
+        {
+          "clue": "Reverse of 512?",
+          "answer": "215"
+        },
+        {
+          "clue": "How many bits are there in 4 bytes?",
+          "answer": "32"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2) ÷ Clue3",
+      "calculation": "(68 + 215) ÷ 32 = 283 ÷ 32 = 8 (integer division)",
+      "final_code": "8",
+      "marks": 30
+    },
+    {
+      "category": "networking",
+      "type": "logic_code",
+      "question": "Solve the networking clues and generate the final code.",
+      "clues": [
+        {
+          "clue": "How many layers are there in the OSI model?",
+          "answer": "7"
+        },
+        {
+          "clue": "How many bits are there in 1 byte?",
+          "answer": "8"
+        },
+        {
+          "clue": "Default FTP port number?",
+          "answer": "21"
+        }
+      ],
+      "final_rule": "Multiply Clue1 × Clue2, then append Clue3",
+      "calculation": "7 × 8 = 56, append 21",
+      "final_code": "5621",
+      "marks": 30
+    },
+    {
+      "category": "programming",
+      "type": "logic_code",
+      "question": "Solve the programming, string, and logic clues to compute the final code.",
+      "clues": [
+        {
+          "clue": "Output of 10 // 3 in Python?",
+          "answer": "3"
+        },
+        {
+          "clue": "Length of the string \"Network\"?",
+          "answer": "7"
+        },
+        {
+          "clue": "How many primitive data types are there in C language?",
+          "answer": "4"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(3 + 7) × 4 = 40",
+      "final_code": "40",
+      "marks": 30
+    },
+    {
+      "category": "cyber",
+      "type": "logic_code",
+      "question": "Solve the cyber, encoding, and hashing clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 6?",
+          "answer": "110"
+        },
+        {
+          "clue": "Caesar cipher shift +3 of \"HAT\"?",
+          "answer": "KDW"
+        },
+        {
+          "clue": "SHA-256 produces how many bits?",
+          "answer": "256"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "1103256",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the binary, hexadecimal, and geometry clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 25?",
+          "answer": "11001"
+        },
+        {
+          "clue": "Hexadecimal of 58?",
+          "answer": "3A"
+        },
+        {
+          "clue": "How many sides does a triangle have?",
+          "answer": "3"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Hex + (Clue3 × 2)",
+      "calculation": "3 × 2 = 6",
+      "final_code": "110013A6",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, reverse, and multiplication clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "ASCII value of E?",
+          "answer": "69"
+        },
+        {
+          "clue": "Reverse of 640?",
+          "answer": "046"
+        },
+        {
+          "clue": "How many bits in 3 bytes?",
+          "answer": "24"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2 as number) × Clue3",
+      "calculation": "(69 + 46) × 24 = 115 × 24 = 2760",
+      "final_code": "2760",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the networking and division clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "How many bits are there in IPv6 address?",
+          "answer": "128"
+        },
+        {
+          "clue": "How many layers in TCP/IP model?",
+          "answer": "4"
+        },
+        {
+          "clue": "Default SMTP port number?",
+          "answer": "25"
+        }
+      ],
+      "final_rule": "(Clue1 ÷ Clue2), then append Clue3",
+      "calculation": "128 ÷ 4 = 32, append 25",
+      "final_code": "3225",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the programming and logic clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Output of: 17 % 5 ?",
+          "answer": "2"
+        },
+        {
+          "clue": "Length of the string \"Security\"?",
+          "answer": "8"
+        },
+        {
+          "clue": "How many loops are there in Java?",
+          "answer": "3"
+        }
+      ],
+      "final_rule": "(Clue1 + Clue2) × Clue3",
+      "calculation": "(2 + 8) × 3 = 30",
+      "final_code": "30",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the cyber, cipher, and hashing clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 14?",
+          "answer": "1110"
+        },
+        {
+          "clue": "Caesar cipher shift +1 of \"CODE\"?",
+          "answer": "DPEF"
+        },
+        {
+          "clue": "SHA-512 produces how many bits?",
+          "answer": "512"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "11104512",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the decimal, binary, and polygon clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Decimal value of Hex 2A?",
+          "answer": "42"
+        },
+        {
+          "clue": "Binary of 10?",
+          "answer": "1010"
+        },
+        {
+          "clue": "How many sides does a hexagon have?",
+          "answer": "6"
+        }
+      ],
+      "final_rule": "Concatenate Clue1 + Binary + Clue3",
+      "final_code": "4210106",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the ASCII, bit logic, and addition clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "ASCII value of F?",
+          "answer": "70"
+        },
+        {
+          "clue": "How many bits in a nibble?",
+          "answer": "4"
+        },
+        {
+          "clue": "Reverse of 321?",
+          "answer": "123"
+        }
+      ],
+      "final_rule": "(Clue1 × Clue2) + Clue3",
+      "calculation": "(70 × 4) + 123 = 280 + 123 = 403",
+      "final_code": "403",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the OS and port clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "How many states in basic Process Lifecycle?",
+          "answer": "5"
+        },
+        {
+          "clue": "Default Telnet port?",
+          "answer": "23"
+        },
+        {
+          "clue": "How many bits in 1 byte?",
+          "answer": "8"
+        }
+      ],
+      "final_rule": "(Clue1 × Clue3), then append Clue2",
+      "calculation": "5 × 8 = 40, append 23",
+      "final_code": "4023",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the programming power and length clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Output of: 3 ** 3 ?",
+          "answer": "27"
+        },
+        {
+          "clue": "Length of the string \"Binary\"?",
+          "answer": "6"
+        },
+        {
+          "clue": "How many primitive types in Java?",
+          "answer": "8"
+        }
+      ],
+      "final_rule": "(Clue1 − Clue2) × Clue3",
+      "calculation": "(27 − 6) × 8 = 21 × 8 = 168",
+      "final_code": "168",
+      "marks": 30
+    },
+    {
+      "category": "logic",
+      "type": "logic_code",
+      "question": "Solve the encoding and hashing clues to generate the final code.",
+      "clues": [
+        {
+          "clue": "Binary of 11?",
+          "answer": "1011"
+        },
+        {
+          "clue": "Caesar cipher shift +2 of \"SUN\"?",
+          "answer": "UWP"
+        },
+        {
+          "clue": "How many bits in SHA-224?",
+          "answer": "224"
+        }
+      ],
+      "final_rule": "Concatenate Binary + Cipher word length + SHA bits",
+      "final_code": "10113224",
+      "marks": 30
+    }
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746a"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Ransomware Containment",
+  "incident": "File server files are encrypted. Suspicious outbound traffic detected. Backups available from last night.",
+  "constraints": [
+    "No data loss",
+    "Stop spread immediately",
+    "Do NOT pay ransom",
+    "Preserve forensic evidence"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Disconnect server from network",
+    "Restart server",
+    "Activate incident response protocol",
+    "Restore from backup",
+    "Pay ransom",
+    "Identify affected systems",
+    "Delete suspicious logs",
+    "Inform all users immediately"
+  ],
+  "correct_order": [
+    1,
+    3,
+    6,
+    4
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746b"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Database Corruption After Deployment",
+  "incident": "Production database shows inconsistent records after new deployment.",
+  "constraints": [
+    "No permanent data loss",
+    "Service interruption under 5 minutes",
+    "Logs must be preserved"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Stop new write operations",
+    "Restart database server",
+    "Check transaction logs",
+    "Roll back to last stable version",
+    "Delete corrupted tables",
+    "Notify marketing team",
+    "Take fresh backup",
+    "Disable all user accounts"
+  ],
+  "correct_order": [
+    1,
+    3,
+    7,
+    4
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746c"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Brute Force Attack",
+  "incident": "Authentication server facing 1500 failed logins per minute targeting admin accounts.",
+  "constraints": [
+    "Do not log out active users",
+    "Prevent credential compromise",
+    "Downtime under 3 minutes"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Enable rate limiting",
+    "Restart authentication server",
+    "Block suspicious IP ranges",
+    "Force password reset for admins",
+    "Shut down entire network",
+    "Ignore until confirmed",
+    "Activate backup auth service",
+    "Pull power cable"
+  ],
+  "correct_order": [
+    3,
+    1,
+    7,
+    4
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746d"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Network Routing Failure",
+  "incident": "Academic block loses internet. Core switch routing table abnormal.",
+  "constraints": [
+    "Do not affect other blocks",
+    "No hardware replacement",
+    "Must identify root cause"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Verify routing configuration",
+    "Restart entire campus network",
+    "Isolate affected VLAN",
+    "Analyze recent configuration changes",
+    "Replace hardware",
+    "Inform students of permanent outage",
+    "Disconnect fiber backbone",
+    "Apply corrected routing rules"
+  ],
+  "correct_order": [
+    3,
+    1,
+    4,
+    8
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746e"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Insider Data Leak",
+  "incident": "Sensitive student data uploaded externally. Suspicious admin login detected.",
+  "constraints": [
+    "Preserve evidence",
+    "Do not alert suspect immediately",
+    "Prevent further data exfiltration"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Collect and preserve logs",
+    "Immediately suspend suspected account",
+    "Block external upload traffic",
+    "Monitor active sessions",
+    "Delete suspicious logs",
+    "Shut down system",
+    "Inform entire staff",
+    "Change all admin credentials"
+  ],
+  "correct_order": [
+    3,
+    1,
+    4,
+    2
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2746f"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "DDoS Attack",
+  "incident": "Public website receiving massive traffic spike. Services slowing down.",
+  "constraints": [
+    "Keep service partially available",
+    "No full shutdown",
+    "Minimize customer impact"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Enable traffic filtering rules",
+    "Shut down server",
+    "Activate CDN protection",
+    "Monitor traffic patterns",
+    "Inform attackers publicly",
+    "Restart server",
+    "Scale server resources",
+    "Ignore temporary spike"
+  ],
+  "correct_order": [
+    4,
+    1,
+    3,
+    7
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27470"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Email Phishing Campaign",
+  "incident": "Multiple users report phishing email with malicious link.",
+  "constraints": [
+    "Prevent credential theft",
+    "Do not panic users",
+    "Preserve mail logs"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Analyze email headers",
+    "Delete all mail server logs",
+    "Block malicious domain",
+    "Send advisory to users",
+    "Shut down email server",
+    "Reset all passwords immediately",
+    "Ignore single complaints",
+    "Quarantine suspicious emails"
+  ],
+  "correct_order": [
+    1,
+    8,
+    3,
+    4
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27471"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Cloud Storage Breach",
+  "incident": "Unauthorized access detected in cloud storage bucket.",
+  "constraints": [
+    "No data deletion",
+    "Prevent further access",
+    "Maintain service continuity"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Revoke exposed access keys",
+    "Delete entire storage bucket",
+    "Review access logs",
+    "Apply stricter access policies",
+    "Shut down cloud provider account",
+    "Ignore minor anomaly",
+    "Inform external press",
+    "Rotate credentials"
+  ],
+  "correct_order": [
+    1,
+    3,
+    4,
+    8
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27472"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Server CPU Overload",
+  "incident": "Production server CPU at 100% continuously. Services slowing.",
+  "constraints": [
+    "No immediate shutdown",
+    "No data loss",
+    "Must identify root cause"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Analyze running processes",
+    "Restart server immediately",
+    "Kill malicious/high CPU process",
+    "Enable monitoring alerts",
+    "Ignore temporary spike",
+    "Disconnect power supply",
+    "Delete system logs",
+    "Schedule hardware upgrade"
+  ],
+  "correct_order": [
+    1,
+    3,
+    4,
+    8
+  ]
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27473"
+  },
+  "level": 4,
+  "category": "scenario",
+  "type": "ordered_actions",
+  "scenario": "Backup Failure Detected",
+  "incident": "Daily backup reports failure for last 3 days. System still operational.",
+  "constraints": [
+    "No service interruption",
+    "Ensure future recovery possible",
+    "Identify failure cause"
+  ],
+  "instruction": "Select exactly 4 actions and arrange them in the correct order.",
+  "actions": [
+    "Investigate backup logs",
+    "Ignore since system working",
+    "Fix backup configuration",
+    "Perform manual backup",
+    "Delete old backups",
+    "Shut down production system",
+    "Inform media",
+    "Enable backup alerts"
+  ],
+  "correct_order": [
+    1,
+    3,
+    4,
+    8
+  ]
+}]

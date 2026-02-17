@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <title>Login - IT Fiesta Escape Room</title>
+    <style>
+        .login-container {
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+        .login-container h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+        .error-message {
+            color: #ef4444;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .success-message {
+            color: #10b981;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .back-link a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>IT Fiesta - Escape Room</h1>
+    </header>
+    <main>
+        <div class="login-container">
+            <h2>Team Login</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="teamId">Team ID:</label>
+                    <input type="text" id="teamId" name="teamId" required placeholder="Enter your Team ID (e.g., ESCAPE-1234)">
+                </div>
+                <button type="submit" class="btn-login">Login</button>
+            </form>
+            <div id="message"></div>
+            <div class="back-link">
+                <a href="index.html">← Back to Home</a>
+            </div>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2026 IT Fiesta</p>
+    </footer>
+
+    <script>
+        (function(){
+            const form = document.getElementById('login-form');
+            const msgEl = document.getElementById('message');
+
+            form.addEventListener('submit', async function(e){
+                e.preventDefault();
+                const teamId = document.getElementById('teamId').value.trim();
+
+                if (!teamId) {
+                    msgEl.innerHTML = '<div class="error-message">Please enter your Team ID</div>';
+                    return;
+                }
+
+                try {
+                    // Use main server login endpoint
+                    const res = await fetch('/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ teamId })
+                    });
+                    const data = await res.json();
+
+                    if (!data.success) {
+                        msgEl.innerHTML = '<div class="error-message">Invalid Team ID</div>';
+                        return;
+                    }
+                    
+                    // Verify this is an escape room team
+                    if (data.eventType !== 'escape') {
+                        msgEl.innerHTML = '<div class="error-message">This Team ID is not registered for Escape Room</div>';
+                        return;
+                    }
+
+                    // Store team info in sessionStorage
+                    sessionStorage.setItem('teamId', teamId);
+                    sessionStorage.setItem('teamName', data.teamName);
+                    localStorage.setItem('teamId', teamId);
+
+                    msgEl.innerHTML = '<div class="success-message">✓ Login successful! Redirecting...</div>';
+                    
+                    // Fetch team data to get current level
+                    const teamRes = await fetch(`/api/escape/team/${teamId}`);
+                    const teamData = await teamRes.json();
+                    
+                    const currentLevel = teamData.currentLevel || teamData.currentRound || 1;
+                    
+                    // Redirect to appropriate level
+                    if (currentLevel > 5) {
+                        window.location.href = 'result/winner.html';
+                    } else {
+                        window.location.href = `levels/level${currentLevel}.html`;
+                    }
+                } catch (err) {
+                    msgEl.innerHTML = `<div class="error-message">Error: ${err.message}</div>`;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

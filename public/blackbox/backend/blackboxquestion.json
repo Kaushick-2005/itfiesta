@@ -1,0 +1,128 @@
+[
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "triple_minus_one",
+    "variables": 1,
+    "formula": "3*x - 1",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "sum_times_difference",
+    "variables": 2,
+    "formula": "(x + y) * (x - y)",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "gcd_hidden",
+    "variables": 2,
+    "formula": "gcd(x, y)",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "square_plus_y_minus_one",
+    "variables": 2,
+    "formula": "x*x + y - 1",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "x_square_minus_x_plus_one",
+    "variables": 1,
+    "formula": "x*x - x + 1",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "xy_minus_x_plus_y",
+    "variables": 2,
+    "formula": "x*y - x + y",
+    "timeLimit": 300
+  },
+  {
+    "round": 1,
+    "type": "formula",
+    "name": "twentyfive_minus_sum",
+    "variables": 2,
+    "formula": "25 - (x + y)",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "subsequence_count",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "ascii_sum",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "permutation",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "anagram_check",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "concat_length",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "subsequence_check",
+    "timeLimit": 300
+  },
+  {
+    "round": 2,
+    "type": "full_mirror",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "age_score_student",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "promotion_rule",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "intern_filter",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "minimum_gate",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "tier_rule",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "dual_path_student",
+    "timeLimit": 300
+  },
+  {
+    "round": 3,
+    "type": "exact_boundary",
+    "timeLimit": 300
+  }
+]

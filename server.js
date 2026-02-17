@@ -43,6 +43,14 @@ app.use("/", authRoutes);
 const adminRoutes = require("./routes/admin");
 app.use("/api/admin", adminRoutes);
 
+// ✅ BLACKBOX ROUTES
+const blackboxRoutes = require("./routes/blackbox");
+app.use("/api/blackbox", blackboxRoutes);
+
+// ✅ ESCAPE ROOM ROUTES
+const escapeRoutes = require("./routes/escape");
+app.use("/api/escape", escapeRoutes);
+
 
 /* ===============================
    DEFAULT ROUTE

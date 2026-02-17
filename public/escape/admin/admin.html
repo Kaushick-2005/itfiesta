@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - IT Fiesta Escape Room</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .admin-container { max-width: 1200px; margin: 0 auto; }
+        .controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .controls input, .controls button { padding: 10px; border-radius: 8px; border: 1px solid #6d28d9; }
+        .controls button { background: linear-gradient(90deg, #6d28d9, #2563eb); color: #fff; cursor: pointer; }
+        .team-grid { display: grid; gap: 12px; }
+        .team-card { background: var(--card); border-radius: 12px; padding: 14px; border-left: 4px solid #6d28d9; }
+        .team-card.eliminated { opacity: 0.6; border-left-color: #ef4444; }
+        .team-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .team-name { font-weight: 600; color: #fff; }
+        .scores { display: flex; gap: 16px; font-size: 0.9rem; margin: 8px 0; }
+        .score-item { display: flex; gap: 4px; }
+        .score-item span:first-child { color: var(--muted); }
+        .team-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .team-actions button { flex: 1; padding: 8px; border: 0; border-radius: 6px; font-size: 0.9rem; cursor: pointer; }
+        .btn-eliminate { background: #ef4444; color: #fff; }
+        .btn-advance { background: #10b981; color: #fff; }
+        .btn-override { background: #7c3aed; color: #fff; }
+        .btn-details { background: #3b82f6; color: #fff; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 14px; border-radius: 8px; text-align: center; }
+        .stat-number { font-size: 1.8rem; font-weight: 700; color: #6d28d9; }
+        .stat-label { color: var(--muted); font-size: 0.9rem; }
+        .section-card { background: var(--card); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid #123246; }
+        .level-board-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+        .mini-list { max-height: 180px; overflow: auto; border: 1px solid #0f2a3b; border-radius: 8px; padding: 8px; background: rgba(255,255,255,0.01); }
+        .list-row { padding: 8px; border-bottom: 1px solid #0f2a3b; }
+        .list-row:last-child { border-bottom: none; }
+        .muted-small { color: var(--muted); font-size: 12px; }
+        .qualify-btn { background: #059669; color: #fff; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer; margin-top: 6px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Admin Dashboard</h1>
+    </header>
+    <main>
+        <section class="admin-container">
+            <h2>Team Management</h2>
+            
+            <div class="controls">
+                <button onclick="refreshTeams()">Refresh</button>
+                <label style="display:flex;align-items:center;gap:8px;color:#cfd8dc;">
+                    Fastest N:
+                    <input id="autoAdvanceCount" type="number" min="1" value="3" style="width:90px;padding:8px;border-radius:6px;background:var(--card);color:#fff;border:1px solid #123246">
+                </label>
+            </div>
+
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="totalTeams">0</div>
+                    <div class="stat-label">Total Teams</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="activeTeams">0</div>
+                    <div class="stat-label">Active</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="level1Submitted">0</div>
+                    <div class="stat-label">L1 Done</div>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3 style="margin-top:0">Level-wise Leaderboards & Qualification</h3>
+                <p class="muted-small" style="margin-top:0">Each level shows completed teams sorted by score then solve time. "Awaiting qualification" excludes eliminated and already-qualified teams. Use Qualify button manually.</p>
+                <div class="level-board-grid" id="levelBoards">
+                    <p class="muted">Loading level boards...</p>
+                </div>
+            </div>
+
+            <div class="section-card">
+                <h3 style="margin-top:0">Recent Violations (Reason + Timestamp)</h3>
+                <div id="violationsList" class="mini-list">Loading...</div>
+            </div>
+
+            <div class="section-card">
+                <h3 style="margin-top:0">All Teams</h3>
+                <div class="team-grid" id="teamsContainer"><p class="muted">Loading teams...</p></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 IT Fiesta</p>
+    </footer>
+
+    <script src="../assets/js/api.js"></script>
+    <script src="../assets/js/admin.js"></script>
+</body>
+</html>

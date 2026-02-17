@@ -1,0 +1,507 @@
+const express = require("express");
+const router = express.Router();
+const mongoose = require("mongoose");
+
+// Main Team model (from your registration system)
+const Team = require("../models/Team");
+
+// BlackBox models (we'll create inline schemas for simplicity)
+const questionSchema = new mongoose.Schema({
+    round: Number,
+    formula: String,
+    variables: Number,
+    duration: Number,
+    keywords: [String],
+    maxScore: Number,
+    evaluation: {
+        requiredKeywords: [String],
+        logicalOperators: [String],
+        comparisons: [String],
+        weight: {
+            keywords: Number,
+            logic: Number,
+            comparisons: Number
+        }
+    }
+});
+
+const sessionSchema = new mongoose.Schema({
+    team_id: String,
+    question_id: { type: mongoose.Schema.Types.ObjectId, ref: "BlackBoxQuestion" },
+    round: Number,
+    start_time: Date,
+    end_time: Date,
+    status: String,
+    score: Number
+});
+
+const BlackBoxQuestion = mongoose.models.BlackBoxQuestion || mongoose.model("BlackBoxQuestion", questionSchema);
+const BlackBoxSession = mongoose.models.BlackBoxSession || mongoose.model("BlackBoxSession", sessionSchema);
+
+// Also try to access existing Question collection if it exists
+let ExistingQuestion = null;
+try {
+    ExistingQuestion = mongoose.models.Question || mongoose.model("Question", questionSchema);
+} catch (e) {
+    // ignore
+}
+
+// ==================== HELPER FUNCTIONS ====================
+
+function gcd(a, b) {
+    while (b !== 0) {
+        let temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+
+function factorial(n) {
+    let result = 1;
+    for (let i = 2; i <= n; i++) result *= i;
+    return result;
+}
+
+function isAnagram(a, b) {
+    return a.split("").sort().join("") === b.split("").sort().join("");
+}
+
+function isSubsequence(s1, s2) {
+    let j = 0;
+    for (let i = 0; i < s1.length && j < s2.length; i++) {
+        if (s1[i] === s2[j]) j++;
+    }
+    return j === s2.length;
+}
+
+// ==================== ROUTES ====================
+
+/**
+ * POST /api/blackbox/start
+ * Start current round for a team (round controlled by backend)
+ */
+router.post("/start", async (req, res) => {
+    try {
+        const { team_id } = req.body;
+
+        // Verify team exists in main system
+        const team = await Team.findOne({ teamId: team_id });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+
+        // Check if team is already eliminated or completed in main system
+        if (team.status === "eliminated" || team.status === "disqualified") {
+            return res.json({ status: "blocked", message: "Team already eliminated" });
+        }
+
+        // Get current round from team (backend-controlled)
+        const round = team.currentRound || 1;
+
+        // If currentRound > 3, team has completed all rounds
+        if (round > 3) {
+            team.status = "completed";
+            await team.save();
+            return res.json({ 
+                status: "completed", 
+                message: "All rounds completed!",
+                redirect: "/blackbox/leaderboard.html"
+            });
+        }
+
+        console.log("=== START DEBUG ===");
+        console.log("Team:", team_id, "Current Round:", round);
+
+        // Check if active session exists (refresh case)
+        const existingSession = await BlackBoxSession.findOne({
+            team_id,
+            round,
+            status: "active"
+        });
+
+        if (existingSession) {
+            const question = await BlackBoxQuestion.findById(existingSession.question_id);
+            return res.json({
+                session_id: existingSession._id,
+                round: round,
+                variables: question?.variables || 1,
+                end_time: existingSession.end_time
+            });
+        }
+
+        // Get random question for this round
+        let questions = await BlackBoxQuestion.find({ round });
+        
+        console.log("BlackBoxQuestions found:", questions.length);
+        
+        // Fallback: try direct MongoDB query
+        if (!questions.length) {
+            const db = mongoose.connection.db;
+            const questionsCol = db.collection('blackboxquestions');
+            const rawQuestions = await questionsCol.find({ round }).toArray();
+            console.log("Raw questions from collection:", rawQuestions.length);
+            if (rawQuestions.length) {
+                questions = rawQuestions;
+            }
+        }
+        
+        if (!questions.length) {
+            return res.json({ message: "No questions found for this round" });
+        }
+
+        // Random selection with logging
+        const randomIndex = Math.floor(Math.random() * questions.length);
+        const question = questions[randomIndex];
+        
+        console.log(`Selected question ${randomIndex + 1} of ${questions.length}: ${question.formula}`);
+
+        const start = new Date();
+        const durationSeconds = question.duration || question.timeLimit || 300;
+        const end = new Date(start.getTime() + durationSeconds * 1000);
+
+        const session = await BlackBoxSession.create({
+            team_id,
+            question_id: question._id,
+            round,
+            start_time: start,
+            end_time: end,
+            status: "active"
+        });
+
+        res.json({
+            session_id: session._id,
+            round: round,
+            variables: question.variables || 1,
+            end_time: end
+        });
+
+    } catch (error) {
+        console.error("BlackBox START ERROR:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/blackbox/test
+ * Generate output for given input
+ */
+router.post("/test", async (req, res) => {
+    try {
+        const { session_id, input } = req.body;
+
+        console.log("=== /api/blackbox/test DEBUG ===");
+        console.log("Session ID:", session_id);
+        console.log("Input:", input);
+
+        const session = await BlackBoxSession.findById(session_id).populate("question_id");
+        if (!session) {
+            console.log("ERROR: Session not found");
+            return res.json({ result: "error" });
+        }
+
+        const question = session.question_id;
+        
+        console.log("Question found:", question ? "YES" : "NO");
+        console.log("Question round:", question?.round);
+        console.log("Question formula:", question?.formula);
+        console.log("Question variables:", question?.variables);
+
+        if (!question || !question.formula) {
+            console.log("ERROR: No question or formula");
+            return res.json({ output: "Error - No formula" });
+        }
+
+        let output;
+
+        // ROUND 1 → Numbers
+        if (question.round === 1) {
+            const parts = input.split(" ");
+            const x = Number(parts[0]);
+            const y = Number(parts[1]);
+            console.log("x =", x, "y =", y);
+            output = eval(question.formula);
+            console.log("Output:", output);
+        }
+        // ROUND 2 → Strings
+        else if (question.round === 2) {
+            const parts = input.split(" ");
+            const x = parts[0];
+            const y = parts[1];
+            console.log("x =", x, "y =", y);
+            output = eval(question.formula);
+            console.log("Output:", output);
+        }
+        // ROUND 3 → JSON input
+        else if (question.round === 3) {
+            const obj = JSON.parse(input);
+            const age = Number(obj.age);
+            const score = Number(obj.score);
+            const role = obj.role;
+            console.log("age =", age, "score =", score, "role =", role);
+            output = eval(question.formula);
+            console.log("Output:", output);
+        }
+
+        res.json({ output });
+
+    } catch (err) {
+        console.error("BlackBox TEST ERROR:", err);
+        res.json({ result: "error" });
+    }
+});
+
+/**
+ * POST /api/blackbox/submit
+ * Submit answer and update team score
+ */
+router.post("/submit", async (req, res) => {
+    try {
+        const { session_id, answer } = req.body;
+
+        const session = await BlackBoxSession.findById(session_id).populate("question_id");
+        if (!session) return res.json({ result: "error" });
+
+        // Check time
+        if (new Date() > session.end_time) {
+            // Mark round completed (no penalty for time over)
+            session.status = "completed";
+            await session.save();
+
+            return res.json({ 
+                result: "time_over", 
+                message: "Time expired!",
+                moveTo: session.round === 1
+                    ? "/blackbox/round2.html"
+                    : session.round === 2
+                    ? "/blackbox/round3.html"
+                    : "/blackbox/leaderboard.html"
+            });
+        }
+
+        const question = session.question_id;
+        const explanation = answer.toLowerCase();
+        let roundScore = 0;
+        let isCorrect = false;
+
+        // ==================== ROUND 1 → Exact Logic Match ====================
+        if (question.round === 1) {
+            let allCorrect = true;
+
+            for (let i = 0; i < 5; i++) {
+                const x = Math.floor(Math.random() * 20) + 1;
+                const y = Math.floor(Math.random() * 20) + 1;
+
+                let correctOutput = eval(question.formula);
+                let userOutput = eval(answer);
+
+                if (String(correctOutput) !== String(userOutput)) {
+                    allCorrect = false;
+                    break;
+                }
+            }
+
+            if (allCorrect) {
+                const now = new Date();
+                const timeUsedSeconds = Math.floor((now - session.start_time) / 1000);
+                const totalDuration = question.duration;
+
+                // Score based on time (50-100)
+                roundScore = 100 - Math.floor((timeUsedSeconds / totalDuration) * 50);
+                if (roundScore < 50) roundScore = 50;
+
+                isCorrect = true;
+            }
+        }
+
+        // ==================== ROUND 2 → Keyword Scoring ====================
+        else if (question.round === 2) {
+            let matchCount = 0;
+
+            question.keywords.forEach(word => {
+                if (explanation.includes(word.toLowerCase())) {
+                    matchCount++;
+                }
+            });
+
+            const accuracy = matchCount / question.keywords.length;
+            roundScore = Math.floor(accuracy * question.maxScore);
+            isCorrect = roundScore > 0;
+        }
+
+        // ==================== ROUND 3 → Structured Scoring ====================
+        else if (question.round === 3) {
+            const evalRules = question.evaluation;
+            let totalScore = 0;
+
+            // Keywords (30%)
+            let keywordMatches = 0;
+            evalRules.requiredKeywords.forEach(k => {
+                if (explanation.includes(k)) keywordMatches++;
+            });
+            totalScore += (keywordMatches / evalRules.requiredKeywords.length) * evalRules.weight.keywords;
+
+            // Logical Operators (30%)
+            let logicMatches = 0;
+            evalRules.logicalOperators.forEach(op => {
+                if (explanation.includes(op)) logicMatches++;
+            });
+            totalScore += (logicMatches / evalRules.logicalOperators.length) * evalRules.weight.logic;
+
+            // Comparisons (40%)
+            let comparisonMatches = 0;
+            evalRules.comparisons.forEach(c => {
+                if (explanation.includes(c)) comparisonMatches++;
+            });
+            totalScore += (comparisonMatches / evalRules.comparisons.length) * evalRules.weight.comparisons;
+
+            roundScore = Math.floor(totalScore);
+            isCorrect = roundScore > 0;
+        }
+
+        // Update team score AND increment currentRound
+        const currentRound = session.round;
+        const nextRound = currentRound + 1;
+        
+        if (isCorrect) {
+            await Team.updateOne(
+                { teamId: session.team_id },
+                { $inc: { score: 20, currentRound: 1 } }
+            );
+        } else {
+            // Wrong answer: participation points + still advance to next round
+            await Team.updateOne(
+                { teamId: session.team_id },
+                { $inc: { score: 5, currentRound: 1 } }
+            );
+        }
+
+        // Mark round completed
+        session.status = "completed";
+        session.score = isCorrect ? roundScore : 0;
+        await session.save();
+
+        console.log(`Team ${session.team_id} completed Round ${currentRound}, advancing to Round ${nextRound}`);
+
+        // Return result with next round redirect (based on current round number)
+        let moveTo;
+        if (currentRound === 1) {
+            moveTo = "/blackbox/round2.html";
+        } else if (currentRound === 2) {
+            moveTo = "/blackbox/round3.html";
+        } else {
+            moveTo = "/blackbox/leaderboard.html";
+        }
+
+        return res.json({
+            result: isCorrect ? "correct" : "wrong",
+            nextRound: nextRound,
+            moveTo: moveTo
+        });
+
+    } catch (err) {
+        console.error("BlackBox SUBMIT ERROR:", err);
+        res.json({ result: "error" });
+    }
+});
+
+// force-eliminate route removed - no automatic elimination
+
+/**
+ * POST /api/blackbox/tab-switch
+ * Handle tab switch - deducts from score AND tracks penalty
+ * Each switch → -10 score, +10 penalty tracked
+ */
+router.post("/tab-switch", async (req, res) => {
+    try {
+        const { session_id } = req.body;
+
+        const session = await BlackBoxSession.findById(session_id);
+        if (!session) {
+            return res.json({ error: "Session not found" });
+        }
+
+        // Deduct 10 from score, add 10 to penalty, increment tab switch count
+        const team = await Team.findOneAndUpdate(
+            { teamId: session.team_id },
+            { $inc: { score: -10, penalty: 10, tabSwitchCount: 1 } },
+            { new: true }
+        );
+
+        if (!team) {
+            return res.json({ error: "Team not found" });
+        }
+
+        const totalScore = team.score || 0;
+        console.log(`Tab switch for team ${team.teamId}: count=${team.tabSwitchCount}, score=${team.score}, penalty=${team.penalty}`);
+
+        res.json({
+            action: "penalty",
+            message: `⚠ Tab switch detected!\n-10 marks deducted.\nTotal tab switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
+            scoreDeducted: 10,
+            penalty: team.penalty,
+            currentScore: team.score,
+            tabSwitchCount: team.tabSwitchCount
+        });
+
+    } catch (err) {
+        console.error("Tab switch error:", err);
+        res.json({ error: "Failed" });
+    }
+});
+
+/**
+ * GET /api/blackbox/team/:teamId
+ * Get team info for blackbox teams
+ */
+router.get("/team/:teamId", async (req, res) => {
+    try {
+        const team = await Team.findOne({ teamId: req.params.teamId });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+        res.json({
+            teamId: team.teamId,
+            teamName: team.teamName,
+            eventType: team.eventType,
+            currentRound: team.currentRound || 1,
+            score: team.score || 0,
+            penalty: team.penalty || 0,
+            tabSwitchCount: team.tabSwitchCount || 0,
+            status: team.status
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/**
+ * GET /api/blackbox/leaderboard
+ * Get leaderboard from main Team model - sorted by Final Score
+ */
+router.get("/leaderboard", async (req, res) => {
+    try {
+        // Get teams that participated in blackbox
+        const leaderboard = await Team.find({
+            eventType: { $regex: /blackbox/i }
+        })
+        .select("teamId teamName score penalty status");
+
+        // Calculate finalScore and sort by it
+        const formatted = leaderboard.map(team => ({
+            _id: team.teamName || team.teamId,
+            score: team.score || 0,
+            penalty: team.penalty || 0,
+            totalScore: (team.score || 0) - (team.penalty || 0)
+        }));
+
+        formatted.sort((a, b) => b.totalScore - a.totalScore);
+
+        res.json(formatted);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+module.exports = router;

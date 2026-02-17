@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Waiting</title>
+</head>
+<body>
+    <header>
+        <h1>Waiting Page</h1>
+    </header>
+    <main>
+        <section>
+            <div id="waiting-root">
+                <p>Please wait while we calculate the scores...</p>
+                <div id="team-status" class="note" style="margin-top:12px"></div>
+                <h3 style="margin-top:18px">Current Rankings</h3>
+                <div id="rankings" style="margin-top:8px"></div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2026 IT Fiesta</p>
+    </footer>
+
+    <script src="../assets/js/api.js"></script>
+    <script>
+        (function(){
+            var teamId = sessionStorage.getItem('teamId');
+            if (!teamId) {
+                document.getElementById('waiting-root').innerHTML = '<p class="muted">No team registered. Please go back and register.</p>';
+                return;
+            }
+
+            var currentLevel = Number(sessionStorage.getItem('currentLevel') || 1);
+
+            function goToNextLevel(nextLevel){
+                window.location.href = '../levels/level' + nextLevel + '.html';
+            }
+
+            function renderRankings(teams){
+                var el = document.getElementById('rankings');
+                if (!teams || teams.length === 0) { el.innerHTML = '<p class="muted">No teams yet.</p>'; return; }
+                // sort by level desc then score
+                teams.sort(function(a,b){
+                    if (a.currentLevel !== b.currentLevel) return b.currentLevel - a.currentLevel;
+                    return (b.level1_score||0) - (a.level1_score||0);
+                });
+                el.innerHTML = teams.map(function(t, idx){
+                    return '<div style="padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);margin-bottom:6px">' +
+                        '<strong>' + (idx+1) + '. ' + (t.teamName||t.teamId) + '</strong> — Level: ' + t.currentLevel + ' — L1: ' + (t.level1_score||0) + (t.eliminated? ' <span style="color:#ef4444">(ELIM)</span>':'') +
+                        '</div>';
+                }).join('');
+            }
+
+            function poll(){
+                API.getTeam(teamId)
+                .then(function(team){
+                    var statusEl = document.getElementById('team-status');
+                    if (team.eliminated){
+                        statusEl.innerHTML = '<strong style="color: #ef4444">You have been eliminated.</strong>';
+                        setTimeout(function(){ window.location.href = '../result/eliminated.html'; }, 1500);
+                        return;
+                    }
+                    if (team.winner || Number(team.currentLevel || 1) >= 5 && team.level5_submitted){
+                        statusEl.innerHTML = '<strong style="color: #10b981">Congratulations! Winner announcement is ready.</strong>';
+                        setTimeout(function(){ window.location.href = '../result/winner.html'; }, 1200);
+                        return;
+                    }
+
+                    if (Number(team.currentLevel || 1) > currentLevel){
+                        var nextLevel = Number(team.currentLevel || 1);
+                        statusEl.innerHTML = '<strong style="color: #10b981">You have been advanced to Level ' + nextLevel + '.</strong>';
+                        setTimeout(function(){ goToNextLevel(nextLevel); }, 1200);
+                        return;
+                    }
+                    statusEl.innerHTML = 'Waiting for admin to finalize rankings...';
+                }).catch(function(err){ console.error(err); });
+            }
+
+            // Fetch full rankings once initially.
+            API.getAllTeams().then(renderRankings).catch(function(err){ console.error(err); });
+
+            // Then poll only current team status every 3 seconds.
+            poll();
+            var iv = setInterval(poll, 3000);
+        })();
+    </script>
+</body>
+</html>

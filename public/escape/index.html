@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <title>IT Fiesta Escape Room</title>
+    <style>
+        .instructions {
+            max-width: 700px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary-color);
+        }
+        .instructions h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        .instructions li {
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .instructions ul {
+            margin: 8px 0 0 0;
+            padding-left: 20px;
+            font-size: 13px;
+        }
+        .instructions ul li {
+            margin-bottom: 4px;
+        }
+        .card-button {
+            display: inline-block;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .card-button:active {
+            transform: scale(0.98);
+        }
+        .card-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the IT Fiesta Escape Room!</h1>
+    </header>
+    <main>
+        <div class="instructions">
+            <h3>📋 IT Fiesta Escape Room - Proctored Exam</h3>
+            <ol>
+                <li><strong>5 Levels:</strong> Start from Level 1 and progress up to Level 5 (each level gets harder)</li>
+                <li><strong>Randomized Questions:</strong> Questions and answer options change every time</li>
+                <li><strong>Marks-Based Scoring:</strong> Each correct answer gives you marks (not just a count)</li>
+                <li><strong>Time Limits:</strong>
+                    <ul style="margin-top: 5px;">
+                        <li>Level 1 – Tech Riddle: 3 minutes</li>
+                        <li>Level 2 – Visual Drag & Drop: 4 minutes</li>
+                        <li>Level 3: 5 minutes (5 questions)</li>
+                        <li>Level 4 – Multi-Constraint Crisis: 6 minutes</li>
+                        <li>Level 5 – Coding Final: 10 minutes</li>
+                    </ul>
+                </li>
+                <li><strong>Anti-Cheat:</strong> Tab switching = immediate elimination, Full-screen required</li>
+                <li><strong>After Each Level:</strong> You wait on a waiting page while admin reviews your score</li>
+                <li><strong>Admin Decision:</strong> Admin can advance you to next level OR eliminate you based on performance</li>
+                <li><strong>Admin Control Panel:</strong> Admin panel is restricted — contact the event admin to access.</li>
+            </ol>
+        </div>
+
+        <div style="max-width: 500px; margin: 30px auto; padding: 25px; background: rgba(22, 199, 132, 0.1); border: 2px solid #16c784; border-radius: 12px; text-align: center;">
+            <h3 style="color: #16c784; margin-bottom: 15px;">Ready to Start?</h3>
+            <p style="margin-bottom: 14px; font-size: 14px; line-height: 1.6;">Enter your Team details, then click start to begin Level 1.</p>
+            <input id="teamNumberInput" type="text" placeholder="Enter Team ID (e.g. TEAM12)"
+                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
+            <input id="teamNameInput" type="text" placeholder="Enter Team Name (e.g. Debug Ninjas)"
+                   style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;">
+            <textarea id="teamMembersInput" rows="2" placeholder="Enter Team Members (comma separated)"
+                      style="width:100%;max-width:360px;padding:12px;border-radius:8px;border:1px solid #16c784;background:rgba(255,255,255,0.08);color:#fff;margin-bottom:14px;resize:vertical;"></textarea>
+            <br>
+            <button onclick="startTesting(this)" class="card-button" style="padding: 14px 30px; font-size: 16px;">
+                🚀 Start Testing
+            </button>
+        </div>
+
+        <div id="loading" style="display:none; text-align:center; margin-top: 20px;">
+            <p style="color: #16c784;">⏳ Initializing exam system...</p>
+            <p style="font-size: 12px; color: #999;">Registering team • Loading Level 1</p>
+        </div>
+    </main>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+
+        function startTesting(btn) {
+            const loading = document.getElementById('loading');
+            const teamInput = document.getElementById('teamNumberInput');
+            const teamNameInputEl = document.getElementById('teamNameInput');
+            const teamMembersInputEl = document.getElementById('teamMembersInput');
+            const teamIdInput = (teamInput.value || '').trim();
+            const teamNameInput = (teamNameInputEl.value || '').trim();
+            const teamMembers = String(teamMembersInputEl.value || '')
+                .split(',')
+                .map(v => v.trim())
+                .filter(Boolean);
+
+            if (!teamIdInput) {
+                alert('Please enter your Team ID before starting.');
+                teamInput.focus();
+                return;
+            }
+
+            if (!teamNameInput) {
+                alert('Please enter your Team Name before starting.');
+                teamNameInputEl.focus();
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ Initializing...';
+            loading.style.display = 'block';
+
+            // Level 1 is open to everyone: ensure team exists.
+            // For higher levels, progression remains admin-controlled via currentLevel.
+            const teamId = teamIdInput.toUpperCase();
+            API.ensureTeam(teamId, teamNameInput, teamMembers)
+                    .then(payload => {
+                        const team = payload && payload.team ? payload.team : payload;
+                        if (!team) throw new Error('Invalid team response from server');
+                        const level = Number(team.currentLevel || 1);
+                        const submittedField = 'level' + level + '_submitted';
+                        const alreadySubmittedCurrentLevel = !!team[submittedField];
+
+                        // Store Session
+                        sessionStorage.setItem('teamId', team.teamId || teamId);
+                        sessionStorage.setItem('teamName', team.teamName || teamNameInput || ('Team ' + teamId));
+                        sessionStorage.setItem('currentLevel', String(level));
+                        sessionStorage.setItem('eliminated', String(!!team.eliminated));
+
+                        // Redirect
+                        setTimeout(() => {
+                            if (team.eliminated) {
+                                window.location.href = 'result/eliminated.html';
+                            } else if (level > 5) {
+                                window.location.href = 'result/winner.html';
+                            } else if (alreadySubmittedCurrentLevel) {
+                                // Team already completed this level and must wait for admin approval.
+                                window.location.href = 'result/waiting.html';
+                            } else {
+                                window.location.href = 'levels/level' + level + '.html';
+                            }
+                        }, 500);
+                    })
+                    .catch(err => {
+                        console.error('Error during setup:', err);
+                        alert('Error initializing exam system:\n\n' + err.message + '\n\nMake sure backend (npm start) is running on port 5000');
+                        btn.disabled = false;
+                        btn.textContent = '🚀 Start Testing';
+                        loading.style.display = 'none';
+                    });
+        }
+    </script>
+    <footer>
+        <p>&copy; 2026 IT Fiesta</p>
+    </footer>
+</body>
+</html>

@@ -9,12 +9,11 @@ const Team = require("../models/Team");
 router.get("/teams", async (req, res) => {
     try {
 
-        const { eventType, batch, status } = req.query;
+        const { eventType, status } = req.query;
 
         let filter = {};
 
         if (eventType) filter.eventType = eventType;
-        if (batch) filter.batch = Number(batch);
         if (status) filter.status = status;
 
         const teams = await Team.find(filter).sort({ score: -1 });
@@ -48,29 +47,6 @@ router.patch("/edit-score/:id", async (req, res) => {
 
 
 /* ===============================
-   3️⃣ Add Penalty
-================================= */
-router.patch("/add-penalty/:id", async (req, res) => {
-    try {
-
-        const { points } = req.body;
-
-        await Team.findByIdAndUpdate(req.params.id, {
-            $inc: {
-                penalty: Number(points),
-                score: -Math.abs(Number(points))
-            }
-        });
-
-        res.json({ message: "Penalty added" });
-
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
-});
-
-
-/* ===============================
    4️⃣ Change Status
 ================================= */
 router.patch("/status/:id", async (req, res) => {
@@ -91,22 +67,22 @@ router.patch("/status/:id", async (req, res) => {
 
 
 /* ===============================
-   5️⃣ Start Batch
+   5️⃣ Start All Teams (by Event)
 ================================= */
-router.patch("/start-batch", async (req, res) => {
+router.patch("/start-event", async (req, res) => {
     try {
 
-        const { eventType, batch } = req.body;
+        const { eventType } = req.body;
 
         await Team.updateMany(
-            { eventType, batch: Number(batch) },
+            { eventType },
             {
                 status: "active",
                 startTime: new Date()
             }
         );
 
-        res.json({ message: "Batch started" });
+        res.json({ message: "Event started" });
 
     } catch (err) {
         res.status(500).json({ message: "Server error" });
@@ -115,22 +91,22 @@ router.patch("/start-batch", async (req, res) => {
 
 
 /* ===============================
-   6️⃣ End Batch
+   6️⃣ End All Teams (by Event)
 ================================= */
-router.patch("/end-batch", async (req, res) => {
+router.patch("/end-event", async (req, res) => {
     try {
 
-        const { eventType, batch } = req.body;
+        const { eventType } = req.body;
 
         await Team.updateMany(
-            { eventType, batch: Number(batch) },
+            { eventType },
             {
                 status: "completed",
                 endTime: new Date()
             }
         );
 
-        res.json({ message: "Batch ended" });
+        res.json({ message: "Event ended" });
 
     } catch (err) {
         res.status(500).json({ message: "Server error" });
@@ -144,8 +120,7 @@ router.patch("/end-batch", async (req, res) => {
 router.get("/leaderboard", async (req, res) => {
     try {
 
-        const teams = await Team.find()
-            .sort({ score: -1 });
+        const teams = await Team.find().sort({ score: -1 });
 
         res.json(teams);
 
@@ -154,5 +129,38 @@ router.get("/leaderboard", async (req, res) => {
     }
 });
 
+
+module.exports = router;
+
+/* ===============================
+   🎮 Advance Team to Next Round/Level
+================================= */
+router.patch("/next-round/:id", async (req, res) => {
+    try {
+        const team = await Team.findById(req.params.id);
+        if (!team) {
+            return res.status(404).json({ message: "Team not found" });
+        }
+
+        const currentRound = team.currentRound || 1;
+        const maxRound = team.eventType === 'escape' ? 5 : 3;
+
+        if (currentRound >= maxRound) {
+            team.currentRound = maxRound + 1;
+            team.status = "completed";
+        } else {
+            team.currentRound = currentRound + 1;
+        }
+
+        await team.save();
+        res.json({ 
+            message: "Team advanced", 
+            newRound: team.currentRound,
+            status: team.status 
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Server error" });
+    }
+});
 
 module.exports = router;

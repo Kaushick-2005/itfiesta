@@ -1,0 +1,72 @@
+/*
+	Mobile-first styling for IT Fiesta Escape Room
+	Blue & purple theme, touch-friendly buttons, readable typography
+*/
+
+:root{
+	--bg:#0f1724; /* deep navy */
+	--card:#0b1220;
+	--accent:#6d28d9; /* purple */
+	--accent-2:#2563eb; /* blue */
+	--muted:#94a3b8;
+	--text:#e6eef8;
+	--danger:#ef4444;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+	font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+	background:linear-gradient(180deg,var(--bg),#071029);
+	color:var(--text);
+	-webkit-font-smoothing:antialiased;
+	-moz-osx-font-smoothing:grayscale;
+	line-height:1.4;
+	padding:16px;
+}
+
+header{padding:12px 0 20px}
+h1{font-size:1.4rem;color:var(--accent);text-align:center}
+main{max-width:920px;margin:0 auto}
+
+section{background:var(--card);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:0 6px 20px rgba(13,15,23,0.6)}
+
+.start-button,.submit-button,.restart-button{display:inline-block;width:100%;text-align:center;padding:14px 12px;margin-top:12px;border-radius:10px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;text-decoration:none;border:0;font-weight:600;font-size:1.05rem}
+.restart-button{width:auto;padding:10px 14px}
+
+.muted{color:var(--muted);font-size:.95rem}
+
+/* Timer display */
+.timer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
+.timer .count{font-size:1.2rem;font-weight:700;color:#fff;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px}
+
+/* Questions */
+.question{padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+.question p{font-weight:600;margin-bottom:8px}
+label{display:block;padding:8px;background:rgba(255,255,255,0.02);border-radius:8px;margin-bottom:8px}
+input[type="radio"]{transform:scale(1.1);margin-right:8px}
+
+/* Single question navigation */
+.controls{display:flex;gap:8px;margin-top:12px}
+.controls button{flex:1;padding:12px;border-radius:10px;border:0;background:#152033;color:var(--text)}
+.controls button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff}
+
+/* Disabled visuals */
+.disabled{opacity:.45;pointer-events:none}
+
+/* Small screens adjustments */
+@media (min-width:420px){
+	h1{font-size:1.6rem}
+	.start-button,.submit-button{max-width:360px;margin-left:auto;margin-right:auto}
+}
+
+/* Admin & result pages */
+footer{margin-top:8px;text-align:center;color:var(--muted);font-size:.9rem}
+
+/* Drag & drop puzzle area */
+#puzzle-container{min-height:160px;border:2px dashed rgba(255,255,255,0.03);border-radius:10px;padding:12px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.piece{background:linear-gradient(90deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01));padding:10px;border-radius:8px;cursor:grab}
+
+/* Small helper */
+.note{font-size:.9rem;color:var(--muted);margin-top:8px}
+
