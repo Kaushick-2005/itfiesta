@@ -4,13 +4,16 @@ const registerButton = document.getElementById("registerSubmit");
 
 async function loadAvailableEvents() {
     try {
-        const res = await fetch("/api/events/active");
+        const res = await fetch(`/api/events/active?_=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) {
             throw new Error("Failed to load events");
         }
         const events = await res.json();
+        const activeEvents = Array.isArray(events)
+            ? events.filter(evt => evt && evt.isActive !== false)
+            : [];
 
-        renderEventOptions(Array.isArray(events) ? events : []);
+        renderEventOptions(activeEvents);
     } catch (err) {
         renderEventOptions([]);
         showRegistrationStatus("Unable to load events. Please refresh or try again.");
@@ -35,7 +38,7 @@ function renderEventOptions(events) {
 
     const placeholder = document.createElement("option");
     placeholder.value = "";
-    placeholder.textContent = "Choose your competition";
+    placeholder.textContent = "Select Event";
     placeholder.disabled = true;
     placeholder.selected = true;
     placeholder.hidden = true;

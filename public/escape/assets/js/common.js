@@ -5,6 +5,85 @@
 // Global flag to disable anti-cheat after submission
 window.EXAM_SUBMITTED = false;
 
+function getEscapeApiBase() {
+  var origin = (window.location && window.location.origin) ? window.location.origin : '';
+  var isLocalHost = (
+    window.location &&
+    (window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '::1')
+  );
+  var isFileProtocol = window.location && window.location.protocol === 'file:';
+
+  if (window.__API_BASE_URL) return window.__API_BASE_URL;
+  if (isLocalHost || isFileProtocol || !origin) return 'http://localhost:3000';
+  return origin;
+}
+
+function ensureEscapeSessionStart() {
+  try {
+    var path = (window.location && window.location.pathname) ? window.location.pathname.toLowerCase() : '';
+    if (path.indexOf('/escape/levels/') === -1) return;
+
+    var teamId = sessionStorage.getItem('teamId') || localStorage.getItem('teamId');
+    if (!teamId) return;
+
+    var startKey = 'escape_start_ok_' + String(teamId);
+    if (sessionStorage.getItem(startKey) === '1') return;
+
+    var base = getEscapeApiBase();
+    fetch(base + '/api/escape/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team_id: teamId })
+    })
+      .then(function(res) {
+        return res.json().catch(function(){ return {}; });
+      })
+      .then(function(data) {
+        if (!data) return;
+
+        if (data.status === 'blocked') {
+          alert(data.message || 'Access blocked');
+          redirectToEliminatedPage();
+          return;
+        }
+
+        if (data.status === 'completed') {
+          if (data.redirect) {
+            window.location.href = data.redirect;
+          }
+          return;
+        }
+
+        if (data.status === 'waiting') {
+          alert(data.message || 'Please wait for admin to start your batch.');
+          window.location.href = '/escape/result/waiting.html';
+          return;
+        }
+
+        var currentLevel = Number(data.currentLevel || data.currentRound || 0);
+        if (currentLevel) {
+          var match = path.match(/level(\d+)\.html/);
+          var pageLevel = match ? Number(match[1]) : 0;
+          if (pageLevel && pageLevel !== currentLevel) {
+            window.location.href = '/escape/levels/level' + currentLevel + '.html';
+            return;
+          }
+        }
+
+        sessionStorage.setItem(startKey, '1');
+      })
+      .catch(function(err) {
+        console.warn('Escape start failed', err);
+      });
+  } catch (e) {
+    console.warn('Escape start handler failed', e);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', ensureEscapeSessionStart);
+
 function getEliminatedPageUrl(){
   try {
     var p = (window.location.pathname || '').toLowerCase();
@@ -184,7 +263,6 @@ function requestFullScreen() {
   if (rfs) {
     rfs.call(elem).catch(function(err) {
       console.warn('Full-screen request failed:', err);
-      alert('⚠️ Full-screen mode is required. Please enable it manually and refresh.');
     });
   }
 }
