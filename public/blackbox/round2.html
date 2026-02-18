@@ -688,8 +688,12 @@ async function generateOutput() {
 
     const data = await response.json();
 
-    document.getElementById("outputDisplay").innerText =
-        data.output !== undefined ? data.output : "Error";
+    if (data.output === "") {
+        document.getElementById("outputDisplay").innerText = "please enter correct input";
+    } else {
+        document.getElementById("outputDisplay").innerText =
+            data.output !== undefined ? data.output : "Error";
+    }
 }
 
 
