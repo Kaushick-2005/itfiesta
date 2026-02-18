@@ -31,11 +31,20 @@ function factorial(n) {
     return result;
 }
 
+function toSafeString(value) {
+    if (value === null || value === undefined) return "";
+    return String(value);
+}
+
 function isAnagram(a, b) {
-    return a.split("").sort().join("") === b.split("").sort().join("");
+    const left = toSafeString(a).replace(/\s+/g, "").toLowerCase();
+    const right = toSafeString(b).replace(/\s+/g, "").toLowerCase();
+    return left.split("").sort().join("") === right.split("").sort().join("");
 }
 
 function isSubsequence(s1, s2) {
+    s1 = toSafeString(s1);
+    s2 = toSafeString(s2);
     let j = 0;
     for (let i = 0; i < s1.length && j < s2.length; i++) {
         if (s1[i] === s2[j]) j++;
@@ -65,7 +74,7 @@ function isPalindrome(x) {
 }
 
 function countVowels(str) {
-    return (str.match(/[aeiouAEIOU]/g) || []).length;
+    return (toSafeString(str).match(/[aeiouAEIOU]/g) || []).length;
 }
 
 function isPrime(n) {
@@ -80,20 +89,24 @@ function isPrime(n) {
 
 // Additional missing functions from database
 function reverse(x) {
-    return String(x).split('').reverse().join('');
+    return toSafeString(x).split('').reverse().join('');
 }
 
 function countDistinctCharacters(str) {
-    return new Set(str.toLowerCase()).size;
+    return new Set(toSafeString(str).toLowerCase()).size;
 }
 
 function longestCommonPrefix(x, y) {
+    x = toSafeString(x);
+    y = toSafeString(y);
     let i = 0;
     while (i < x.length && i < y.length && x[i] === y[i]) i++;
     return x.substring(0, i);
 }
 
 function mergeAlternately(x, y) {
+    x = toSafeString(x);
+    y = toSafeString(y);
     let result = '';
     const maxLen = Math.max(x.length, y.length);
     for (let i = 0; i < maxLen; i++) {
@@ -104,10 +117,12 @@ function mergeAlternately(x, y) {
 }
 
 function removeDuplicates(str) {
-    return [...new Set(str)].join('');
+    return [...new Set(toSafeString(str))].join('');
 }
 
 function longestCommonSubstring(x, y) {
+    x = toSafeString(x);
+    y = toSafeString(y);
     let longest = '';
     for (let i = 0; i < x.length; i++) {
         for (let j = i + 1; j <= x.length; j++) {
@@ -121,10 +136,12 @@ function longestCommonSubstring(x, y) {
 }
 
 function countConsonants(str) {
-    return str.toLowerCase().split('').filter(c => /[bcdfghjklmnpqrstvwxyz]/.test(c)).length;
+    return toSafeString(str).toLowerCase().split('').filter(c => /[bcdfghjklmnpqrstvwxyz]/.test(c)).length;
 }
 
 function rotateLeft(str) {
+    str = toSafeString(str);
+    if (!str.length) return "";
     return str.substring(1) + str[0];
 }
 
@@ -312,10 +329,14 @@ function factorial(n) {
 }
 
 function isAnagram(a, b) {
-    return a.split("").sort().join("") === b.split("").sort().join("");
+    const left = toSafeString(a).replace(/\s+/g, "").toLowerCase();
+    const right = toSafeString(b).replace(/\s+/g, "").toLowerCase();
+    return left.split("").sort().join("") === right.split("").sort().join("");
 }
 
 function isSubsequence(s1, s2) {
+    s1 = toSafeString(s1);
+    s2 = toSafeString(s2);
     let j = 0;
     for (let i = 0; i < s1.length && j < s2.length; i++) {
         if (s1[i] === s2[j]) j++;
