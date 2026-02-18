@@ -140,7 +140,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
                 copyBtn.addEventListener('click', async () => {
                     try {
                         await navigator.clipboard.writeText(String(result.teamId || ''));
-                        if (copyStatus) copyStatus.textContent = '✅ Team ID copied';
+                        if (copyStatus) copyStatus.textContent = 'Team ID copied';
                     } catch (copyErr) {
                         if (copyStatus) copyStatus.textContent = '⚠️ Copy failed. Please copy manually.';
                     }

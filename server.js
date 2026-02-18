@@ -139,6 +139,30 @@ function resolveHtmlFilePathFromRequestPath(requestPath) {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Session
+app.use(session({
+    secret: process.env.SESSION_SECRET || "itfiesta_secret_key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production"
+    }
+}));
+
+// Restrict direct access to admin panel page.
+app.use((req, res, next) => {
+    const reqPath = decodeURIComponent(req.path || "");
+    const isAdminPage = reqPath === "/admin.html" || reqPath === "/admin";
+
+    if (isAdminPage && !(req.session && req.session.isAdmin)) {
+        return res.redirect("/admin-login.html");
+    }
+
+    return next();
+});
+
 // Serve HTML with automatic cache-busted asset URLs
 app.use(async (req, res, next) => {
     try {
@@ -181,13 +205,6 @@ app.use(express.static(PUBLIC_DIR, {
             res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
         }
     }
-}));
-
-// Session (you can keep for now)
-app.use(session({
-    secret: "itfiesta_secret_key",
-    resave: false,
-    saveUninitialized: true
 }));
 
 /* ===============================
@@ -266,7 +283,42 @@ app.use("/", authRoutes);
 
 // ✅ ADMIN ROUTES (VERY IMPORTANT)
 const adminRoutes = require("./routes/admin");
-app.use("/api/admin", adminRoutes);
+const adminAuth = require("./middleware/adminauth");
+
+app.post("/api/admin/login", (req, res) => {
+    const { username, password } = req.body || {};
+    const expectedUsername = process.env.ADMIN_USERNAME;
+    const expectedPassword = process.env.ADMIN_PASSWORD;
+
+    if (!expectedUsername || !expectedPassword) {
+        return res.status(500).json({
+            message: "Admin credentials are not configured on server."
+        });
+    }
+
+    if (username !== expectedUsername || password !== expectedPassword) {
+        return res.status(401).json({ message: "Invalid admin credentials." });
+    }
+
+    req.session.isAdmin = true;
+    req.session.adminUser = username;
+
+    return res.json({ success: true, message: "Admin login successful." });
+});
+
+app.post("/api/admin/logout", (req, res) => {
+    req.session.destroy(() => {
+        res.clearCookie("connect.sid");
+        return res.json({ success: true });
+    });
+});
+
+app.get("/api/admin/session", (req, res) => {
+    const isAdmin = Boolean(req.session && req.session.isAdmin);
+    return res.json({ isAdmin });
+});
+
+app.use("/api/admin", adminAuth, adminRoutes);
 
 // ✅ BLACKBOX ROUTES
 const blackboxRoutes = require("./routes/blackbox");
@@ -358,11 +410,18 @@ app.get("/", (req, res) => {
     res.redirect("/register.html");
 });
 
+app.get("/admin", (req, res) => {
+    if (req.session && req.session.isAdmin) {
+        return res.redirect("/admin.html");
+    }
+    return res.redirect("/admin-login.html");
+});
+
 /* ===============================
    SERVER START
 ================================= */
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
