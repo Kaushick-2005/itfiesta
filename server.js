@@ -15,6 +15,46 @@ const Settings = require("./models/Settings");
 const app = express();
 const PUBLIC_DIR = path.join(__dirname, "public");
 const isProduction = process.env.NODE_ENV === "production";
+const DB_READY_STATE_CONNECTED = 1;
+let leaderboardEnabledCache = true;
+let lastLeaderboardDbWarnAt = 0;
+
+function isDbConnected() {
+    return mongoose.connection.readyState === DB_READY_STATE_CONNECTED;
+}
+
+function logLeaderboardDbWarning(message, error) {
+    const now = Date.now();
+    // Prevent log spam when frontend polls leaderboard every few seconds.
+    if (now - lastLeaderboardDbWarnAt < 60000) return;
+    lastLeaderboardDbWarnAt = now;
+
+    if (error) {
+        console.warn(`[Leaderboard] ${message}:`, error.message || error);
+    } else {
+        console.warn(`[Leaderboard] ${message}`);
+    }
+}
+
+async function getLeaderboardEnabledSafe() {
+    if (!isDbConnected()) {
+        logLeaderboardDbWarning("DB not connected. Using cached leaderboard status");
+        return leaderboardEnabledCache;
+    }
+
+    try {
+        const setting = await Settings
+            .findOne({ key: "leaderboardEnabled" })
+            .maxTimeMS(3000)
+            .lean();
+
+        leaderboardEnabledCache = setting ? Boolean(setting.value) : true;
+        return leaderboardEnabledCache;
+    } catch (err) {
+        logLeaderboardDbWarning("Failed to read leaderboardEnabled. Using cached value", err);
+        return leaderboardEnabledCache;
+    }
+}
 
 if (isProduction && !process.env.SESSION_SECRET) {
     throw new Error("SESSION_SECRET is required in production");
@@ -309,7 +349,11 @@ async function removeLegacyTeamUsernameIndexes() {
    }
 }
 
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+    bufferCommands: false
+})
 .then(async () => {
    console.log("MongoDB Connected ✅");
    await removeLegacyTeamUsernameIndexes();
@@ -402,9 +446,14 @@ app.get('/api/leaderboard', async (req, res) => {
    try {
       const { event, mixed, batch } = req.query;
 
-        // Check if leaderboard is enabled
-        const leaderboardStatus = await Settings.findOne({ key: "leaderboardEnabled" });
-        if (!leaderboardStatus || !leaderboardStatus.value) {
+        if (!isDbConnected()) {
+            logLeaderboardDbWarning("Skipping DB leaderboard query because DB is disconnected");
+            return res.json([]);
+        }
+
+        // Check if leaderboard is enabled (safe, cached fallback)
+        const leaderboardEnabled = await getLeaderboardEnabledSafe();
+        if (!leaderboardEnabled) {
             return res.json([]);
         }
 
