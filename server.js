@@ -37,13 +37,8 @@ const corsOptions = {
         }
 
         if (!allowedOrigins.length) {
-            // In production without explicit CORS origins, only same-origin traffic
-            // should work. Cross-origin browser calls are blocked by default.
-            if (isProduction) {
-                return callback(new Error("CORS origin not allowed"));
-            }
-
-            // Dev convenience: allow custom local frontends unless explicitly restricted.
+            // No explicit allowlist configured: allow all origins.
+            // (Main app is same-origin, so this is safe for current deployment model.)
             return callback(null, true);
         }
 
@@ -51,7 +46,8 @@ const corsOptions = {
             return callback(null, true);
         }
 
-        return callback(new Error("CORS origin not allowed"));
+        // Don't throw hard errors for disallowed origins; simply disable CORS headers.
+        return callback(null, false);
     },
     credentials: true
 };
