@@ -179,6 +179,16 @@ function differenceMaxMinDigit(x) {
     return maxDigit(x) - minDigit(x);
 }
 
+function distanceToNearest10(x) {
+    const n = Number(x);
+    if (!Number.isFinite(n)) return NaN;
+
+    // Distance to nearest multiple of 10
+    // Example: 5 -> 5, 14 -> 4, 19 -> 1, -14 -> 4
+    const remainder = Math.abs(n % 10);
+    return Math.min(remainder, 10 - remainder);
+}
+
 function evaluateFormula(formula, context = {}) {
     const x = context.x;
     const y = context.y !== undefined ? context.y : context.k;
@@ -222,7 +232,8 @@ function evaluateFormula(formula, context = {}) {
         countOnesBinary,
         maxDigit,
         minDigit,
-        differenceMaxMinDigit
+        differenceMaxMinDigit,
+        distanceToNearest10
     };
 
     const argNames = Object.keys(scope);
