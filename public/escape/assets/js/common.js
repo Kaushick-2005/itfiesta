@@ -6,6 +6,38 @@
 window.EXAM_SUBMITTED = false;
 var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
+var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
+
+function queueEscapePenaltyAlert(message) {
+  if (!message) return;
+  try {
+    sessionStorage.setItem(ESCAPE_PENDING_ALERT_KEY, String(message));
+  } catch (_) {}
+}
+
+function consumeEscapePenaltyAlert() {
+  try {
+    var msg = sessionStorage.getItem(ESCAPE_PENDING_ALERT_KEY);
+    if (msg) {
+      sessionStorage.removeItem(ESCAPE_PENDING_ALERT_KEY);
+      return msg;
+    }
+  } catch (_) {}
+  return '';
+}
+
+function flushEscapePenaltyAlert() {
+  if (window.EXAM_SUBMITTED) return;
+  if (document.visibilityState !== 'visible') return;
+
+  var msg = consumeEscapePenaltyAlert();
+  if (!msg) return;
+
+  // Delay helps on mobile browsers where immediate alert after tab focus may be dropped.
+  setTimeout(function(){
+    try { alert(msg); } catch (_) {}
+  }, 120);
+}
 
 function sendEscapeHeartbeat() {
   try {
@@ -45,7 +77,12 @@ document.addEventListener('visibilitychange', function() {
   if (window.EXAM_SUBMITTED) return;
   if (document.visibilityState === 'visible') {
     sendEscapeHeartbeat();
+    flushEscapePenaltyAlert();
   }
+});
+
+window.addEventListener('focus', function(){
+  flushEscapePenaltyAlert();
 });
 
 window.addEventListener('pagehide', stopEscapeHeartbeat);
@@ -238,7 +275,7 @@ function enableTabSwitchPenalty(){
       // Apply penalty via API
       notifyServerTabSwitch().then(function(data){
         if (data && data.action === 'penalty') {
-          alert(data.message);
+          queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
         }
       }).finally(function(){
         // 3 second cooldown
@@ -325,7 +362,8 @@ function detectFullScreenExit() {
       tabSwitchCooldown = true;
       notifyServerTabSwitch().then(function(data){
         if (data && data.action === 'penalty') {
-          alert(data.message);
+          queueEscapePenaltyAlert(data.message || 'Full-screen exit detected. Penalty applied.');
+          flushEscapePenaltyAlert();
         }
       }).finally(function(){
         setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
@@ -342,7 +380,8 @@ function detectFullScreenExit() {
       tabSwitchCooldown = true;
       notifyServerTabSwitch().then(function(data){
         if (data && data.action === 'penalty') {
-          alert(data.message);
+          queueEscapePenaltyAlert(data.message || 'Full-screen exit detected. Penalty applied.');
+          flushEscapePenaltyAlert();
         }
       }).finally(function(){
         setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
@@ -359,7 +398,8 @@ function detectFullScreenExit() {
       tabSwitchCooldown = true;
       notifyServerTabSwitch().then(function(data){
         if (data && data.action === 'penalty') {
-          alert(data.message);
+          queueEscapePenaltyAlert(data.message || 'Full-screen exit detected. Penalty applied.');
+          flushEscapePenaltyAlert();
         }
       }).finally(function(){
         setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
