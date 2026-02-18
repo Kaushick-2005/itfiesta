@@ -187,9 +187,19 @@ function maxDigit(x) {
     return digits.length ? Math.max(...digits) : 0;
 }
 
+// Alias used by some stored formulas/questions
+function largestDigit(x) {
+    return maxDigit(x);
+}
+
 function minDigit(x) {
     const digits = String(Math.abs(Number(x) || 0)).split('').map(Number);
     return digits.length ? Math.min(...digits) : 0;
+}
+
+// Alias used by some stored formulas/questions
+function smallestDigit(x) {
+    return minDigit(x);
 }
 
 function differenceMaxMinDigit(x) {
@@ -248,7 +258,9 @@ function evaluateFormula(formula, context = {}) {
         reverseIncrement,
         countOnesBinary,
         maxDigit,
+        largestDigit,
         minDigit,
+        smallestDigit,
         differenceMaxMinDigit,
         distanceToNearest10
     };
