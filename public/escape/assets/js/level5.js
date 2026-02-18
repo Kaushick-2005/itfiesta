@@ -20,9 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   sessionStorage.setItem('currentLevel', '5');
 
-  // Always restart level from Stage 1 on page reload
-  sessionStorage.removeItem('level5_scenario_' + teamId);
-
   var scenario = null;
   var currentStageIndex = 0;
   var timerController = null;
@@ -388,6 +385,10 @@ document.addEventListener('DOMContentLoaded', function () {
       };
     }).filter(Boolean);
     
+    result.sort(function (a, b) {
+      return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+
     console.log('[Level 5 Normalize] Final result:', result.length, 'scenarios');
     return result;
   }
