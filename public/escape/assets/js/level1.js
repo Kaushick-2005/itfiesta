@@ -11,6 +11,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   sessionStorage.setItem('currentLevel', '1');
 
+  // Always restart level from Q1 on page reload
+  sessionStorage.removeItem('level1_question_ids_' + teamId);
+  sessionStorage.removeItem('level1_current_index_' + teamId);
+  sessionStorage.removeItem('level1_answers_' + teamId);
+
   var questionContent = document.getElementById('question-content');
   var controls = document.getElementById('controls');
   var timerController = null;

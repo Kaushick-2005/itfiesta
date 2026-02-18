@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   sessionStorage.setItem('currentLevel', '5');
 
+  // Always restart level from Stage 1 on page reload
+  sessionStorage.removeItem('level5_scenario_' + teamId);
+  sessionStorage.removeItem('timer_start_' + teamId + '_L5');
+  sessionStorage.removeItem('timer_duration_' + teamId + '_L5');
+
   var scenario = null;
   var currentStageIndex = 0;
   var timerController = null;
