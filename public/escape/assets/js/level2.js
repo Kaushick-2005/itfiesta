@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function(){
   var submitInProgress = false;
   var hasSubmitted = false;
   var submitMarkerKey = 'level2_submit_started_' + teamId;
+  var idsKey = 'level2_question_ids_' + teamId;
+
+  // Always restart level from Q1 on page reload
+  sessionStorage.removeItem(idsKey);
 
   function hasLocalSubmitMarker(){
     return sessionStorage.getItem(submitMarkerKey) === '1';
@@ -358,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
 
-    var idsKey = 'level2_question_ids_' + teamId;
+    // idsKey declared at top-level for reload reset logic
     var storedIds = [];
     try { storedIds = JSON.parse(sessionStorage.getItem(idsKey) || '[]'); } catch (_) { storedIds = []; }
 
@@ -378,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
 });
+
 
 
 

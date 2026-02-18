@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', function(){
   var selections = {};
   var submitInProgress = false;
   var hasSubmitted = false;
+  var idsKey = 'level4_question_ids_' + teamId;
+
+  // Always restart level from Q1 on page reload
+  sessionStorage.removeItem(idsKey);
 
   function shuffle(arr){ return arr.slice().sort(function(){ return Math.random() - 0.5; }); }
 
@@ -273,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
 
-    var idsKey = 'level4_question_ids_' + teamId;
+    // idsKey declared at top-level for reload reset logic
     var storedIds = [];
     try { storedIds = JSON.parse(sessionStorage.getItem(idsKey) || '[]'); } catch (_) { storedIds = []; }
 
