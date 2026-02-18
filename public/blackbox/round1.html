@@ -544,9 +544,50 @@ let sessionId = null;
 let endTime = null;
 let variableCount = 1;
 const FALLBACK_DURATION_MS = 5 * 60 * 1000; // 5-minute safety window
+const HEARTBEAT_INTERVAL_MS = 4000;
+let heartbeatTimer = null;
+let hasShownReconnectPenalty = false;
 
 // Submission flag to disable tab switching after submission
 window.EXAM_SUBMITTED = false;
+
+async function sendHeartbeat() {
+    if (window.EXAM_SUBMITTED) return;
+    if (!sessionId) return;
+    if (document.visibilityState === 'hidden') return;
+
+    try {
+        await fetch(`${API}/heartbeat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+    } catch (err) {
+        console.warn('[Round 1] Heartbeat failed:', err);
+    }
+}
+
+function startHeartbeat() {
+    stopHeartbeat();
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+}
+
+function stopHeartbeat() {
+    if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+    }
+}
+
+document.addEventListener('visibilitychange', function() {
+    if (window.EXAM_SUBMITTED) return;
+    if (document.visibilityState === 'visible') {
+        sendHeartbeat();
+    }
+});
+
+window.addEventListener('pagehide', stopHeartbeat);
 
 
 // 🔵 PAGE LOAD
@@ -624,6 +665,11 @@ window.onload = async function() {
     sessionId = data.session_id;
     variableCount = data.variables;
 
+    if (data.reconnectPenalty && data.reconnectPenalty.applied && !hasShownReconnectPenalty) {
+        hasShownReconnectPenalty = true;
+        alert(data.reconnectPenalty.message);
+    }
+
     const parsedEnd = data.end_time ? new Date(data.end_time) : null;
     if (parsedEnd && !isNaN(parsedEnd.getTime())) {
         endTime = parsedEnd;
@@ -638,6 +684,7 @@ window.onload = async function() {
         document.getElementById("input2").style.display = "block";
     }
 
+    startHeartbeat();
     startTimer();
 };
 
@@ -735,11 +782,13 @@ async function generateOutput() {
 async function submitLogic() {
     // Mark exam as submitted to disable tab switching
     window.EXAM_SUBMITTED = true;
+    stopHeartbeat();
     console.log('[Round 1] Exam submitted, tab switching disabled');
 
     if (!sessionId) {
         alert("Unable to submit: session not initialized. Please reload (server might be offline).");
         window.EXAM_SUBMITTED = false; // Re-enable if validation fails
+        startHeartbeat();
         return;
     }
 
@@ -765,32 +814,26 @@ async function submitLogic() {
         console.error("Submit failed", err);
         alert("Submit failed. Please check connection/server and try again.");
         window.EXAM_SUBMITTED = false;
+        startHeartbeat();
         return;
     }
 
     console.log("Submit response:", data);
 
-    // Old BlackBox logic: Multiple attempts, no elimination
-    if (data.result && data.result.toLowerCase() === "correct") {
-        showModal(
-            "Correct Answer!",
-            `Well done! Your score: ${data.score || 0} marks\nProceeding to Round 2`,
-            "round2.html"
-        );
-    } else if (data.result === "wrong") {
-        // Give participation marks and allow retry or advance
-        showModal(
-            "Incorrect Answer", 
-            `Your answer needs improvement.\nParticipation marks awarded.\nYou can retry or move to next round.`,
-            "round2.html"
-        );
-    } else {
-        showModal(
-            "Submission Complete",
-            "Moving to next round...",
-            "round2.html"
-        );
+    if (data.result === "error" || !data.moveTo) {
+        alert(data.message || "Submit failed. Please try again.");
+        window.EXAM_SUBMITTED = false;
+        startHeartbeat();
+        return;
     }
+
+    showModal(
+        data.result === "correct" ? "✅ Correct!" : "Round Completed",
+        data.result === "correct"
+            ? `+${data.score || 0} points! Moving to next round.`
+            : `+${data.score || 0} participation points. Moving to next round.`,
+        data.moveTo
+    );
 }
 
 

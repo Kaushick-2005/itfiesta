@@ -216,7 +216,7 @@ window.API.getLevelStart = function(level) {
     .then(res => res.json())
     .catch(err => {
       console.warn('Failed to get server time', err);
-      const defaults = { 1: 180, 2: 240, 3: 300, 4: 360, 5: 600 };
+      const defaults = { 1: 180, 2: 240, 3: 360, 4: 300, 5: 180 };
       return { serverNow: Date.now(), duration: defaults[level] || 300 };
     });
 };

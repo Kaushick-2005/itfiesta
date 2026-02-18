@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var scenario = null;
   var currentStageIndex = 0;
   var timerController = null;
-  var levelDuration = 600;
+  var levelDuration = 180;
   var levelStartTs = Date.now();
 
   var decisionScore = 0;
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function (res) {
         if (res && res.success) {
           setTimeout(function () {
-            window.location.href = '../result/waiting.html';
+            window.location.href = '../leaderboard.html';
           }, 700);
         } else {
           showStatus('Submission failed. Contact admin.', 'danger');
@@ -286,7 +286,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function startTimer() {
     API.getLevelStart(5)
       .then(function (info) {
-        levelDuration = Number(info && info.duration) || 600;
+        levelDuration = Number(info && info.duration) || 180;
 
         var startKey = 'timer_start_' + teamId + '_L5';
         var durationKey = 'timer_duration_' + teamId + '_L5';
@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', function () {
         recomputeTotal();
       })
       .catch(function () {
-        levelDuration = 600;
+        levelDuration = 180;
         levelStartTs = Date.now();
         if (window.ER && window.ER.initLevelTimer) {
           timerController = window.ER.initLevelTimer(levelDuration, '#timer-count', function () {

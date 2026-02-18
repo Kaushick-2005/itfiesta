@@ -1,4 +1,4 @@
-// Level 3: Logic Lock / Code Crack (5 minutes, 3 questions)
+// Level 3: Logic Lock / Code Crack (6 minutes, 3 questions)
 document.addEventListener('DOMContentLoaded', function(){
   if (window.ER && window.ER.enableFullExamProtections) window.ER.enableFullExamProtections();
   if (window.ER && window.ER.detectFullScreenExit) window.ER.detectFullScreenExit();
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function(){
       
     }).catch(function(){
       // Keep admin-decision flow even on intermittent submit errors.
-      showModal('Error', 'Failed to submit score. Please try again.', '../result/waiting.html');
+      showModal('Error', 'Failed to submit score. Please try again.', '../leaderboard.html');
     });
   }
 
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
 
   function startTimer(){
-    var fallbackDuration = 300;
+    var fallbackDuration = 360;
     API.getLevelStart(3).then(function(info){
       var duration = Number(info.duration) || fallbackDuration;
       var startKey = 'timer_start_' + teamId + '_L3';

@@ -25,10 +25,10 @@ document.addEventListener('DOMContentLoaded', function(){
     sessionStorage.setItem(submitMarkerKey, '1');
   }
 
-  // If submit already started earlier (reload/network race), keep participant in waiting flow.
+  // If submit already started earlier (reload/network race), send participant to leaderboard.
   if (hasLocalSubmitMarker()) {
     window.EXAM_SUBMITTED = true;
-    window.location.href = '../result/waiting.html';
+    window.location.href = '../leaderboard.html';
     return;
   }
 
@@ -201,58 +201,6 @@ document.addEventListener('DOMContentLoaded', function(){
         reorderAndRender(draggedItemIndex, dropIndex);
       });
 
-      // Touch support for mobile drag
-      (function(el, elIdx){
-        var touchStartY = 0;
-        var touchStartX = 0;
-
-        el.addEventListener('touchstart', function(e){
-          e.preventDefault();
-          var touch = e.touches[0];
-          touchStartX = touch.clientX;
-          touchStartY = touch.clientY;
-          draggedItemIndex = elIdx;
-          el.style.opacity = '0.45';
-          el.style.transform = 'scale(1.05)';
-          el.style.zIndex = '999';
-          el.style.position = 'relative';
-        }, { passive: false });
-
-        el.addEventListener('touchmove', function(e){
-          e.preventDefault();
-          if (draggedItemIndex < 0) return;
-          var touch = e.touches[0];
-          var dx = touch.clientX - touchStartX;
-          var dy = touch.clientY - touchStartY;
-          el.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(1.05)';
-        }, { passive: false });
-
-        el.addEventListener('touchend', function(e){
-          if (draggedItemIndex < 0) return;
-          el.style.opacity = '1';
-          el.style.transform = '';
-          el.style.zIndex = '';
-          el.style.position = '';
-
-          var touch = e.changedTouches[0];
-          el.style.display = 'none';
-          var target = document.elementFromPoint(touch.clientX, touch.clientY);
-          el.style.display = '';
-
-          if (target) {
-            var targetItem = target.closest('.level2-item');
-            if (targetItem && targetItem.dataset.index !== undefined) {
-              var dropIdx = Number(targetItem.dataset.index);
-              var fromIdx = draggedItemIndex;
-              draggedItemIndex = -1;
-              reorderAndRender(fromIdx, dropIdx);
-              return;
-            }
-          }
-          draggedItemIndex = -1;
-        });
-      })(d, idx);
-
       itemsWrap.appendChild(d);
     });
     questionContent.appendChild(itemsWrap);
@@ -325,8 +273,8 @@ document.addEventListener('DOMContentLoaded', function(){
       showModal(title, message, redirectUrl);
       
     }).catch(function(err){
-      console.warn('Level 2 submit failed, moving to waiting as fail-safe:', err);
-      showModal('Error', 'Failed to submit score. Please try again.', '../result/waiting.html');
+      console.warn('Level 2 submit failed, moving to leaderboard as fail-safe:', err);
+      showModal('Error', 'Failed to submit score. Please try again.', '../leaderboard.html');
     });
   }
 
@@ -359,15 +307,15 @@ document.addEventListener('DOMContentLoaded', function(){
     if (window.ER && window.ER.disableAllInputs) window.ER.disableAllInputs();
 
     API.getTeam(teamId).then(function(team){
-      // Race-safe: if submit already persisted, do NOT eliminate; continue to waiting.
+      // Race-safe: if submit already persisted, do NOT eliminate; continue to leaderboard.
       if (window.EXAM_SUBMITTED || submitInProgress || hasSubmitted || hasLocalSubmitMarker() || (team && team.level2_submitted)) {
-        window.location.href = '../result/waiting.html';
+        window.location.href = '../leaderboard.html';
         return;
       }
       notifyServerElimination('timeout').finally(function(){ window.location.href='../result/eliminated.html'; });
     }).catch(function(){
       // On network uncertainty at timeout, avoid unfair elimination and keep admin-decision flow.
-      window.location.href='../result/waiting.html';
+      window.location.href='../leaderboard.html';
     });
 
     // handled here; skip extra forced actions in common timer
@@ -430,6 +378,9 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
 });
+
+
+
 
 
 

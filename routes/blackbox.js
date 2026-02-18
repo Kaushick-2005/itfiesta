@@ -5,6 +5,15 @@ const mongoose = require("mongoose");
 // Main Team model (from your registration system)
 const Team = require("../models/Team");
 
+// If a session stops sending heartbeat for this long,
+// treat it as app/browser leave and apply tab-switch penalty on resume.
+const SESSION_INACTIVITY_THRESHOLD_MS = 12 * 1000;
+const BLACKBOX_ROUND_DURATIONS = {
+    1: 8 * 60,
+    2: 10 * 60,
+    3: 6 * 60
+};
+
 // ==================== HELPER FUNCTIONS FOR FORMULAS ====================
 
 function gcd(a, b) {
@@ -156,6 +165,76 @@ function countOnesBinary(x) {
     return x.toString(2).split('1').length - 1;
 }
 
+function maxDigit(x) {
+    const digits = String(Math.abs(Number(x) || 0)).split('').map(Number);
+    return digits.length ? Math.max(...digits) : 0;
+}
+
+function minDigit(x) {
+    const digits = String(Math.abs(Number(x) || 0)).split('').map(Number);
+    return digits.length ? Math.min(...digits) : 0;
+}
+
+function differenceMaxMinDigit(x) {
+    return maxDigit(x) - minDigit(x);
+}
+
+function evaluateFormula(formula, context = {}) {
+    const x = context.x;
+    const y = context.y !== undefined ? context.y : context.k;
+    const k = context.k !== undefined ? context.k : context.y;
+    const age = context.age;
+    const score = context.score;
+    const role = context.role;
+
+    const scope = {
+        // variables expected in questions
+        x, y, k, age, score, role,
+
+        // standard object allowed in formulas
+        Math,
+
+        // helper functions supported in DB formulas
+        gcd,
+        factorial,
+        isAnagram,
+        isSubsequence,
+        middleDigit,
+        sumDigits,
+        reverseNumber,
+        isPalindrome,
+        countVowels,
+        isPrime,
+        reverse,
+        countDistinctCharacters,
+        longestCommonPrefix,
+        mergeAlternately,
+        removeDuplicates,
+        longestCommonSubstring,
+        countConsonants,
+        rotateLeft,
+        rotateRightDigit,
+        digitProduct,
+        mod9Value,
+        productMinusSum,
+        reverseAndDouble,
+        reverseIncrement,
+        countOnesBinary,
+        maxDigit,
+        minDigit,
+        differenceMaxMinDigit
+    };
+
+    const argNames = Object.keys(scope);
+    const argValues = Object.values(scope);
+    const evaluator = new Function(...argNames, `"use strict"; return (${formula});`);
+    return evaluator(...argValues);
+}
+
+function getBlackboxRoundDuration(round) {
+    return BLACKBOX_ROUND_DURATIONS[round] || 300;
+}
+
 // ==================== BLACKBOX MODELS ====================
 
 // BlackBox models (we'll create inline schemas for simplicity)
@@ -185,7 +264,12 @@ const sessionSchema = new mongoose.Schema({
     start_time: Date,
     end_time: Date,
     status: String,
-    score: Number
+    score: Number,
+    lastHeartbeatAt: {
+        type: Date,
+        default: Date.now
+    },
+    lastViolationAt: Date
 });
 
 const BlackBoxQuestion = mongoose.models.BlackBoxQuestion || mongoose.model("BlackBoxQuestion", questionSchema);
@@ -226,6 +310,20 @@ function isSubsequence(s1, s2) {
         if (s1[i] === s2[j]) j++;
     }
     return j === s2.length;
+}
+
+async function applyTabSwitchPenaltyForTeam(teamId, reason = "TAB_SWITCH") {
+    const team = await Team.findOneAndUpdate(
+        { teamId },
+        { $inc: { score: -10, penalty: 10, tabSwitchCount: 1 } },
+        { returnDocument: "after" }
+    );
+
+    if (team) {
+        console.log(`[AntiCheat:${reason}] Team ${team.teamId}: count=${team.tabSwitchCount}, score=${team.score}, penalty=${team.penalty}`);
+    }
+
+    return team;
 }
 
 // ==================== ROUTES ====================
@@ -293,13 +391,52 @@ router.post("/start", async (req, res) => {
         });
 
         if (existingSession) {
+            const now = new Date();
+            const lastHeartbeat = existingSession.lastHeartbeatAt
+                ? new Date(existingSession.lastHeartbeatAt)
+                : (existingSession.start_time ? new Date(existingSession.start_time) : now);
+            const lastViolation = existingSession.lastViolationAt
+                ? new Date(existingSession.lastViolationAt)
+                : null;
+
+            const inactiveMs = Math.max(0, now.getTime() - lastHeartbeat.getTime());
+            const wasAlreadyPenalizedForLastLeave = !!(
+                lastViolation &&
+                lastViolation.getTime() > lastHeartbeat.getTime()
+            );
+
+            let reconnectPenalty = null;
+
+            // Handles app clear / full browser close / force-kill cases
+            // where visibilitychange may not reach backend.
+            if (inactiveMs >= SESSION_INACTIVITY_THRESHOLD_MS && !wasAlreadyPenalizedForLastLeave) {
+                const penalizedTeam = await applyTabSwitchPenaltyForTeam(
+                    existingSession.team_id,
+                    "BROWSER_EXIT_OR_RECENT_APPS"
+                );
+
+                if (penalizedTeam) {
+                    reconnectPenalty = {
+                        applied: true,
+                        inactiveSeconds: Math.floor(inactiveMs / 1000),
+                        message: `APP/BROWSER EXIT DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab/App Switches: ${penalizedTeam.tabSwitchCount}\nCurrent Score: ${penalizedTeam.score || 0}`
+                    };
+                }
+
+                existingSession.lastViolationAt = now;
+            }
+
+            existingSession.lastHeartbeatAt = now;
+            await existingSession.save();
+
             const question = await BlackBoxQuestion.findById(existingSession.question_id);
             return res.json({
                 session_id: existingSession._id,
                 round: round,
                 variables: question?.variables || 1,
                 end_time: existingSession.end_time,
-                batch: team.batch
+                batch: team.batch,
+                reconnectPenalty
             });
         }
 
@@ -330,7 +467,7 @@ router.post("/start", async (req, res) => {
         console.log(`Selected question ${randomIndex + 1} of ${questions.length}: ${question.formula}`);
 
         const start = new Date();
-        const durationSeconds = question.duration || question.timeLimit || 300;
+        const durationSeconds = getBlackboxRoundDuration(round);
         const end = new Date(start.getTime() + durationSeconds * 1000);
 
         const session = await BlackBoxSession.create({
@@ -339,7 +476,8 @@ router.post("/start", async (req, res) => {
             round,
             start_time: start,
             end_time: end,
-            status: "active"
+            status: "active",
+            lastHeartbeatAt: start
         });
 
         res.json({
@@ -353,6 +491,34 @@ router.post("/start", async (req, res) => {
     } catch (error) {
         console.error("BlackBox START ERROR:", error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/blackbox/heartbeat
+ * Keeps active exam session alive while page is visible.
+ */
+router.post("/heartbeat", async (req, res) => {
+    try {
+        const { session_id } = req.body;
+        if (!session_id) {
+            return res.status(400).json({ ok: false, error: "session_id required" });
+        }
+
+        const updated = await BlackBoxSession.findByIdAndUpdate(
+            session_id,
+            { $set: { lastHeartbeatAt: new Date() } },
+            { returnDocument: "after" }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ ok: false, error: "Session not found" });
+        }
+
+        return res.json({ ok: true });
+    } catch (err) {
+        console.error("BlackBox HEARTBEAT ERROR:", err);
+        return res.status(500).json({ ok: false, error: "Heartbeat failed" });
     }
 });
 
@@ -390,20 +556,20 @@ router.post("/test", async (req, res) => {
 
         // ROUND 1 → Numbers
         if (question.round === 1) {
-            const parts = input.split(" ");
+            const parts = String(input).trim().split(/\s+/);
             const x = Number(parts[0]);
             const y = Number(parts[1]);
             console.log("x =", x, "y =", y);
-            output = eval(question.formula);
+            output = evaluateFormula(question.formula, { x, y, k: y });
             console.log("Output:", output);
         }
         // ROUND 2 → Strings
         else if (question.round === 2) {
-            const parts = input.split(" ");
+            const parts = String(input).trim().split(/\s+/);
             const x = parts[0];
             const y = parts[1];
             console.log("x =", x, "y =", y);
-            output = eval(question.formula);
+            output = evaluateFormula(question.formula, { x, y, k: y });
             console.log("Output:", output);
         }
         // ROUND 3 → JSON input
@@ -413,7 +579,7 @@ router.post("/test", async (req, res) => {
             const score = Number(obj.score);
             const role = obj.role;
             console.log("age =", age, "score =", score, "role =", role);
-            output = eval(question.formula);
+            output = evaluateFormula(question.formula, { age, score, role, x: age, y: score, k: score });
             console.log("Output:", output);
         }
 
@@ -440,7 +606,28 @@ router.post("/submit", async (req, res) => {
         if (new Date() > session.end_time) {
             // Mark round completed (no penalty for time over)
             session.status = "completed";
+            session.score = 0;
             await session.save();
+
+            // Keep team progress in sync even on timeout.
+            const currentRound = session.round;
+            const nextRound = currentRound + 1;
+            const team = await Team.findOne({ teamId: session.team_id });
+            if (team) {
+                team.currentRound = Math.max(Number(team.currentRound || 1), nextRound);
+
+                if (nextRound > 3) {
+                    team.status = "completed";
+                    if (!team.examEndTime) {
+                        team.examEndTime = new Date();
+                    }
+                    if (team.examStartTime) {
+                        team.totalExamTime = new Date(team.examEndTime).getTime() - new Date(team.examStartTime).getTime();
+                    }
+                }
+
+                await team.save();
+            }
 
             return res.json({ 
                 result: "time_over", 
@@ -466,8 +653,21 @@ router.post("/submit", async (req, res) => {
                 const x = Math.floor(Math.random() * 20) + 1;
                 const y = Math.floor(Math.random() * 20) + 1;
 
-                let correctOutput = eval(question.formula);
-                let userOutput = eval(answer);
+                let correctOutput;
+                try {
+                    correctOutput = evaluateFormula(question.formula, { x, y, k: y });
+                } catch (formulaEvalErr) {
+                    console.error("BlackBox formula evaluation error:", formulaEvalErr.message);
+                    allCorrect = false;
+                    break;
+                }
+                let userOutput;
+                try {
+                    userOutput = evaluateFormula(answer, { x, y, k: y });
+                } catch (userEvalErr) {
+                    allCorrect = false;
+                    break;
+                }
 
                 if (String(correctOutput) !== String(userOutput)) {
                     allCorrect = false;
@@ -478,7 +678,7 @@ router.post("/submit", async (req, res) => {
             if (allCorrect) {
                 const now = new Date();
                 const timeUsedSeconds = Math.floor((now - session.start_time) / 1000);
-                const totalDuration = question.duration;
+                const totalDuration = getBlackboxRoundDuration(question.round);
 
                 // Score based on time (50-100)
                 roundScore = 100 - Math.floor((timeUsedSeconds / totalDuration) * 50);
@@ -536,20 +736,26 @@ router.post("/submit", async (req, res) => {
         // Update team score with old BlackBox marking system
         const currentRound = session.round;
         const nextRound = currentRound + 1;
+        const awardedScore = isCorrect ? roundScore : (Math.floor(roundScore * 0.3) || 10);
         
-        if (isCorrect) {
-            // Full marks for correct answer
-            await Team.updateOne(
-                { teamId: session.team_id },
-                { $inc: { score: roundScore, currentRound: 1 } }
-            );
-        } else {
-            // Participation marks for wrong answer (no elimination)
-            const participationMarks = Math.floor(roundScore * 0.3) || 10; // 30% of full marks or minimum 10
-            await Team.updateOne(
-                { teamId: session.team_id },
-                { $inc: { score: participationMarks, currentRound: 1 } }
-            );
+        // Award marks and advance round
+        const updatedTeam = await Team.findOneAndUpdate(
+            { teamId: session.team_id },
+            { $inc: { score: awardedScore, currentRound: 1 }, $set: { status: "active" } },
+            { returnDocument: "after" }
+        );
+
+        // If final round is done, mark event as completed immediately
+        // so admin panel + leaderboard status updates without requiring another /start call.
+        if (updatedTeam && nextRound > 3) {
+            const completeUpdate = {
+                status: "completed",
+                examEndTime: new Date()
+            };
+            if (updatedTeam.examStartTime) {
+                completeUpdate.totalExamTime = new Date(completeUpdate.examEndTime).getTime() - new Date(updatedTeam.examStartTime).getTime();
+            }
+            await Team.updateOne({ teamId: session.team_id }, { $set: completeUpdate });
         }
 
         // Mark round completed
@@ -571,7 +777,7 @@ router.post("/submit", async (req, res) => {
 
         return res.json({
             result: isCorrect ? "correct" : "wrong",
-            score: isCorrect ? roundScore : Math.floor(roundScore * 0.3) || 10,
+            score: awardedScore,
             nextRound: nextRound,
             moveTo: moveTo,
             timeUsed: session.start_time ? Math.floor((new Date() - session.start_time) / 1000) : 0
@@ -579,7 +785,7 @@ router.post("/submit", async (req, res) => {
 
     } catch (err) {
         console.error("BlackBox SUBMIT ERROR:", err);
-        res.json({ result: "error" });
+        res.json({ result: "error", message: "Invalid/failed submission" });
     }
 });
 
@@ -599,23 +805,21 @@ router.post("/tab-switch", async (req, res) => {
             return res.json({ error: "Session not found" });
         }
 
-        // Deduct 10 from score, add 10 to penalty, increment tab switch count
-        const team = await Team.findOneAndUpdate(
-            { teamId: session.team_id },
-            { $inc: { score: -10, penalty: 10, tabSwitchCount: 1 } },
-            { new: true }
-        );
+        const team = await applyTabSwitchPenaltyForTeam(session.team_id, "VISIBILITY_TAB_SWITCH");
 
         if (!team) {
             return res.json({ error: "Team not found" });
         }
 
+        session.lastViolationAt = new Date();
+        await session.save();
+
         const totalScore = team.score || 0;
-        console.log(`Tab switch for team ${team.teamId}: count=${team.tabSwitchCount}, score=${team.score}, penalty=${team.penalty}`);
+        console.log(`Tab/App switch for team ${team.teamId}: count=${team.tabSwitchCount}, score=${team.score}, penalty=${team.penalty}`);
 
         res.json({
             action: "penalty",
-            message: `TAB SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
+            message: `TAB/APP SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab/App Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
             scoreDeducted: 10,
             penalty: team.penalty,
             currentScore: team.score,

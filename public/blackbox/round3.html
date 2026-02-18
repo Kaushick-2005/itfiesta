@@ -479,9 +479,50 @@ let sessionId = null;
 let endTime = null;
 let variableCount = 3;
 const FALLBACK_DURATION_MS = 5 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 4000;
+let heartbeatTimer = null;
+let hasShownReconnectPenalty = false;
 
 // Submission flag to disable tab switching after submission
 window.EXAM_SUBMITTED = false;
+
+async function sendHeartbeat() {
+    if (window.EXAM_SUBMITTED) return;
+    if (!sessionId) return;
+    if (document.visibilityState === 'hidden') return;
+
+    try {
+        await fetch(`${API}/heartbeat`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+    } catch (err) {
+        console.warn('[Round 3] Heartbeat failed:', err);
+    }
+}
+
+function startHeartbeat() {
+    stopHeartbeat();
+    sendHeartbeat();
+    heartbeatTimer = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
+}
+
+function stopHeartbeat() {
+    if (heartbeatTimer) {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = null;
+    }
+}
+
+document.addEventListener('visibilitychange', function() {
+    if (window.EXAM_SUBMITTED) return;
+    if (document.visibilityState === 'visible') {
+        sendHeartbeat();
+    }
+});
+
+window.addEventListener('pagehide', stopHeartbeat);
 
 window.onload = async function() {
 
@@ -539,6 +580,11 @@ window.onload = async function() {
 
     sessionId = data.session_id;
 
+    if (data.reconnectPenalty && data.reconnectPenalty.applied && !hasShownReconnectPenalty) {
+        hasShownReconnectPenalty = true;
+        alert(data.reconnectPenalty.message);
+    }
+
     const parsedEnd = data.end_time ? new Date(data.end_time) : null;
     if (parsedEnd && !isNaN(parsedEnd.getTime())) {
         endTime = parsedEnd;
@@ -548,6 +594,7 @@ window.onload = async function() {
         document.getElementById("timer").innerText = "⏱️ 05:00";
     }
 
+    startHeartbeat();
     startTimer();
 };
 
@@ -637,11 +684,13 @@ async function generateOutput() {
 async function submitLogic() {
     // Mark exam as submitted to disable tab switching
     window.EXAM_SUBMITTED = true;
+    stopHeartbeat();
     console.log('[Round 3] Exam submitted, tab switching disabled');
 
     if (!sessionId) {
         alert("Unable to submit: session not initialized. Please reload (server might be offline).");
         window.EXAM_SUBMITTED = false; // Re-enable if validation fails
+        startHeartbeat();
         return;
     }
 
@@ -666,20 +715,27 @@ async function submitLogic() {
     } catch (err) {
         console.error("Submit failed", err);
         alert("Submit failed. Please check connection/server and try again.");
+        window.EXAM_SUBMITTED = false;
+        startHeartbeat();
         return;
     }
 
     console.log("Submit response:", data);
 
-    if (data.moveTo) {
-        showModal(
-            data.result === "correct" ? "🎉 BlackBox Completed!" : "Game Complete",
-            data.result === "correct"
-                ? `Outstanding! +${data.score || 0} points! View your final score on leaderboard.`
-                : `+${data.score || 0} participation points earned. Thanks for participating!`,
-            data.moveTo
-        );
+    if (data.result === "error" || !data.moveTo) {
+        alert(data.message || "Submit failed. Please try again.");
+        window.EXAM_SUBMITTED = false;
+        startHeartbeat();
+        return;
     }
+
+    showModal(
+        data.result === "correct" ? "🎉 BlackBox Completed!" : "Game Complete",
+        data.result === "correct"
+            ? `Outstanding! +${data.score || 0} points! View your final score on leaderboard.`
+            : `+${data.score || 0} participation points earned. Thanks for participating!`,
+        data.moveTo
+    );
 }
 
 

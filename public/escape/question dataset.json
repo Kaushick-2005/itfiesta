@@ -1944,7 +1944,8 @@
     3,
     6,
     4
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -1976,7 +1977,8 @@
     3,
     7,
     4
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2008,7 +2010,8 @@
     1,
     7,
     4
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2040,7 +2043,8 @@
     1,
     4,
     8
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2072,7 +2076,8 @@
     1,
     4,
     2
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2104,7 +2109,8 @@
     1,
     3,
     7
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2136,7 +2142,8 @@
     8,
     3,
     4
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2168,7 +2175,8 @@
     3,
     4,
     8
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2200,7 +2208,8 @@
     3,
     4,
     8
-  ]
+  ],
+  "marks": 30
 },
 {
   "_id": {
@@ -2232,5 +2241,250 @@
     3,
     4,
     8
-  ]
+  ],
+  "marks": 30
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27474"
+  },
+  "level": 5,
+  "scenario_id": 1,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Privilege Escalation Under Peak Load",
+  "stage": 1,
+  "text": "Suspicious admin privilege escalation detected during peak traffic. System must remain live, no session disruption, audit logs must remain intact.",
+  "options": [
+    {
+      "label": "Restart authentication service",
+      "points": 0
+    },
+    {
+      "label": "Enable Web Application Firewall (WAF)",
+      "points": 10
+    },
+    {
+      "label": "Force logout all users",
+      "points": 0
+    }
+  ],
+  "correct_answer": "Enable Web Application Firewall (WAF)",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27475"
+  },
+  "level": 5,
+  "scenario_id": 1,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Privilege Escalation Under Peak Load",
+  "stage": 2,
+  "text": "Attack traffic reduced. Sessions may be compromised. What next?",
+  "options": [
+    {
+      "label": "Rotate session keys silently",
+      "points": 10
+    },
+    {
+      "label": "Disable logging temporarily",
+      "points": 0
+    },
+    {
+      "label": "Restart database service",
+      "points": 0
+    }
+  ],
+  "correct_answer": "Rotate session keys silently",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27476"
+  },
+  "level": 5,
+  "scenario_id": 1,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Privilege Escalation Under Peak Load",
+  "stage": 3,
+  "text": "Privilege validation vulnerability detected in production.",
+  "options": [
+    {
+      "label": "Patch vulnerability live",
+      "points": 10
+    },
+    {
+      "label": "Schedule patch later",
+      "points": 3
+    }
+  ],
+  "correct_answer": "Patch vulnerability live",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27477"
+  },
+  "level": 5,
+  "scenario_id": 2,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Ransomware Containment Without Data Loss",
+  "stage": 1,
+  "text": "File server encryption activity detected. Backups available from yesterday, but encrypted files may contain valuable logs. How to respond?",
+  "options": [
+    {
+      "label": "Contact law enforcement for investigation",
+      "points": 3
+    },
+    {
+      "label": "Isolate infected server from network",
+      "points": 10
+    },
+    {
+      "label": "Attempt decryption with available tools",
+      "points": 0
+    }
+  ],
+  "correct_answer": "Isolate infected server from network",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27478"
+  },
+  "level": 5,
+  "scenario_id": 2,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Ransomware Containment Without Data Loss",
+  "stage": 2,
+  "text": "Encryption halted by isolation. Internal systems spreading similar patterns. Lateral movement detected across 5 departments.",
+  "options": [
+    {
+      "label": "Disable SMB sharing across network",
+      "points": 10
+    },
+    {
+      "label": "Shut down all file servers for forensics",
+      "points": 3
+    },
+    {
+      "label": "Restore encrypted files directly to bypass damage",
+      "points": 0
+    }
+  ],
+  "correct_answer": "Disable SMB sharing across network",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d27479"
+  },
+  "level": 5,
+  "scenario_id": 2,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Ransomware Containment Without Data Loss",
+  "stage": 3,
+  "text": "Latest backup verified as clean. Question: Restore immediately or rebuild infrastructure first?",
+  "options": [
+    {
+      "label": "Restore from verified clean backup",
+      "points": 10
+    },
+    {
+      "label": "Rebuild server from scratch then restore data",
+      "points": 3
+    },
+    {
+      "label": "Wait 48 hours for manufacturer security patch",
+      "points": 0
+    }
+  ],
+  "correct_answer": "Restore from verified clean backup",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2747a"
+  },
+  "level": 5,
+  "scenario_id": 3,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Cloud Storage Misconfiguration Exploit",
+  "stage": 1,
+  "text": "Production cloud storage bucket publicly accessible. No downtime allowed, prevent data exfiltration.",
+  "options": [
+    {
+      "label": "Delete entire bucket",
+      "points": 0
+    },
+    {
+      "label": "Restrict bucket access permissions",
+      "points": 10
+    },
+    {
+      "label": "Shut down public API",
+      "points": 3
+    }
+  ],
+  "correct_answer": "Restrict bucket access permissions",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2747b"
+  },
+  "level": 5,
+  "scenario_id": 3,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Cloud Storage Misconfiguration Exploit",
+  "stage": 2,
+  "text": "Suspicious data downloads detected earlier. What now?",
+  "options": [
+    {
+      "label": "Enable detailed access logging",
+      "points": 10
+    },
+    {
+      "label": "Ignore previous downloads",
+      "points": 0
+    },
+    {
+      "label": "Regenerate entire database",
+      "points": 3
+    }
+  ],
+  "correct_answer": "Enable detailed access logging",
+  "marks": 8
+},
+{
+  "_id": {
+    "$oid": "698f821343c5f5de38d2747c"
+  },
+  "level": 5,
+  "scenario_id": 3,
+  "category": "scenario",
+  "type": "interactive_scenario",
+  "title": "Cloud Storage Misconfiguration Exploit",
+  "stage": 3,
+  "text": "API credentials may be exposed due to prior access.",
+  "options": [
+    {
+      "label": "Rotate API keys without downtime",
+      "points": 10
+    },
+    {
+      "label": "Disable API service for investigation",
+      "points": 3
+    }
+  ],
+  "correct_answer": "Rotate API keys without downtime",
+  "marks": 8
 }]

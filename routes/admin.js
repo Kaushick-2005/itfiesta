@@ -4,6 +4,39 @@ const Team = require("../models/Team");
 const BatchControl = require("../models/BatchControl");
 const Settings = require("../models/Settings");
 
+function normalizeTeamStatus(doc) {
+    const team = doc && (doc.toObject ? doc.toObject() : { ...doc });
+    const eventKey = String(team.eventType || "").toLowerCase();
+    const maxRound = eventKey === "escape" ? 5 : 3;
+    const currentRound = Number(team.currentRound || 1);
+    const rawStatus = String(team.status || "not_started").toLowerCase();
+
+    // Keep disqualification/elimination authoritative.
+    if (rawStatus === "eliminated" || rawStatus === "disqualified") {
+        team.status = rawStatus;
+        return team;
+    }
+
+    // Treat legacy labels as active.
+    const normalizedRaw = rawStatus === "in_progress" ? "active" : rawStatus;
+
+    // Derive completion from progression/timestamps so stale DB status
+    // does not show active/in-progress after finishing.
+    const hasCompletionMarker = Boolean(
+        team.examEndTime ||
+        team.endTime ||
+        (typeof team.totalExamTime === "number" && team.totalExamTime > 0)
+    );
+
+    if (currentRound > maxRound || hasCompletionMarker) {
+        team.status = "completed";
+    } else {
+        team.status = normalizedRaw;
+    }
+
+    return team;
+}
+
 
 /* ===============================
     BATCH CONTROL ROUTES
@@ -135,12 +168,18 @@ router.get("/teams", async (req, res) => {
         let filter = {};
 
         if (eventType) filter.eventType = eventType;
-        if (status) filter.status = status;
         if (batch !== undefined) filter.batch = batch === 'null' ? null : Number(batch);
 
         const teams = await Team.find(filter).sort({ score: -1, registeredAt: 1 });
 
-        res.json(teams);
+        let normalized = teams.map(normalizeTeamStatus);
+
+        if (status) {
+            const statusQuery = String(status).toLowerCase();
+            normalized = normalized.filter((team) => String(team.status || "").toLowerCase() === statusQuery);
+        }
+
+        res.json(normalized);
 
     } catch (err) {
         res.status(500).json({ message: "Server error" });
@@ -257,7 +296,9 @@ router.get("/leaderboard/:eventType", async (req, res) => {
             registeredAt: 1 
         });
 
-        res.json(teams);
+        const normalized = teams.map(normalizeTeamStatus);
+
+        res.json(normalized);
 
     } catch (err) {
         res.status(500).json({ message: "Server error" });
@@ -340,7 +381,7 @@ router.post("/leaderboard/toggle", async (req, res) => {
                 value: enabled,
                 updatedAt: new Date()
             },
-            { upsert: true, new: true }
+            { upsert: true, returnDocument: "after" }
         );
 
         res.json({

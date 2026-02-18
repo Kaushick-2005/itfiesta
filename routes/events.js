@@ -37,7 +37,7 @@ router.put("/:key", async (req, res) => {
         const updated = await Event.findOneAndUpdate(
             { key },
             { isActive },
-            { new: true }
+            { returnDocument: "after" }
         );
 
         if (!updated) {

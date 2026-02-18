@@ -1,5 +1,7 @@
 const express = require("express");
 const path = require("path");
+const fs = require("fs");
+const crypto = require("crypto");
 const mongoose = require("mongoose");
 const session = require("express-session");
 require("dotenv").config();
@@ -10,6 +12,124 @@ const BatchControl = require("./models/BatchControl");
 const Settings = require("./models/Settings");
 
 const app = express();
+const PUBLIC_DIR = path.join(__dirname, "public");
+
+const STATIC_ASSET_EXTENSIONS = new Set([
+    ".css", ".js", ".mjs", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".avif", ".ico",
+    ".bmp", ".tiff", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".mp4", ".webm", ".ogg", ".mp3", ".wav", ".m4a"
+]);
+
+const assetHashCache = new Map();
+
+function isCacheBustedCandidate(assetUrl) {
+    if (!assetUrl) return false;
+    const cleanUrl = assetUrl.split("?")[0].split("#")[0].trim();
+    if (!cleanUrl) return false;
+    if (/^(https?:)?\/\//i.test(cleanUrl)) return false;
+    if (/^(data:|mailto:|tel:|javascript:)/i.test(cleanUrl)) return false;
+    const ext = path.extname(cleanUrl).toLowerCase();
+    return STATIC_ASSET_EXTENSIONS.has(ext);
+}
+
+function resolveAssetAbsolutePath(assetUrl, htmlFilePath) {
+    try {
+        const cleanUrl = assetUrl.split("?")[0].split("#")[0].trim();
+        const decoded = decodeURIComponent(cleanUrl);
+        const htmlDir = path.dirname(htmlFilePath);
+        const candidatePath = decoded.startsWith("/")
+            ? path.join(PUBLIC_DIR, decoded.replace(/^\/+/, ""))
+            : path.resolve(htmlDir, decoded);
+
+        if (!candidatePath.startsWith(PUBLIC_DIR)) return null;
+        if (!fs.existsSync(candidatePath)) return null;
+        if (!fs.statSync(candidatePath).isFile()) return null;
+        return candidatePath;
+    } catch (error) {
+        return null;
+    }
+}
+
+function getFileContentHash(filePath) {
+    try {
+        const stat = fs.statSync(filePath);
+        const cached = assetHashCache.get(filePath);
+
+        if (cached && cached.mtimeMs === stat.mtimeMs && cached.size === stat.size) {
+            return cached.hash;
+        }
+
+        const content = fs.readFileSync(filePath);
+        const hash = crypto.createHash("sha1").update(content).digest("hex").slice(0, 12);
+        assetHashCache.set(filePath, {
+            mtimeMs: stat.mtimeMs,
+            size: stat.size,
+            hash
+        });
+        return hash;
+    } catch (error) {
+        return null;
+    }
+}
+
+function withVersionQuery(assetUrl, versionHash) {
+    if (!versionHash) return assetUrl;
+    const hashIndex = assetUrl.indexOf("#");
+    const hashPart = hashIndex >= 0 ? assetUrl.slice(hashIndex) : "";
+    const urlWithoutHash = hashIndex >= 0 ? assetUrl.slice(0, hashIndex) : assetUrl;
+
+    const queryIndex = urlWithoutHash.indexOf("?");
+    const basePath = queryIndex >= 0 ? urlWithoutHash.slice(0, queryIndex) : urlWithoutHash;
+    const queryString = queryIndex >= 0 ? urlWithoutHash.slice(queryIndex + 1) : "";
+
+    const params = new URLSearchParams(queryString);
+    params.set("v", versionHash);
+
+    const nextQuery = params.toString();
+    return `${basePath}${nextQuery ? `?${nextQuery}` : ""}${hashPart}`;
+}
+
+function applyAssetCacheBusting(htmlContent, htmlFilePath) {
+    const assetAttrRegex = /(\b(?:src|href|poster)\s*=\s*)(["'])([^"']+)\2/gi;
+
+    return htmlContent.replace(assetAttrRegex, (fullMatch, prefix, quote, assetUrl) => {
+        if (!isCacheBustedCandidate(assetUrl)) return fullMatch;
+
+        const absoluteAssetPath = resolveAssetAbsolutePath(assetUrl, htmlFilePath);
+        if (!absoluteAssetPath) return fullMatch;
+
+        const versionHash = getFileContentHash(absoluteAssetPath);
+        if (!versionHash) return fullMatch;
+
+        const versionedUrl = withVersionQuery(assetUrl, versionHash);
+        return `${prefix}${quote}${versionedUrl}${quote}`;
+    });
+}
+
+function resolveHtmlFilePathFromRequestPath(requestPath) {
+    const normalized = String(requestPath || "").replace(/\\/g, "/");
+    const cleanPath = normalized.split("?")[0].split("#")[0];
+
+    const candidates = [];
+    if (cleanPath.toLowerCase().endsWith(".html")) {
+        candidates.push(cleanPath);
+    } else if (cleanPath.endsWith("/")) {
+        candidates.push(`${cleanPath}index.html`);
+    } else if (!path.extname(cleanPath)) {
+        candidates.push(`${cleanPath}.html`);
+        candidates.push(`${cleanPath}/index.html`);
+    }
+
+    for (const candidate of candidates) {
+        const relativePath = candidate.replace(/^\/+/, "");
+        const absolutePath = path.join(PUBLIC_DIR, relativePath);
+        if (!absolutePath.startsWith(PUBLIC_DIR)) continue;
+        if (fs.existsSync(absolutePath) && fs.statSync(absolutePath).isFile()) {
+            return absolutePath;
+        }
+    }
+
+    return null;
+}
 
 /* ===============================
    MIDDLEWARE
@@ -19,8 +139,49 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, "public")));
+// Serve HTML with automatic cache-busted asset URLs
+app.use(async (req, res, next) => {
+    try {
+        if (req.method !== "GET" && req.method !== "HEAD") return next();
+
+        const requestPath = decodeURIComponent(req.path || "");
+        const htmlFilePath = resolveHtmlFilePathFromRequestPath(requestPath);
+        if (!htmlFilePath) return next();
+
+        const htmlContent = await fs.promises.readFile(htmlFilePath, "utf8");
+        const transformedHtml = applyAssetCacheBusting(htmlContent, htmlFilePath);
+
+        res.setHeader("Cache-Control", "no-cache");
+        res.type("html");
+        return res.send(transformedHtml);
+    } catch (error) {
+        return next();
+    }
+});
+
+// Serve static files (CSS, JS, images, etc.) with long-term caching
+app.use(express.static(PUBLIC_DIR, {
+    etag: true,
+    lastModified: true,
+    setHeaders: (res, filePath) => {
+        const ext = path.extname(filePath).toLowerCase();
+        const originalUrl = res.req?.originalUrl || "";
+        const hasVersionHash = /[?&]v=[a-f0-9]{6,}/i.test(originalUrl);
+
+        if (ext === ".html") {
+            res.setHeader("Cache-Control", "no-cache");
+            return;
+        }
+
+        if (hasVersionHash) {
+            res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        } else {
+            // Safety fallback for assets not yet versioned in markup/CSS.
+            // Browser will revalidate, preventing stale long-term caches.
+            res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+        }
+    }
+}));
 
 // Session (you can keep for now)
 app.use(session({
@@ -66,9 +227,28 @@ async function ensureDefaultSettings() {
    );
 }
 
+async function removeLegacyTeamUsernameIndexes() {
+   try {
+      const indexes = await Team.collection.indexes();
+      const legacyUsernameIndexes = indexes.filter((idx) => idx && idx.key && idx.key.username === 1);
+
+      for (const idx of legacyUsernameIndexes) {
+         await Team.collection.dropIndex(idx.name);
+         console.log(`Removed legacy Team index: ${idx.name} ✅`);
+      }
+   } catch (err) {
+      // Collection may not exist yet on fresh DB
+      if (err && (err.codeName === "NamespaceNotFound" || err.code === 26)) {
+         return;
+      }
+      console.warn("Unable to clean legacy Team indexes:", err.message || err);
+   }
+}
+
 mongoose.connect(process.env.MONGO_URI)
 .then(async () => {
    console.log("MongoDB Connected ✅");
+   await removeLegacyTeamUsernameIndexes();
    await ensureDefaultEvents();
    console.log("Default events ready ✅");
    await ensureDefaultSettings();

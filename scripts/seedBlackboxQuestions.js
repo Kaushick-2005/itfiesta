@@ -70,7 +70,7 @@ const questions = [
         round: 2,
         formula: "x.length",
         variables: 1,
-        duration: 480,
+        duration: 600,
         keywords: ["length", "count", "characters", "number"],
         maxScore: 100
     },
@@ -78,7 +78,7 @@ const questions = [
         round: 2,
         formula: "x.split('').reverse().join('')",
         variables: 1,
-        duration: 480,
+        duration: 600,
         keywords: ["reverse", "backwards", "flip", "opposite"],
         maxScore: 100
     },
@@ -86,7 +86,7 @@ const questions = [
         round: 2,
         formula: "x.toUpperCase()",
         variables: 1,
-        duration: 480,
+        duration: 600,
         keywords: ["uppercase", "capital", "upper", "big"],
         maxScore: 100
     },
@@ -94,7 +94,7 @@ const questions = [
         round: 2,
         formula: "x + y",
         variables: 2,
-        duration: 480,
+        duration: 600,
         keywords: ["concat", "join", "combine", "together", "append"],
         maxScore: 100
     },
@@ -104,7 +104,7 @@ const questions = [
         round: 3,
         formula: "age >= 18 && score > 50 ? 'Eligible' : 'Not Eligible'",
         variables: 3,
-        duration: 600,  // 10 minutes
+        duration: 360,  // 6 minutes
         evaluation: {
             requiredKeywords: ["age", "score", "18", "50"],
             logicalOperators: ["and", "&&", "greater", ">="],
@@ -120,7 +120,7 @@ const questions = [
         round: 3,
         formula: "role === 'professional' && age > 25 ? 'Senior' : 'Junior'",
         variables: 3,
-        duration: 600,
+        duration: 360,
         evaluation: {
             requiredKeywords: ["role", "professional", "age", "25"],
             logicalOperators: ["and", "&&", "equals", "==="],

@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function(){
       showModal(title, message, redirectUrl);
       
     }).catch(function(){
-      showModal('Error', 'Failed to submit score. Please try again.', '../result/waiting.html');
+      showModal('Error', 'Failed to submit score. Please try again.', '../leaderboard.html');
     });
   }
 
@@ -288,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
     renderQuestion();
 
-    var fallbackDuration = 360; // 6 minutes
+    var fallbackDuration = 300; // 5 minutes
     API.getLevelStart(4).then(function(info){
       var duration = Number(info.duration) || fallbackDuration;
       var startKey = 'timer_start_' + teamId + '_L4';

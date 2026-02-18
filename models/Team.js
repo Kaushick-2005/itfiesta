@@ -59,6 +59,9 @@ const teamSchema = new mongoose.Schema({
     examEndTime: Date,
     totalExamTime: Number,
 
+    antiCheatLastHeartbeatAt: Date,
+    antiCheatLastViolationAt: Date,
+
     status: {
         type: String,
         enum: [

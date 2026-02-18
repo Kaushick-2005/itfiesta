@@ -39,8 +39,16 @@ router.get("/register", (req, res) => {
 // 🔹 Handle Registration
 router.post("/register", async (req, res) => {
     try {
-        const { teamName, leaderName, leaderMobile, member2, member3 } = req.body;
+        const { teamName, leaderName, member2, member3 } = req.body;
+        const leaderMobile = String(req.body.leaderMobile || "").replace(/\D/g, "");
         const requestedEvent = String(req.body.eventType || "").toLowerCase();
+
+        if (!/^\d{10}$/.test(leaderMobile)) {
+            return res.status(400).json({
+                success: false,
+                message: "Leader mobile number must be exactly 10 digits."
+            });
+        }
         
         if (!requestedEvent) {
             return res.status(400).json({ success: false, message: "Event selection is required." });
@@ -80,6 +88,14 @@ router.post("/register", async (req, res) => {
 
     } catch (error) {
         console.error(error);
+
+        if (error && error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: "Duplicate key conflict in database. Please retry registration. If it persists, ask admin to restart server so legacy indexes are cleaned."
+            });
+        }
+
         res.status(500).json({ success: false, message: "Unable to complete registration." });
     }
 });

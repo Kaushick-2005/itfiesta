@@ -14,6 +14,26 @@ const mongoose = require("mongoose");
 const Team = require("../models/Team");
 const EscapeQuestion = require("../models/EscapeQuestion");
 
+// If heartbeat gap exceeds this, treat it as app/browser leave.
+const ESCAPE_INACTIVITY_THRESHOLD_MS = 12 * 1000;
+
+async function applyEscapeTabSwitchPenalty(teamId, reason = "TAB_SWITCH") {
+    const updated = await Team.findOneAndUpdate(
+        { teamId },
+        {
+            $inc: { score: -10, penalty: 10, tabSwitchCount: 1 },
+            $set: { antiCheatLastViolationAt: new Date() }
+        },
+        { returnDocument: "after" }
+    );
+
+    if (updated) {
+        console.log(`[EscapeAntiCheat:${reason}] Team ${updated.teamId}, count=${updated.tabSwitchCount}, score=${updated.score}, penalty=${updated.penalty}`);
+    }
+
+    return updated;
+}
+
 // ==================== QUESTIONS ====================
 
 /**
@@ -101,29 +121,49 @@ router.post("/start", async (req, res) => {
     try {
         const { team_id } = req.body;
         
-        const team = await Team.findOne({ teamId: team_id });
+        let team = await Team.findOne({ teamId: team_id });
         if (!team) {
             return res.status(404).json({ error: "Team not found" });
-        }
-        
-        // 🔥 CHECK BATCH ASSIGNMENT BEFORE ALLOWING EXAM START
-        if (team.batch === null || team.batch === undefined) {
-            return res.status(403).json({ 
-                error: "Batch not started yet. Please wait for admin to start your batch.",
-                status: "waiting",
-                message: "Your batch hasn't started yet. Please wait for admin announcement."
-            });
         }
         
         // Check if eliminated/disqualified
         if (team.status === "eliminated" || team.status === "disqualified") {
             return res.json({ status: "blocked", message: "Team eliminated" });
         }
+
+        // If already completed all 5 levels, always send leaderboard redirect
+        // (do this BEFORE batch checks so completed teams never get sent to waiting page)
+        const preCheckLevel = team.currentRound || 1;
+        if (team.status === "completed" || preCheckLevel > 5) {
+            if (!team.examEndTime && team.examStartTime) {
+                team.examEndTime = new Date();
+                team.totalExamTime = new Date(team.examEndTime) - new Date(team.examStartTime);
+                team.status = "completed";
+                await team.save();
+            }
+
+            return res.json({
+                status: "completed",
+                message: "All levels completed!",
+                redirect: "/escape/leaderboard.html"
+            });
+        }
+
+        // 🔥 CHECK BATCH ASSIGNMENT BEFORE ALLOWING EXAM START (only for non-completed teams)
+        if (team.batch === null || team.batch === undefined) {
+            return res.status(403).json({ 
+                error: "Batch not started yet. Please wait for admin to start your batch.",
+                status: "waiting",
+                message: "Your batch hasn't started yet. Please wait for admin announcement.",
+                redirect: "/escape/leaderboard.html"
+            });
+        }
         
         // Record exam start time if not already recorded
         if (!team.examStartTime) {
             team.examStartTime = new Date();
             team.status = "active";
+            team.antiCheatLastHeartbeatAt = new Date();
             await team.save();
         }
         
@@ -143,9 +183,45 @@ router.post("/start", async (req, res) => {
             return res.json({ 
                 status: "completed", 
                 message: "All levels completed!",
-                redirect: "/escape/result/winner.html"
+                redirect: "/escape/leaderboard.html"
             });
         }
+
+        let reconnectPenalty = null;
+        const now = new Date();
+        const lastHeartbeat = team.antiCheatLastHeartbeatAt
+            ? new Date(team.antiCheatLastHeartbeatAt)
+            : null;
+        const lastViolation = team.antiCheatLastViolationAt
+            ? new Date(team.antiCheatLastViolationAt)
+            : null;
+
+        if (team.status === "active" && lastHeartbeat) {
+            const inactiveMs = Math.max(0, now.getTime() - lastHeartbeat.getTime());
+            const alreadyPenalizedForLastLeave = !!(
+                lastViolation &&
+                lastViolation.getTime() > lastHeartbeat.getTime()
+            );
+
+            if (inactiveMs >= ESCAPE_INACTIVITY_THRESHOLD_MS && !alreadyPenalizedForLastLeave) {
+                const penalizedTeam = await applyEscapeTabSwitchPenalty(
+                    team.teamId,
+                    "BROWSER_EXIT_OR_RECENT_APPS"
+                );
+
+                if (penalizedTeam) {
+                    reconnectPenalty = {
+                        applied: true,
+                        inactiveSeconds: Math.floor(inactiveMs / 1000),
+                        message: `APP/BROWSER EXIT DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab/App Switches: ${penalizedTeam.tabSwitchCount}\nCurrent Score: ${penalizedTeam.score || 0}`
+                    };
+                    team = penalizedTeam;
+                }
+            }
+        }
+
+        team.antiCheatLastHeartbeatAt = now;
+        await team.save();
         
         res.json({
             status: "active",
@@ -154,7 +230,8 @@ router.post("/start", async (req, res) => {
             teamName: team.teamName,
             score: team.score || 0,
             penalty: team.penalty || 0,
-            batch: team.batch
+            batch: team.batch,
+            reconnectPenalty
         });
         
     } catch (err) {
@@ -197,13 +274,22 @@ router.post("/submit", async (req, res) => {
         );
         
         const nextLevel = currentLevel + 1;
+        const isCompleted = nextLevel > 5;
         
         console.log(`Escape: Team ${team_id} completed Level ${level} with score ${score}. Advancing to Level ${nextLevel}`);
         
         // Determine redirect
         let redirect;
-        if (nextLevel > 5) {
-            redirect = "/escape/result/winner.html";
+        if (isCompleted) {
+            const completedUpdate = {
+                status: "completed",
+                examEndTime: new Date()
+            };
+            if (team.examStartTime) {
+                completedUpdate.totalExamTime = new Date() - new Date(team.examStartTime);
+            }
+            await Team.updateOne({ teamId: team_id }, { $set: completedUpdate });
+            redirect = "/escape/leaderboard.html";
         } else {
             redirect = `/escape/levels/level${nextLevel}.html`;
         }
@@ -211,7 +297,8 @@ router.post("/submit", async (req, res) => {
         res.json({
             success: true,
             levelScore: score,
-            nextLevel: nextLevel,
+            nextLevel: isCompleted ? 5 : nextLevel,
+            completed: isCompleted,
             redirect: redirect
         });
         
@@ -232,22 +319,18 @@ router.post("/tab-switch", async (req, res) => {
     try {
         const { team_id } = req.body;
         
-        const team = await Team.findOneAndUpdate(
-            { teamId: team_id },
-            { $inc: { score: -10, penalty: 10, tabSwitchCount: 1 } },
-            { new: true }
-        );
+        const team = await applyEscapeTabSwitchPenalty(team_id, "VISIBILITY_TAB_SWITCH");
         
         if (!team) {
             return res.json({ error: "Team not found" });
         }
         
         const totalScore = team.score || 0;
-        console.log(`Escape tab switch: Team ${team.teamId}, count=${team.tabSwitchCount}, score=${team.score}`);
+        console.log(`Escape tab/app switch: Team ${team.teamId}, count=${team.tabSwitchCount}, score=${team.score}`);
         
         res.json({
             action: "penalty",
-            message: `TAB SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
+            message: `TAB/APP SWITCH DETECTED\n\nPenalty Applied: -10 marks\nTotal Tab/App Switches: ${team.tabSwitchCount}\nCurrent Score: ${totalScore}`,
             scoreDeducted: 10,
             penalty: team.penalty,
             currentScore: team.score,
@@ -257,6 +340,34 @@ router.post("/tab-switch", async (req, res) => {
     } catch (err) {
         console.error("Escape tab-switch error:", err);
         res.json({ error: "Failed" });
+    }
+});
+
+/**
+ * POST /api/escape/heartbeat
+ * Keeps anti-cheat heartbeat updated while level page is active.
+ */
+router.post("/heartbeat", async (req, res) => {
+    try {
+        const { team_id } = req.body;
+        if (!team_id) {
+            return res.status(400).json({ ok: false, error: "team_id required" });
+        }
+
+        const updated = await Team.findOneAndUpdate(
+            { teamId: team_id },
+            { $set: { antiCheatLastHeartbeatAt: new Date() } },
+            { returnDocument: "after" }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ ok: false, error: "Team not found" });
+        }
+
+        return res.json({ ok: true });
+    } catch (err) {
+        console.error("Escape heartbeat error:", err);
+        return res.status(500).json({ ok: false, error: "Heartbeat failed" });
     }
 });
 
@@ -273,9 +384,9 @@ router.get("/level/:level/start", async (req, res) => {
         // Default durations per level (in seconds)
         const durations = {
             1: 180,  // 3 minutes
-            2: 300,  // 5 minutes
-            3: 300,  // 5 minutes
-            4: 420,  // 7 minutes
+            2: 240,  // 4 minutes
+            3: 360,  // 6 minutes
+            4: 300,  // 5 minutes
             5: 180   // 3 minutes
         };
         
@@ -332,7 +443,8 @@ router.get("/team/:teamId", async (req, res) => {
             score: team.score || 0,
             penalty: team.penalty || 0,
             tabSwitchCount: team.tabSwitchCount || 0,
-            status: team.status
+            status: team.status,
+            completed: team.status === "completed" || (team.currentRound || 1) > 5
         });
         
     } catch (err) {

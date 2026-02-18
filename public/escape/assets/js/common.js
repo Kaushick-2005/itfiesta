@@ -4,6 +4,51 @@
 
 // Global flag to disable anti-cheat after submission
 window.EXAM_SUBMITTED = false;
+var escapeHeartbeatTimer = null;
+var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
+
+function sendEscapeHeartbeat() {
+  try {
+    if (window.EXAM_SUBMITTED) return;
+    if (document.visibilityState === 'hidden') return;
+
+    var teamId = sessionStorage.getItem('teamId') || localStorage.getItem('teamId');
+    if (!teamId) return;
+
+    var base = getEscapeApiBase();
+    fetch(base + '/api/escape/heartbeat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ team_id: teamId })
+    }).catch(function(err){
+      console.warn('Escape heartbeat failed', err);
+    });
+  } catch (e) {
+    console.warn('Escape heartbeat failed', e);
+  }
+}
+
+function startEscapeHeartbeat() {
+  stopEscapeHeartbeat();
+  sendEscapeHeartbeat();
+  escapeHeartbeatTimer = setInterval(sendEscapeHeartbeat, ESCAPE_HEARTBEAT_INTERVAL_MS);
+}
+
+function stopEscapeHeartbeat() {
+  if (escapeHeartbeatTimer) {
+    clearInterval(escapeHeartbeatTimer);
+    escapeHeartbeatTimer = null;
+  }
+}
+
+document.addEventListener('visibilitychange', function() {
+  if (window.EXAM_SUBMITTED) return;
+  if (document.visibilityState === 'visible') {
+    sendEscapeHeartbeat();
+  }
+});
+
+window.addEventListener('pagehide', stopEscapeHeartbeat);
 
 function getEscapeApiBase() {
   var origin = (window.location && window.location.origin) ? window.location.origin : '';
@@ -28,9 +73,6 @@ function ensureEscapeSessionStart() {
     var teamId = sessionStorage.getItem('teamId') || localStorage.getItem('teamId');
     if (!teamId) return;
 
-    var startKey = 'escape_start_ok_' + String(teamId);
-    if (sessionStorage.getItem(startKey) === '1') return;
-
     var base = getEscapeApiBase();
     fetch(base + '/api/escape/start', {
       method: 'POST',
@@ -51,15 +93,19 @@ function ensureEscapeSessionStart() {
 
         if (data.status === 'completed') {
           if (data.redirect) {
-            window.location.href = data.redirect;
+            window.location.replace(data.redirect);
           }
           return;
         }
 
         if (data.status === 'waiting') {
           alert(data.message || 'Please wait for admin to start your batch.');
-          window.location.href = '/escape/result/waiting.html';
+          window.location.href = '/escape/leaderboard.html';
           return;
+        }
+
+        if (data.reconnectPenalty && data.reconnectPenalty.applied) {
+          alert(data.reconnectPenalty.message);
         }
 
         var currentLevel = Number(data.currentLevel || data.currentRound || 0);
@@ -67,12 +113,14 @@ function ensureEscapeSessionStart() {
           var match = path.match(/level(\d+)\.html/);
           var pageLevel = match ? Number(match[1]) : 0;
           if (pageLevel && pageLevel !== currentLevel) {
-            window.location.href = '/escape/levels/level' + currentLevel + '.html';
+            if (currentLevel > 5) {
+              window.location.replace('/escape/leaderboard.html');
+            } else {
+              window.location.replace('/escape/levels/level' + currentLevel + '.html');
+            }
             return;
           }
         }
-
-        sessionStorage.setItem(startKey, '1');
       })
       .catch(function(err) {
         console.warn('Escape start failed', err);
@@ -237,14 +285,10 @@ function preventBackNavigation(){
 
 // Soft unload guard: warn before leaving during an active level (mobile browsers may ignore)
 function enableBeforeUnloadWarning(){
-  window.addEventListener('beforeunload', function(e){
-    // Skip if exam is already submitted
-    if (window.EXAM_SUBMITTED) return;
-    
-    var confirmationMessage = 'Are you sure you want to leave? Progress will be lost.';
-    (e || window.event).returnValue = confirmationMessage;
-    return confirmationMessage;
-  });
+  // Disabled per event flow requirement:
+  // do not show browser "changes not saved" leave/cancel prompt.
+  // Progress is server-synced via submit/start state and heartbeat checks.
+  return;
 }
 
 // Auto-enable all anti-cheat protections
@@ -252,6 +296,7 @@ function enableFullExamProtections() {
   enableTabSwitchPenalty();
   preventBackNavigation();
   enableBeforeUnloadWarning();
+  startEscapeHeartbeat();
   requestFullScreen();
 }
 
@@ -331,6 +376,8 @@ window.ER.enableTabSwitchPenalty = enableTabSwitchPenalty;
 window.ER.preventBackNavigation = preventBackNavigation;
 window.ER.enableBeforeUnloadWarning = enableBeforeUnloadWarning;
 window.ER.enableFullExamProtections = enableFullExamProtections;
+window.ER.startEscapeHeartbeat = startEscapeHeartbeat;
+window.ER.stopEscapeHeartbeat = stopEscapeHeartbeat;
 window.ER.requestFullScreen = requestFullScreen;
 window.ER.detectFullScreenExit = detectFullScreenExit;
 /* ======================================================

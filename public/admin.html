@@ -1015,11 +1015,19 @@ async function loadTeams() {
     table.innerHTML = "";
 
     teams.forEach((team, index) => {
+        const eventKey = String(team.eventType || '').toLowerCase();
         // BlackBox has 3 rounds, Escape has 5 levels
-        const maxRound = team.eventType === 'escape' ? 5 : 3;
+        const maxRound = eventKey === 'escape' ? 5 : 3;
         const roundLabel = team.eventType === 'escape' ? 'L' : 'R';
         const roundDisplay = team.currentRound > maxRound ? "Done" : `${roundLabel}${team.currentRound || 1}`;
         const totalScore = Math.max(0, (team.score || 0) - (team.penalty || 0));
+
+        const rawStatus = String(team.status || 'not_started').toLowerCase();
+        const hasCompletionMarker = Boolean(team.examEndTime || team.endTime || (typeof team.totalExamTime === 'number' && team.totalExamTime > 0));
+        const derivedCompleted = Number(team.currentRound || 1) > maxRound || hasCompletionMarker;
+        const displayStatus = (rawStatus === 'eliminated' || rawStatus === 'disqualified')
+            ? rawStatus
+            : (derivedCompleted ? 'completed' : (rawStatus === 'in_progress' ? 'active' : rawStatus));
         
         const batchDisplay = team.batch === "waiting" ? "waiting" : `Batch ${team.batch}`;
         const batchColor = team.batch === "waiting" ? '#f59e0b' : '#059669';
@@ -1035,7 +1043,7 @@ async function loadTeams() {
                 <td>${team.penalty || 0}</td>
                 <td><b>${totalScore}</b></td>
                 <td>${team.tabSwitchCount || 0}</td>
-                <td>${team.status}</td>
+                <td>${displayStatus}</td>
                 <td>
                     <span class="batch-indicator" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: ${batchColor}; color: white; font-weight: 600;">${batchDisplay}</span>
                 </td>
@@ -1093,7 +1101,7 @@ async function loadLeaderboard() {
     table.innerHTML = "";
 
     teams.forEach((team, index) => {
-        const totalScore = (team.score || 0);
+        const totalScore = Math.max(0, (team.score || 0) - (team.penalty || 0));
         table.innerHTML += `
             <tr>
                 <td>${index + 1}</td>

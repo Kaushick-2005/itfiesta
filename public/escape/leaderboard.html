@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escape Room Leaderboard</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <style>
+        body { font-family: Inter, sans-serif; background: #050508; color: #e5e7eb; padding: 24px; }
+        h1 { text-align: center; margin-bottom: 20px; color: #60a5fa; }
+        .card { max-width: 900px; margin: 0 auto; background: rgba(20,20,28,.75); border: 1px solid rgba(59,130,246,.25); border-radius: 14px; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+        th { color: #93c5fd; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+        td:last-child, th:last-child { text-align: right; }
+        .meta { max-width: 900px; margin: 0 auto 14px; color: #9ca3af; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>🏆 Escape Room Leaderboard</h1>
+    <p class="meta">Live ranking based on Final Score = Score - Penalty</p>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Team Name</th>
+                    <th>Status</th>
+                    <th>Final Score</th>
+                </tr>
+            </thead>
+            <tbody id="body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        async function load() {
+            try {
+                const res = await fetch('/api/leaderboard?event=escape&mixed=true');
+                const data = await res.json();
+                const body = document.getElementById('body');
+                body.innerHTML = '';
+                (Array.isArray(data) ? data : []).forEach((t, i) => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${i + 1}</td>
+                        <td>${t.teamName || t.teamId || '-'}</td>
+                        <td>${t.status || 'active'}</td>
+                        <td>${Number(t.totalScore || 0)}</td>
+                    `;
+                    body.appendChild(tr);
+                });
+            } catch (e) {
+                document.getElementById('body').innerHTML = '<tr><td colspan="4">Failed to load leaderboard</td></tr>';
+            }
+        }
+        load();
+        setInterval(load, 5000);
+    </script>
+</body>
+</html>
