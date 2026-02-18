@@ -595,6 +595,51 @@ window.onload = async function() {
 let tabSwitchCooldown = false;
 let tabHiddenSince = 0;
 const MIN_HIDDEN_MS_FOR_PENALTY = 1500;
+let tabLeaveStartedAt = 0;
+
+function markPotentialTabLeave(reason) {
+    if (window.EXAM_SUBMITTED) return;
+    if (!tabLeaveStartedAt) tabLeaveStartedAt = Date.now();
+}
+
+async function handlePotentialTabReturn(source) {
+    if (window.EXAM_SUBMITTED) return;
+    if (tabSwitchCooldown) return;
+    if (!sessionId) return;
+    if (!tabLeaveStartedAt) return;
+
+    const hiddenForMs = Math.max(0, Date.now() - tabLeaveStartedAt);
+    tabLeaveStartedAt = 0;
+
+    if (hiddenForMs < MIN_HIDDEN_MS_FOR_PENALTY) {
+        console.log('[Round 2] Ignoring brief hidden/blur state:', hiddenForMs, 'ms from', source);
+        return;
+    }
+
+    tabSwitchCooldown = true;
+    try {
+        const response = await fetch(`${API}/tab-switch`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                session_id: sessionId,
+                hiddenMs: hiddenForMs
+            })
+        });
+
+        const data = await response.json();
+        console.log('[Round 2] Tab switch response:', data);
+        if (data.action === "penalty") {
+            alert(data.message);
+        }
+    } catch (error) {
+        console.error('[Round 2] Tab switch API error:', error);
+    } finally {
+        setTimeout(() => {
+            tabSwitchCooldown = false;
+        }, 3000);
+    }
+}
 
 document.addEventListener("visibilitychange", async function () {
     console.log('[Round 2] Visibility changed, state:', document.visibilityState);
@@ -618,6 +663,7 @@ document.addEventListener("visibilitychange", async function () {
 
     if (document.visibilityState === 'hidden') {
         tabHiddenSince = Date.now();
+        markPotentialTabLeave('visibility_hidden');
         return;
     }
 
@@ -628,36 +674,30 @@ document.addEventListener("visibilitychange", async function () {
         // Ignore tiny focus flickers that can happen on some devices/browsers
         if (hiddenForMs < MIN_HIDDEN_MS_FOR_PENALTY) {
             console.log('[Round 2] Ignoring brief hidden state:', hiddenForMs, 'ms');
-            return;
+        } else {
+            tabLeaveStartedAt = Date.now() - hiddenForMs;
         }
+        await handlePotentialTabReturn('visibility_visible');
+    }
+});
 
-        console.log('[Round 2] Tab switch detected! Applying penalty... hiddenForMs=', hiddenForMs);
-        tabSwitchCooldown = true;
-        
-        try {
-            const response = await fetch(`${API}/tab-switch`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    session_id: sessionId,
-                    hiddenMs: hiddenForMs
-                })
-            });
+window.addEventListener('blur', function(){
+    markPotentialTabLeave('window_blur');
+});
 
-            const data = await response.json();
-            console.log('[Round 2] Tab switch response:', data);
+window.addEventListener('focus', function(){
+    if (document.visibilityState !== 'hidden') {
+        handlePotentialTabReturn('window_focus');
+    }
+});
 
-            if (data.action === "penalty") {
-                alert(data.message);
-            }
-        } catch (error) {
-            console.error('[Round 2] Tab switch API error:', error);
-        } finally {
-            // 3 second cooldown before next penalty can trigger
-            setTimeout(() => {
-                tabSwitchCooldown = false;
-            }, 3000);
-        }
+window.addEventListener('pagehide', function(){
+    markPotentialTabLeave('pagehide');
+});
+
+window.addEventListener('pageshow', function(){
+    if (document.visibilityState !== 'hidden') {
+        handlePotentialTabReturn('pageshow');
     }
 });
 

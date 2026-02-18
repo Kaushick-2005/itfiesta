@@ -254,10 +254,50 @@ function disableAllInputs(){
 // Tab switching detection: PENALTY instead of elimination
 // Uses cooldown to prevent multiple triggers
 var tabSwitchCooldown = false;
+var tabLeaveStartedAt = 0;
+var tabLeaveReason = '';
+
+function markPotentialTabLeave(reason){
+  if (window.EXAM_SUBMITTED) return;
+  if (!tabLeaveStartedAt) {
+    tabLeaveStartedAt = Date.now();
+    tabLeaveReason = String(reason || 'unknown');
+  }
+}
+
+function handlePotentialTabReturn(source){
+  if (window.EXAM_SUBMITTED) return;
+  if (tabSwitchCooldown) return;
+  if (!tabLeaveStartedAt) return;
+
+  var hiddenForMs = Math.max(0, Date.now() - tabLeaveStartedAt);
+  tabLeaveStartedAt = 0;
+  tabLeaveReason = '';
+
+  if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+    console.log('[Common] Ignoring brief hidden/blur state:', hiddenForMs, 'ms from', source);
+    return;
+  }
+
+  console.log('[Common] Tab/app leave detected. reason=', source, 'hiddenForMs=', hiddenForMs);
+  tabSwitchCooldown = true;
+
+  notifyServerTabSwitch(hiddenForMs).then(function(data){
+    if (data && data.action === 'penalty') {
+      queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
+      flushEscapePenaltyAlert();
+    }
+  }).finally(function(){
+    setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
+  });
+}
 
 function enableTabSwitchPenalty(){
+  if (window.__ER_TAB_PENALTY_BOUND) return;
+  window.__ER_TAB_PENALTY_BOUND = true;
+
   console.log('[Common] Tab switch penalty enabled');
-  window.addEventListener('visibilitychange', function(){
+  document.addEventListener('visibilitychange', function(){
     console.log('[Common] Visibility changed, state:', document.visibilityState);
     // Skip if exam is already submitted
     if (window.EXAM_SUBMITTED) {
@@ -272,6 +312,7 @@ function enableTabSwitchPenalty(){
     
     if (document.visibilityState === 'hidden'){
       ESCAPE_TAB_HIDDEN_SINCE = Date.now();
+      markPotentialTabLeave('visibility_hidden');
       return;
     }
 
@@ -282,22 +323,34 @@ function enableTabSwitchPenalty(){
       // Ignore very brief focus flickers (notification shade, quick app switch gestures, etc.)
       if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
         console.log('[Common] Ignoring brief hidden state:', hiddenForMs, 'ms');
-        return;
       }
 
-      console.log('[Common] Tab switch detected! Applying penalty... hiddenForMs=', hiddenForMs);
-      tabSwitchCooldown = true;
+      // Prefer visibility duration if available (most accurate)
+      if (hiddenForMs >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+        tabLeaveStartedAt = Date.now() - hiddenForMs;
+      }
+      handlePotentialTabReturn('visibility_visible');
+    }
+  });
 
-      // Apply penalty via API
-      notifyServerTabSwitch(hiddenForMs).then(function(data){
-        if (data && data.action === 'penalty') {
-          queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
-          flushEscapePenaltyAlert();
-        }
-      }).finally(function(){
-        // 3 second cooldown
-        setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
-      });
+  // Extra signals for browsers/devices where visibilitychange is unreliable.
+  window.addEventListener('blur', function(){
+    markPotentialTabLeave('window_blur');
+  });
+
+  window.addEventListener('focus', function(){
+    if (document.visibilityState !== 'hidden') {
+      handlePotentialTabReturn('window_focus');
+    }
+  });
+
+  window.addEventListener('pagehide', function(){
+    markPotentialTabLeave('pagehide');
+  });
+
+  window.addEventListener('pageshow', function(){
+    if (document.visibilityState !== 'hidden') {
+      handlePotentialTabReturn('pageshow');
     }
   });
 }
