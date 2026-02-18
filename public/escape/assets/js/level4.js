@@ -304,17 +304,16 @@ document.addEventListener('DOMContentLoaded', function(){
     renderQuestion();
 
     var fallbackDuration = 300; // 5 minutes
-    API.getLevelStart(4).then(function(info){
-      var duration = Number(info.duration) || fallbackDuration;
-      var startKey = 'timer_start_' + teamId + '_L4';
-      var durationKey = 'timer_duration_' + teamId + '_L4';
-      var startTs = Number(sessionStorage.getItem(startKey) || 0);
-      var storedDuration = Number(sessionStorage.getItem(durationKey) || 0);
-      if (!startTs || storedDuration !== duration) {
-        startTs = Date.now();
-        sessionStorage.setItem(startKey, String(startTs));
-        sessionStorage.setItem(durationKey, String(duration));
+    API.getLevelStart(4, teamId).then(function(info){
+      if (info && info.redirect) {
+        window.location.href = info.redirect;
+        return;
       }
+
+      var duration = Number(info && info.duration) || fallbackDuration;
+      var serverStartTs = Date.parse(info && info.startTime ? info.startTime : '');
+      var startTs = Number.isFinite(serverStartTs) ? serverStartTs : Date.now();
+
       var elapsed = Math.floor((Date.now() - startTs) / 1000);
       var remaining = Math.max(0, duration - elapsed);
       if (remaining <= 0) {

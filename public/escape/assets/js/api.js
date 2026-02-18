@@ -211,8 +211,11 @@ window.API.overrideAdvanceTeam = function(teamId, reason) {
 };
 
 // Get server-synced level start timestamp and duration
-window.API.getLevelStart = function(level) {
-  return fetch(`${getApiBaseUrl()}/api/escape/level/${level}/start`)
+window.API.getLevelStart = function(level, teamId) {
+  var resolvedTeamId = teamId || sessionStorage.getItem('teamId') || localStorage.getItem('teamId') || '';
+  var query = resolvedTeamId ? ('?team_id=' + encodeURIComponent(resolvedTeamId)) : '';
+
+  return fetch(`${getApiBaseUrl()}/api/escape/level/${level}/start${query}`)
     .then(res => res.json())
     .catch(err => {
       console.warn('Failed to get server time', err);

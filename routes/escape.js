@@ -16,6 +16,76 @@ const EscapeQuestion = require("../models/EscapeQuestion");
 
 // If heartbeat gap exceeds this, treat it as app/browser leave.
 const ESCAPE_INACTIVITY_THRESHOLD_MS = 12 * 1000;
+const ESCAPE_LEVEL_DURATIONS = {
+    1: 180,
+    2: 240,
+    3: 360,
+    4: 300,
+    5: 180
+};
+
+function getEscapeLevelDurationSeconds(level) {
+    return ESCAPE_LEVEL_DURATIONS[level] || 300;
+}
+
+function ensureEscapeLevelTimerState(team) {
+    const level = Number(team.currentRound || 1);
+    const expectedDuration = getEscapeLevelDurationSeconds(level);
+    const needsReset = (
+        Number(team.escapeLevelNumber || 0) !== level ||
+        !team.escapeLevelStartedAt ||
+        Number(team.escapeLevelDurationSec || 0) !== expectedDuration
+    );
+
+    if (needsReset) {
+        team.escapeLevelNumber = level;
+        team.escapeLevelStartedAt = new Date();
+        team.escapeLevelDurationSec = expectedDuration;
+    }
+
+    return {
+        changed: needsReset,
+        level,
+        duration: expectedDuration
+    };
+}
+
+function hasEscapeLevelTimedOut(team) {
+    const startedAt = team.escapeLevelStartedAt ? new Date(team.escapeLevelStartedAt) : null;
+    const durationSec = Number(team.escapeLevelDurationSec || 0);
+
+    if (!startedAt || !durationSec) return false;
+    return (Date.now() - startedAt.getTime()) >= durationSec * 1000;
+}
+
+async function advanceEscapeLevelOnTimeout(team) {
+    const currentLevel = Number(team.currentRound || 1);
+    const nextLevel = currentLevel + 1;
+
+    team.currentRound = nextLevel;
+
+    if (nextLevel > 5) {
+        team.status = "completed";
+        team.escapeLevelNumber = undefined;
+        team.escapeLevelStartedAt = undefined;
+        team.escapeLevelDurationSec = undefined;
+
+        if (!team.examEndTime) {
+            team.examEndTime = new Date();
+        }
+        if (team.examStartTime) {
+            team.totalExamTime = new Date(team.examEndTime).getTime() - new Date(team.examStartTime).getTime();
+        }
+    } else {
+        team.status = "active";
+        team.escapeLevelNumber = nextLevel;
+        team.escapeLevelStartedAt = new Date();
+        team.escapeLevelDurationSec = getEscapeLevelDurationSeconds(nextLevel);
+    }
+
+    await team.save();
+    return team;
+}
 
 async function applyEscapeTabSwitchPenalty(teamId, reason = "TAB_SWITCH") {
     const updated = await Team.findOneAndUpdate(
@@ -168,7 +238,7 @@ router.post("/start", async (req, res) => {
         }
         
         // Get current level from team
-        const currentLevel = team.currentRound || 1;
+        let currentLevel = team.currentRound || 1;
         
         // If completed all 5 levels
         if (currentLevel > 5) {
@@ -185,6 +255,24 @@ router.post("/start", async (req, res) => {
                 message: "All levels completed!",
                 redirect: "/escape/leaderboard.html"
             });
+        }
+
+        // Keep server-side level timer authoritative across reloads.
+        const levelTimerState = ensureEscapeLevelTimerState(team);
+
+        if (hasEscapeLevelTimedOut(team)) {
+            team = await advanceEscapeLevelOnTimeout(team);
+            currentLevel = Number(team.currentRound || 1);
+
+            if (currentLevel > 5 || team.status === "completed") {
+                return res.json({
+                    status: "completed",
+                    message: "All levels completed!",
+                    redirect: "/escape/leaderboard.html"
+                });
+            }
+        } else if (levelTimerState.changed) {
+            await team.save();
         }
 
         let reconnectPenalty = null;
@@ -265,30 +353,40 @@ router.post("/submit", async (req, res) => {
             });
         }
         
-        // Add score and advance to next level
-        await Team.updateOne(
-            { teamId: team_id },
-            { 
-                $inc: { score: score, currentRound: 1 }
-            }
-        );
-        
         const nextLevel = currentLevel + 1;
         const isCompleted = nextLevel > 5;
+
+        // Add score and advance to next level + initialize next-level timer state.
+        const update = {
+            $inc: { score: score, currentRound: 1 },
+            $set: {
+                status: isCompleted ? "completed" : "active"
+            }
+        };
+
+        if (isCompleted) {
+            update.$set.examEndTime = new Date();
+            if (team.examStartTime) {
+                update.$set.totalExamTime = new Date() - new Date(team.examStartTime);
+            }
+            update.$unset = {
+                escapeLevelNumber: "",
+                escapeLevelStartedAt: "",
+                escapeLevelDurationSec: ""
+            };
+        } else {
+            update.$set.escapeLevelNumber = nextLevel;
+            update.$set.escapeLevelStartedAt = new Date();
+            update.$set.escapeLevelDurationSec = getEscapeLevelDurationSeconds(nextLevel);
+        }
+
+        await Team.updateOne({ teamId: team_id }, update);
         
         console.log(`Escape: Team ${team_id} completed Level ${level} with score ${score}. Advancing to Level ${nextLevel}`);
         
         // Determine redirect
         let redirect;
         if (isCompleted) {
-            const completedUpdate = {
-                status: "completed",
-                examEndTime: new Date()
-            };
-            if (team.examStartTime) {
-                completedUpdate.totalExamTime = new Date() - new Date(team.examStartTime);
-            }
-            await Team.updateOne({ teamId: team_id }, { $set: completedUpdate });
             redirect = "/escape/leaderboard.html";
         } else {
             redirect = `/escape/levels/level${nextLevel}.html`;
@@ -371,6 +469,15 @@ router.post("/timeout-advance", async (req, res) => {
             if (team.examStartTime) {
                 update.$set.totalExamTime = new Date(update.$set.examEndTime) - new Date(team.examStartTime);
             }
+            update.$unset = {
+                escapeLevelNumber: "",
+                escapeLevelStartedAt: "",
+                escapeLevelDurationSec: ""
+            };
+        } else {
+            update.$set.escapeLevelNumber = nextLevel;
+            update.$set.escapeLevelStartedAt = new Date();
+            update.$set.escapeLevelDurationSec = getEscapeLevelDurationSeconds(nextLevel);
         }
 
         await Team.updateOne({ teamId: team_id }, update);
@@ -462,20 +569,67 @@ router.post("/heartbeat", async (req, res) => {
 router.get("/level/:level/start", async (req, res) => {
     try {
         const level = parseInt(req.params.level);
-        
-        // Default durations per level (in seconds)
-        const durations = {
-            1: 180,  // 3 minutes
-            2: 240,  // 4 minutes
-            3: 360,  // 6 minutes
-            4: 300,  // 5 minutes
-            5: 180   // 3 minutes
-        };
-        
-        res.json({
-            level: level,
-            duration: durations[level] || 300,
-            startTime: new Date().toISOString()
+        const teamId = String(req.query.team_id || "").trim();
+
+        // Fallback behavior if team is not supplied.
+        if (!teamId) {
+            return res.json({
+                level,
+                duration: getEscapeLevelDurationSeconds(level),
+                startTime: new Date().toISOString(),
+                serverNow: Date.now()
+            });
+        }
+
+        const team = await Team.findOne({ teamId });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+
+        const currentLevel = Number(team.currentRound || 1);
+
+        if (currentLevel > 5 || team.status === "completed") {
+            return res.json({
+                level: 5,
+                completed: true,
+                duration: 0,
+                startTime: team.escapeLevelStartedAt ? new Date(team.escapeLevelStartedAt).toISOString() : new Date().toISOString(),
+                redirect: "/escape/leaderboard.html",
+                serverNow: Date.now()
+            });
+        }
+
+        ensureEscapeLevelTimerState(team);
+
+        if (hasEscapeLevelTimedOut(team)) {
+            await advanceEscapeLevelOnTimeout(team);
+
+            if (Number(team.currentRound || 1) > 5 || team.status === "completed") {
+                return res.json({
+                    level: 5,
+                    completed: true,
+                    duration: 0,
+                    startTime: new Date().toISOString(),
+                    redirect: "/escape/leaderboard.html",
+                    serverNow: Date.now()
+                });
+            }
+        } else {
+            await team.save();
+        }
+
+        const serverLevel = Number(team.currentRound || 1);
+        const serverDuration = getEscapeLevelDurationSeconds(serverLevel);
+        const serverStart = team.escapeLevelStartedAt
+            ? new Date(team.escapeLevelStartedAt).toISOString()
+            : new Date().toISOString();
+
+        return res.json({
+            level: serverLevel,
+            duration: serverDuration,
+            startTime: serverStart,
+            redirect: serverLevel !== level ? `/escape/levels/level${serverLevel}.html` : null,
+            serverNow: Date.now()
         });
         
     } catch (err) {

@@ -287,20 +287,16 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function startTimer() {
-    API.getLevelStart(5)
+    API.getLevelStart(5, teamId)
       .then(function (info) {
-        levelDuration = Number(info && info.duration) || 180;
-
-        var startKey = 'timer_start_' + teamId + '_L5';
-        var durationKey = 'timer_duration_' + teamId + '_L5';
-        var startTs = Number(sessionStorage.getItem(startKey) || 0);
-        var storedDuration = Number(sessionStorage.getItem(durationKey) || 0);
-
-        if (!startTs || storedDuration !== levelDuration) {
-          startTs = Date.now();
-          sessionStorage.setItem(startKey, String(startTs));
-          sessionStorage.setItem(durationKey, String(levelDuration));
+        if (info && info.redirect) {
+          window.location.href = info.redirect;
+          return;
         }
+
+        levelDuration = Number(info && info.duration) || 180;
+        var serverStartTs = Date.parse(info && info.startTime ? info.startTime : '');
+        var startTs = Number.isFinite(serverStartTs) ? serverStartTs : Date.now();
         levelStartTs = startTs;
 
         var remaining = getRemainingSeconds();

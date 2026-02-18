@@ -333,17 +333,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // start server-synced timer (4 minutes)
   var fallbackDuration = 240;
-  API.getLevelStart(2).then(function(info){
-    var duration = Number(info.duration) || fallbackDuration;
-    var startKey = 'timer_start_' + teamId + '_L2';
-    var durationKey = 'timer_duration_' + teamId + '_L2';
-    var startTs = Number(sessionStorage.getItem(startKey) || 0);
-    var storedDuration = Number(sessionStorage.getItem(durationKey) || 0);
-    if (!startTs || storedDuration !== duration) {
-      startTs = Date.now();
-      sessionStorage.setItem(startKey, String(startTs));
-      sessionStorage.setItem(durationKey, String(duration));
+  API.getLevelStart(2, teamId).then(function(info){
+    if (info && info.redirect) {
+      window.location.href = info.redirect;
+      return;
     }
+
+    var duration = Number(info && info.duration) || fallbackDuration;
+    var serverStartTs = Date.parse(info && info.startTime ? info.startTime : '');
+    var startTs = Number.isFinite(serverStartTs) ? serverStartTs : Date.now();
+
     var elapsed = Math.floor((Date.now() - startTs) / 1000);
     var remaining = Math.max(0, duration - elapsed);
     if (remaining <= 0) {
@@ -391,6 +390,7 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
 });
+
 
 
 
