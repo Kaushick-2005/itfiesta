@@ -22,8 +22,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Always restart level from Stage 1 on page reload
   sessionStorage.removeItem('level5_scenario_' + teamId);
-  sessionStorage.removeItem('timer_start_' + teamId + '_L5');
-  sessionStorage.removeItem('timer_duration_' + teamId + '_L5');
 
   var scenario = null;
   var currentStageIndex = 0;
@@ -306,9 +304,22 @@ document.addEventListener('DOMContentLoaded', function () {
         levelStartTs = startTs;
 
         var remaining = getRemainingSeconds();
+        if (remaining <= 0) {
+          API.timeoutAdvance(teamId, 5).then(function(resp){
+            window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/leaderboard.html';
+          }).catch(function(){
+            window.location.href = '/escape/leaderboard.html';
+          });
+          return;
+        }
         if (window.ER && window.ER.initLevelTimer) {
           timerController = window.ER.initLevelTimer(remaining, '#timer-count', function () {
-            finishEliminated('timeout_level5');
+            API.timeoutAdvance(teamId, 5).then(function(resp){
+              window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/leaderboard.html';
+            }).catch(function(){
+              window.location.href = '/escape/leaderboard.html';
+            });
+            return false;
           });
         }
         recomputeTotal();
@@ -318,7 +329,12 @@ document.addEventListener('DOMContentLoaded', function () {
         levelStartTs = Date.now();
         if (window.ER && window.ER.initLevelTimer) {
           timerController = window.ER.initLevelTimer(levelDuration, '#timer-count', function () {
-            finishEliminated('timeout_level5');
+            API.timeoutAdvance(teamId, 5).then(function(resp){
+              window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/leaderboard.html';
+            }).catch(function(){
+              window.location.href = '/escape/leaderboard.html';
+            });
+            return false;
           });
         }
         recomputeTotal();

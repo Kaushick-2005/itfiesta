@@ -7,6 +7,14 @@ let currentEvent = "escape";
 let selectedBatch = "all"; // "all" or specific batch number
 let refreshInterval;
 
+function getApiBaseUrl() {
+    const configured = window.__API_BASE_URL || window.API_BASE_URL || "";
+    if (configured) return configured;
+
+    const isLocal = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+    return isLocal ? "http://localhost:3000" : window.location.origin;
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     loadBoard('escape');
@@ -69,7 +77,7 @@ async function fetchData() {
     try {
         const isMixed = selectedBatch === 'all';
         const batchQuery = !isMixed ? `&batch=${selectedBatch}` : '';
-        const res = await fetch(`/api/leaderboard?event=${currentEvent}&mixed=${isMixed}${batchQuery}`);
+        const res = await fetch(`${getApiBaseUrl()}/api/leaderboard?event=${currentEvent}&mixed=${isMixed}${batchQuery}`);
         
         if (!res.ok) {
             throw new Error('Failed to fetch leaderboard data');

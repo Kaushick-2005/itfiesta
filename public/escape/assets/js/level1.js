@@ -152,6 +152,19 @@ document.addEventListener('DOMContentLoaded', function () {
     };
   }
 
+  function advanceOnExpiredReload() {
+    if (window.EXAM_SUBMITTED) return;
+    window.EXAM_SUBMITTED = true;
+    if (timerController && timerController.stop) timerController.stop();
+
+    API.timeoutAdvance(teamId, 1).then(function(resp){
+      var next = (resp && resp.redirect) ? resp.redirect : '/escape/levels/level2.html';
+      window.location.href = next;
+    }).catch(function(){
+      window.location.href = '/escape/levels/level2.html';
+    });
+  }
+
   function startSyncedTimer() {
     API.getLevelStart(1).then(function (info) {
       var duration = Number(info.duration) || 180;
@@ -168,6 +181,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var elapsed = Math.floor((Date.now() - startTs) / 1000);
       var remaining = Math.max(0, duration - elapsed);
+
+      if (remaining <= 0) {
+        advanceOnExpiredReload();
+        return;
+      }
 
       if (window.ER && window.ER.initLevelTimer) {
         timerController = ER.initLevelTimer(remaining, '#timer-count', function () {

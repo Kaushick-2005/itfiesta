@@ -183,6 +183,17 @@ document.addEventListener('DOMContentLoaded', function(){
     return false;
   }
 
+  function advanceOnExpiredReload(){
+    if (submitInProgress || hasSubmitted || window.EXAM_SUBMITTED) return;
+    window.EXAM_SUBMITTED = true;
+    if (timerController && timerController.stop) timerController.stop();
+    API.timeoutAdvance(teamId, 3).then(function(resp){
+      window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/levels/level4.html';
+    }).catch(function(){
+      window.location.href = '/escape/levels/level4.html';
+    });
+  }
+
   function startTimer(){
     var fallbackDuration = 360;
     API.getLevelStart(3).then(function(info){
@@ -198,6 +209,10 @@ document.addEventListener('DOMContentLoaded', function(){
       }
       var elapsed = Math.floor((Date.now() - startTs) / 1000);
       var remaining = Math.max(0, duration - elapsed);
+      if (remaining <= 0) {
+        advanceOnExpiredReload();
+        return;
+      }
       if (window.ER && window.ER.initLevelTimer) {
         timerController = ER.initLevelTimer(remaining, '#timer-count', handleTimeout);
       }

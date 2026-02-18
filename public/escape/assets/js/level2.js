@@ -310,20 +310,25 @@ document.addEventListener('DOMContentLoaded', function(){
     window.EXAM_SUBMITTED = true;
     if (window.ER && window.ER.disableAllInputs) window.ER.disableAllInputs();
 
-    API.getTeam(teamId).then(function(team){
-      // Race-safe: if submit already persisted, do NOT eliminate; continue to leaderboard.
-      if (window.EXAM_SUBMITTED || submitInProgress || hasSubmitted || hasLocalSubmitMarker() || (team && team.level2_submitted)) {
-        window.location.href = '../leaderboard.html';
-        return;
-      }
-      notifyServerElimination('timeout').finally(function(){ window.location.href='../result/eliminated.html'; });
+    API.timeoutAdvance(teamId, 2).then(function(resp){
+      window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/levels/level3.html';
     }).catch(function(){
-      // On network uncertainty at timeout, avoid unfair elimination and keep admin-decision flow.
-      window.location.href='../leaderboard.html';
+      window.location.href = '/escape/levels/level3.html';
     });
 
     // handled here; skip extra forced actions in common timer
     return false;
+  }
+
+  function advanceOnExpiredReload(){
+    if (window.EXAM_SUBMITTED || submitInProgress || hasSubmitted) return;
+    window.EXAM_SUBMITTED = true;
+    if (timerController && timerController.stop) timerController.stop();
+    API.timeoutAdvance(teamId, 2).then(function(resp){
+      window.location.href = (resp && resp.redirect) ? resp.redirect : '/escape/levels/level3.html';
+    }).catch(function(){
+      window.location.href = '/escape/levels/level3.html';
+    });
   }
 
   // start server-synced timer (4 minutes)
@@ -341,6 +346,10 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     var elapsed = Math.floor((Date.now() - startTs) / 1000);
     var remaining = Math.max(0, duration - elapsed);
+    if (remaining <= 0) {
+      advanceOnExpiredReload();
+      return;
+    }
     if (window.ER && window.ER.initLevelTimer) timerController = ER.initLevelTimer(remaining, '#timer-count', handleLevelTimeout);
   }).catch(function(){
     if (window.ER && window.ER.initLevelTimer) timerController = ER.initLevelTimer(fallbackDuration, '#timer-count', handleLevelTimeout);
@@ -382,6 +391,8 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 
 });
+
+
 
 
 

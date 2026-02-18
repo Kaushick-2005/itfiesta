@@ -2,9 +2,17 @@ const eventSelect = document.getElementById("eventType");
 const registrationStatus = document.getElementById("registrationStatus");
 const registerButton = document.getElementById("registerSubmit");
 
+function getApiBaseUrl() {
+    const configured = window.__API_BASE_URL || window.API_BASE_URL || "";
+    if (configured) return configured;
+
+    const isLocal = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+    return isLocal ? "http://localhost:3000" : window.location.origin;
+}
+
 async function loadAvailableEvents() {
     try {
-        const res = await fetch(`/api/events/active?_=${Date.now()}`, { cache: "no-store" });
+        const res = await fetch(`${getApiBaseUrl()}/api/events/active?_=${Date.now()}`, { cache: "no-store" });
         if (!res.ok) {
             throw new Error("Failed to load events");
         }
@@ -97,7 +105,7 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     };
 
     try {
-        const res = await fetch("/register", {
+        const res = await fetch(`${getApiBaseUrl()}/register`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

@@ -308,6 +308,88 @@ router.post("/submit", async (req, res) => {
     }
 });
 
+/**
+ * POST /api/escape/timeout-advance
+ * Advance team to next level when level time is already over on reload
+ */
+router.post("/timeout-advance", async (req, res) => {
+    try {
+        const { team_id, level } = req.body;
+        const requestedLevel = Number(level);
+
+        if (!team_id || !Number.isFinite(requestedLevel)) {
+            return res.status(400).json({ error: "team_id and level are required" });
+        }
+
+        const team = await Team.findOne({ teamId: team_id });
+        if (!team) {
+            return res.status(404).json({ error: "Team not found" });
+        }
+
+        const currentLevel = Number(team.currentRound || 1);
+
+        if (currentLevel > 5) {
+            return res.json({
+                success: true,
+                completed: true,
+                nextLevel: 5,
+                redirect: "/escape/leaderboard.html"
+            });
+        }
+
+        // If already advanced, just redirect to the currently active level.
+        if (currentLevel > requestedLevel) {
+            return res.json({
+                success: true,
+                alreadyAdvanced: true,
+                nextLevel: currentLevel,
+                redirect: currentLevel > 5
+                    ? "/escape/leaderboard.html"
+                    : `/escape/levels/level${currentLevel}.html`
+            });
+        }
+
+        // If requested level doesn't match current, keep user on server-truth level.
+        if (currentLevel < requestedLevel) {
+            return res.json({
+                success: true,
+                nextLevel: currentLevel,
+                redirect: `/escape/levels/level${currentLevel}.html`
+            });
+        }
+
+        const nextLevel = currentLevel + 1;
+        const completed = nextLevel > 5;
+
+        const update = {
+            $inc: { currentRound: 1 },
+            $set: { status: completed ? "completed" : "active" }
+        };
+
+        if (completed) {
+            update.$set.examEndTime = new Date();
+            if (team.examStartTime) {
+                update.$set.totalExamTime = new Date(update.$set.examEndTime) - new Date(team.examStartTime);
+            }
+        }
+
+        await Team.updateOne({ teamId: team_id }, update);
+
+        return res.json({
+            success: true,
+            timeoutAdvanced: true,
+            completed,
+            nextLevel: completed ? 5 : nextLevel,
+            redirect: completed
+                ? "/escape/leaderboard.html"
+                : `/escape/levels/level${nextLevel}.html`
+        });
+    } catch (err) {
+        console.error("Escape timeout-advance error:", err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // ==================== TAB SWITCH ====================
 
 /**

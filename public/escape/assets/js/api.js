@@ -221,6 +221,15 @@ window.API.getLevelStart = function(level) {
     });
 };
 
+// Force level progression when timer is already over on reload
+window.API.timeoutAdvance = function(teamId, level) {
+  return fetch(`${getApiBaseUrl()}/api/escape/timeout-advance`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ team_id: teamId, level: level })
+  }).then(res => res.json());
+};
+
 // Tab switch penalty - uses /api/escape/tab-switch
 window.API.tabSwitch = function(teamId) {
   return fetch(`${getApiBaseUrl()}/api/escape/tab-switch`, {

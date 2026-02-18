@@ -61,6 +61,14 @@
     </form>
 
     <script>
+        function getApiBaseUrl() {
+            const configured = window.__API_BASE_URL || window.API_BASE_URL || "";
+            if (configured) return configured;
+
+            const isLocal = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+            return isLocal ? "http://localhost:3000" : window.location.origin;
+        }
+
         document.getElementById("adminLoginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const errorEl = document.getElementById("error");
@@ -70,9 +78,11 @@
             const password = document.getElementById("password").value;
 
             try {
-                const res = await fetch("/api/admin/login", {
+                const apiBase = getApiBaseUrl();
+                const res = await fetch(`${apiBase}/api/admin/login`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ username, password })
                 });
 
@@ -82,7 +92,7 @@
                     return;
                 }
 
-                window.location.href = "/admin";
+                window.location.href = `${apiBase}/admin`;
             } catch (err) {
                 errorEl.textContent = "Server error. Please try again.";
             }

@@ -1,13 +1,24 @@
+function getApiBaseUrl() {
+    const configured = window.__API_BASE_URL || window.API_BASE_URL || "";
+    if (configured) return configured;
+
+    const isLocal = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+    return isLocal ? "http://localhost:3000" : window.location.origin;
+}
+
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const teamId = document.getElementById("teamId").value;
 
-    const res = await fetch("/login", {
+    const apiBase = getApiBaseUrl();
+
+    const res = await fetch(`${apiBase}/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
+        credentials: "include",
         body: JSON.stringify({ teamId })
     });
 
@@ -20,7 +31,9 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
         
         if (data.eventType === "blackbox") {
             // Fetch team data to get current round
-            const teamRes = await fetch(`/api/blackbox/team/${teamId}`);
+            const teamRes = await fetch(`${apiBase}/api/blackbox/team/${teamId}`, {
+                credentials: "include"
+            });
             const teamData = await teamRes.json();
             const currentRound = teamData.currentRound || 1;
             
@@ -31,7 +44,9 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
             }
         } else if (data.eventType === "escape") {
             // Fetch team data to get current level
-            const teamRes = await fetch(`/api/escape/team/${teamId}`);
+            const teamRes = await fetch(`${apiBase}/api/escape/team/${teamId}`, {
+                credentials: "include"
+            });
             const teamData = await teamRes.json();
             const currentRound = teamData.currentRound || 1;
             

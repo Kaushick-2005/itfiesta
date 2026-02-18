@@ -22,16 +22,26 @@ git push origin main
 1. Go to: https://dashboard.render.com
 2. Click **New +** → **Web Service**.
 3. Connect your GitHub repo.
-4. Configure:
-   - **Runtime**: Node
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
+4. In the **New Web Service** page (same fields shown in your screenshots), fill values like this:
+
+| Render Field | What to enter |
+|---|---|
+| **Name** | `itfiesta` (or any unique service name) |
+| **Language** | `Node` |
+| **Branch** | `main` |
+| **Region** | `Oregon (US West)` (or nearest region to you) |
+| **Root Directory** | *(leave blank)* |
+| **Build Command** | `npm install` |
+| **Start Command** | `node server.js` |
+| **Instance Type** | `Free` (for testing) |
+
+> ⚠️ Do **not** keep Render default `yarn` / `yarn start` for this repo. This project should use `npm install` and `node server.js`.
 
 ---
 
 ## 3) Add Environment Variables in Render
 
-Go to **Your Service → Environment** and add these:
+In the same create form (Environment Variables section) or later in **Service → Environment**, add these:
 
 ```env
 MONGO_URI=<your_mongodb_connection_string>
@@ -40,6 +50,16 @@ ADMIN_USERNAME=<your_admin_username>
 ADMIN_PASSWORD=<your_admin_password>
 NODE_ENV=production
 ```
+
+### Field-wise (as seen in screenshot)
+
+Add one-by-one using **NAME_OF_VARIABLE** and **value**:
+
+1. `MONGO_URI` → your MongoDB Atlas connection string  
+2. `SESSION_SECRET` → a long random secret (40+ chars recommended)  
+3. `ADMIN_USERNAME` → your admin login username  
+4. `ADMIN_PASSWORD` → your admin login password  
+5. `NODE_ENV` → `production`
 
 ### Example (replace with your own values)
 
