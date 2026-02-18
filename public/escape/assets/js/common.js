@@ -7,6 +7,8 @@ window.EXAM_SUBMITTED = false;
 var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
+var ESCAPE_TAB_HIDDEN_SINCE = 0;
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1500;
 
 function queueEscapePenaltyAlert(message) {
   if (!message) return;
@@ -269,13 +271,28 @@ function enableTabSwitchPenalty(){
     }
     
     if (document.visibilityState === 'hidden'){
-      console.log('[Common] Tab switch detected! Applying penalty...');
+      ESCAPE_TAB_HIDDEN_SINCE = Date.now();
+      return;
+    }
+
+    if (document.visibilityState === 'visible') {
+      var hiddenForMs = ESCAPE_TAB_HIDDEN_SINCE ? (Date.now() - ESCAPE_TAB_HIDDEN_SINCE) : 0;
+      ESCAPE_TAB_HIDDEN_SINCE = 0;
+
+      // Ignore very brief focus flickers (notification shade, quick app switch gestures, etc.)
+      if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+        console.log('[Common] Ignoring brief hidden state:', hiddenForMs, 'ms');
+        return;
+      }
+
+      console.log('[Common] Tab switch detected! Applying penalty... hiddenForMs=', hiddenForMs);
       tabSwitchCooldown = true;
-      
+
       // Apply penalty via API
-      notifyServerTabSwitch().then(function(data){
+      notifyServerTabSwitch(hiddenForMs).then(function(data){
         if (data && data.action === 'penalty') {
           queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
+          flushEscapePenaltyAlert();
         }
       }).finally(function(){
         // 3 second cooldown
@@ -286,7 +303,7 @@ function enableTabSwitchPenalty(){
 }
 
 // Notify backend of tab switch for penalty
-function notifyServerTabSwitch(){
+function notifyServerTabSwitch(hiddenMs){
   try {
     var teamId = sessionStorage.getItem('teamId');
     if (!teamId) return Promise.resolve({});
@@ -298,7 +315,7 @@ function notifyServerTabSwitch(){
     return fetch(url, { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
-      body: JSON.stringify({ team_id: teamId }) 
+      body: JSON.stringify({ team_id: teamId, hiddenMs: Number(hiddenMs || 0) }) 
     })
     .then(function(res){ return res.json(); })
     .catch(function(err){ 

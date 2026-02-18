@@ -692,6 +692,8 @@ window.onload = async function() {
 // 🔴 TAB SWITCH PENALTY SYSTEM
 // Cooldown to prevent multiple triggers
 let tabSwitchCooldown = false;
+let tabHiddenSince = 0;
+const MIN_HIDDEN_MS_FOR_PENALTY = 1500;
 
 document.addEventListener("visibilitychange", async function () {
     console.log('[Round 1] Visibility changed, state:', document.visibilityState);
@@ -714,7 +716,21 @@ document.addEventListener("visibilitychange", async function () {
     }
 
     if (document.visibilityState === 'hidden') {
-        console.log('[Round 1] Tab switch detected! Applying penalty...');
+        tabHiddenSince = Date.now();
+        return;
+    }
+
+    if (document.visibilityState === 'visible') {
+        const hiddenForMs = tabHiddenSince ? (Date.now() - tabHiddenSince) : 0;
+        tabHiddenSince = 0;
+
+        // Ignore tiny focus flickers that can happen on some devices/browsers
+        if (hiddenForMs < MIN_HIDDEN_MS_FOR_PENALTY) {
+            console.log('[Round 1] Ignoring brief hidden state:', hiddenForMs, 'ms');
+            return;
+        }
+
+        console.log('[Round 1] Tab switch detected! Applying penalty... hiddenForMs=', hiddenForMs);
         tabSwitchCooldown = true;
         
         try {
@@ -722,7 +738,8 @@ document.addEventListener("visibilitychange", async function () {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    session_id: sessionId
+                    session_id: sessionId,
+                    hiddenMs: hiddenForMs
                 })
             });
 

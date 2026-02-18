@@ -842,7 +842,16 @@ router.post("/submit", async (req, res) => {
  */
 router.post("/tab-switch", async (req, res) => {
     try {
-        const { session_id } = req.body;
+        const { session_id, hiddenMs } = req.body;
+
+        const hiddenDuration = Number(hiddenMs || 0);
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1500) {
+            return res.json({
+                action: "ignored",
+                reason: "brief_hidden_state",
+                hiddenMs: hiddenDuration
+            });
+        }
 
         const session = await BlackBoxSession.findById(session_id);
         if (!session) {
