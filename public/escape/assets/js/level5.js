@@ -138,17 +138,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function pickScenario(list) {
-    var key = 'level5_scenario_' + teamId;
-    var existing = sessionStorage.getItem(key);
-    if (existing) {
-      var found = list.find(function (s) { return String(s.id) === String(existing); });
-      if (found) return found;
-    }
-
-    var idx = hashTeam(teamId) % list.length;
+    // As requested: reshuffle scenario pick on each reload.
+    var idx = Math.floor(Math.random() * list.length);
     var chosen = list[idx];
-    sessionStorage.setItem(key, String(chosen.id || 'scenario'));
     return chosen;
+  }
+
+  function scenarioSortValue(id) {
+    var raw = String(id || '');
+    var m = raw.match(/(\d+)$/);
+    if (m) return Number(m[1]);
+    return Number.MAX_SAFE_INTEGER;
   }
 
   function finishEliminated(reason) {
@@ -386,7 +386,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }).filter(Boolean);
     
     result.sort(function (a, b) {
-      return String(a.id || '').localeCompare(String(b.id || ''));
+      var aNum = scenarioSortValue(a && a.id);
+      var bNum = scenarioSortValue(b && b.id);
+      if (aNum !== bNum) return aNum - bNum;
+      return String(a && a.id || '').localeCompare(String(b && b.id || ''));
     });
 
     console.log('[Level 5 Normalize] Final result:', result.length, 'scenarios');
