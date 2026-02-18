@@ -61,6 +61,7 @@ const teamSchema = new mongoose.Schema({
 
     antiCheatLastHeartbeatAt: Date,
     antiCheatLastViolationAt: Date,
+    antiCheatTransitionGraceUntil: Date,
 
     // Escape-level server-authoritative timer state
     escapeLevelNumber: Number,

@@ -16,6 +16,7 @@ const EscapeQuestion = require("../models/EscapeQuestion");
 
 // If heartbeat gap exceeds this, treat it as app/browser leave.
 const ESCAPE_INACTIVITY_THRESHOLD_MS = 12 * 1000;
+const ESCAPE_TRANSITION_GRACE_MS = 90 * 1000;
 const ESCAPE_LEVEL_DURATIONS = {
     1: 180,
     2: 240,
@@ -283,6 +284,13 @@ router.post("/start", async (req, res) => {
         const lastViolation = team.antiCheatLastViolationAt
             ? new Date(team.antiCheatLastViolationAt)
             : null;
+        const transitionGraceUntil = team.antiCheatTransitionGraceUntil
+            ? new Date(team.antiCheatTransitionGraceUntil)
+            : null;
+        const withinTransitionGrace = !!(
+            transitionGraceUntil &&
+            transitionGraceUntil.getTime() > now.getTime()
+        );
 
         if (team.status === "active" && lastHeartbeat) {
             const inactiveMs = Math.max(0, now.getTime() - lastHeartbeat.getTime());
@@ -291,7 +299,11 @@ router.post("/start", async (req, res) => {
                 lastViolation.getTime() > lastHeartbeat.getTime()
             );
 
-            if (inactiveMs >= ESCAPE_INACTIVITY_THRESHOLD_MS && !alreadyPenalizedForLastLeave) {
+            if (
+                !withinTransitionGrace &&
+                inactiveMs >= ESCAPE_INACTIVITY_THRESHOLD_MS &&
+                !alreadyPenalizedForLastLeave
+            ) {
                 const penalizedTeam = await applyEscapeTabSwitchPenalty(
                     team.teamId,
                     "BROWSER_EXIT_OR_RECENT_APPS"
@@ -309,6 +321,9 @@ router.post("/start", async (req, res) => {
         }
 
         team.antiCheatLastHeartbeatAt = now;
+        if (!withinTransitionGrace) {
+            team.antiCheatTransitionGraceUntil = undefined;
+        }
         await team.save();
         
         res.json({
@@ -379,6 +394,11 @@ router.post("/submit", async (req, res) => {
             update.$set.escapeLevelStartedAt = new Date();
             update.$set.escapeLevelDurationSec = getEscapeLevelDurationSeconds(nextLevel);
         }
+
+        // Grace window prevents false anti-cheat penalty while user intentionally
+        // transitions from submit modal to the next level page.
+        update.$set.antiCheatLastHeartbeatAt = new Date();
+        update.$set.antiCheatTransitionGraceUntil = new Date(Date.now() + ESCAPE_TRANSITION_GRACE_MS);
 
         await Team.updateOne({ teamId: team_id }, update);
         
@@ -480,6 +500,9 @@ router.post("/timeout-advance", async (req, res) => {
             update.$set.escapeLevelDurationSec = getEscapeLevelDurationSeconds(nextLevel);
         }
 
+        update.$set.antiCheatLastHeartbeatAt = new Date();
+        update.$set.antiCheatTransitionGraceUntil = new Date(Date.now() + ESCAPE_TRANSITION_GRACE_MS);
+
         await Team.updateOne({ teamId: team_id }, update);
 
         return res.json({
@@ -507,6 +530,25 @@ router.post("/timeout-advance", async (req, res) => {
 router.post("/tab-switch", async (req, res) => {
     try {
         const { team_id, hiddenMs } = req.body;
+
+        const teamState = await Team.findOne({ teamId: team_id })
+            .select("teamId antiCheatTransitionGraceUntil")
+            .lean();
+
+        if (!teamState) {
+            return res.json({ error: "Team not found" });
+        }
+
+        const now = Date.now();
+        const transitionGraceUntil = teamState.antiCheatTransitionGraceUntil
+            ? new Date(teamState.antiCheatTransitionGraceUntil).getTime()
+            : 0;
+        if (transitionGraceUntil && transitionGraceUntil > now) {
+            return res.json({
+                action: "ignored",
+                reason: "level_transition_grace"
+            });
+        }
 
         const hiddenDuration = Number(hiddenMs || 0);
         if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1500) {
