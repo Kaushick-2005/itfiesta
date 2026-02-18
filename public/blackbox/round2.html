@@ -688,11 +688,14 @@ async function generateOutput() {
 
     const data = await response.json();
 
+    const outputEl = document.getElementById("outputDisplay");
+
     if (data.output === "") {
-        document.getElementById("outputDisplay").innerText = "please enter correct input";
+        outputEl.innerText = "please enter correct input";
+        outputEl.style.color = "#dc2626";
     } else {
-        document.getElementById("outputDisplay").innerText =
-            data.output !== undefined ? data.output : "Error";
+        outputEl.innerText = data.output !== undefined ? data.output : "Error";
+        outputEl.style.color = "#2563eb";
     }
 }
 
