@@ -4,6 +4,7 @@ const fs = require("fs");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const cors = require("cors");
 require("dotenv").config();
 
 const Event = require("./models/Event");
@@ -13,6 +14,47 @@ const Settings = require("./models/Settings");
 
 const app = express();
 const PUBLIC_DIR = path.join(__dirname, "public");
+const isProduction = process.env.NODE_ENV === "production";
+
+if (isProduction && !process.env.SESSION_SECRET) {
+    throw new Error("SESSION_SECRET is required in production");
+}
+
+function parseAllowedOrigins(rawValue) {
+    return String(rawValue || "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+}
+
+const allowedOrigins = parseAllowedOrigins(process.env.CORS_ORIGIN);
+
+const corsOptions = {
+    origin: (origin, callback) => {
+        // Allow non-browser requests (curl/postman/server-to-server)
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (!allowedOrigins.length) {
+            // In production without explicit CORS origins, only same-origin traffic
+            // should work. Cross-origin browser calls are blocked by default.
+            if (isProduction) {
+                return callback(new Error("CORS origin not allowed"));
+            }
+
+            // Dev convenience: allow custom local frontends unless explicitly restricted.
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("CORS origin not allowed"));
+    },
+    credentials: true
+};
 
 const STATIC_ASSET_EXTENSIONS = new Set([
     ".css", ".js", ".mjs", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".avif", ".ico",
@@ -139,15 +181,24 @@ function resolveHtmlFilePathFromRequestPath(requestPath) {
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
+// Railway/Render/Proxy platforms need this for secure cookies + real client IP
+app.set("trust proxy", 1);
+
+// CORS (for separate frontend domain like Vercel)
+app.use(cors(corsOptions));
+
 // Session
 app.use(session({
+    proxy: isProduction,
     secret: process.env.SESSION_SECRET || "itfiesta_secret_key",
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production"
+        sameSite: isProduction
+            ? (process.env.SESSION_SAME_SITE || (allowedOrigins.length ? "none" : "lax"))
+            : "lax",
+        secure: isProduction
     }
 }));
 
@@ -300,10 +351,25 @@ app.post("/api/admin/login", (req, res) => {
         return res.status(401).json({ message: "Invalid admin credentials." });
     }
 
-    req.session.isAdmin = true;
-    req.session.adminUser = username;
+    // Regenerate + explicit save to ensure cookie/session persistence on hosted platforms.
+    return req.session.regenerate((regenErr) => {
+        if (regenErr) {
+            console.error("Admin session regenerate error:", regenErr);
+            return res.status(500).json({ message: "Failed to initialize admin session." });
+        }
 
-    return res.json({ success: true, message: "Admin login successful." });
+        req.session.isAdmin = true;
+        req.session.adminUser = username;
+
+        return req.session.save((saveErr) => {
+            if (saveErr) {
+                console.error("Admin session save error:", saveErr);
+                return res.status(500).json({ message: "Failed to persist admin session." });
+            }
+
+            return res.json({ success: true, message: "Admin login successful." });
+        });
+    });
 });
 
 app.post("/api/admin/logout", (req, res) => {
@@ -399,6 +465,11 @@ app.get('/api/leaderboard', async (req, res) => {
         console.error('Leaderboard API Error:', error);
         res.status(500).json({ error: 'Failed to fetch leaderboard' });
     }
+});
+
+// Health endpoint for Railway/uptime checks
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
 });
 
 
