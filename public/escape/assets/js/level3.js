@@ -90,9 +90,22 @@ document.addEventListener('DOMContentLoaded', function(){
     input.style.width = '100%';
     input.style.padding = '12px';
     input.style.marginTop = '14px';
+    input.style.fontSize = '16px';  // Prevent zoom on iOS
+    input.style.touchAction = 'auto';  // Allow touch interaction
+    input.autocomplete = 'off';
+    input.autocorrect = 'off';
+    input.autocapitalize = 'off';
+    input.spellcheck = false;
+    // Ensure input is NOT readonly and CAN receive focus on mobile
+    input.removeAttribute('readonly');
+    input.removeAttribute('disabled');
     input.addEventListener('input', function(){
       answers[q._qid] = input.value;
       renderControls();
+    });
+    // Add touchstart listener to ensure mobile devices can focus the input
+    input.addEventListener('touchstart', function(e) {
+      e.stopPropagation();  // Prevent any parent handlers from interfering
     });
     questionContent.appendChild(input);
 
