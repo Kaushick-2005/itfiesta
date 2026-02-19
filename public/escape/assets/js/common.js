@@ -381,33 +381,68 @@ function isLegitimateTabSwitch(hiddenMs, source) {
 function applyTabSwitchPenalty(hiddenMs) {
   tabSwitchCooldown = true;
   
-  // IMMEDIATE ALERT - Show alert first, then process server request
-  var alertMessage = 'TAB SWITCH DETECTED!\n\nPenalty Applied: -10 marks\nHidden Duration: ' + hiddenMs + 'ms\n\nStay focused on the exam!';
+  // Show immediate feedback alert
+  var immediateMessage = 'TAB SWITCH DETECTED!\n⏱️ Duration: ' + hiddenMs + 'ms\n\n⏳ Processing penalty...';
   
-  // Show alert immediately for instant feedback
+  // Show immediate alert
   setTimeout(function() {
     try { 
-      alert(alertMessage); 
+      alert(immediateMessage); 
     } catch (_) {}
-  }, 50); // Minimal delay for UI consistency
+  }, 50);
+  
+  // Process server penalty
+  console.log('[TabDetect] Notifying server of tab switch:', hiddenMs + 'ms');
   
   notifyServerTabSwitch(hiddenMs).then(function(data) {
+    console.log('[TabDetect] Server response:', data);
+    
     if (data && data.action === 'penalty') {
-      // Update alert with server response if different
-      if (data.message && data.message !== alertMessage) {
-        setTimeout(function() {
-          try { alert(data.message); } catch (_) {}
-        }, 100);
-      }
+      // Show the actual penalty response from server
+      var penaltyMessage = data.message || 
+        ('TAB SWITCH PENALTY APPLIED!\n\n' +
+         '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
+         '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
+         '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
+         '⚠️ Stay focused on the exam!');
+      
+      // Show penalty details after short delay
+      setTimeout(function() {
+        try { 
+          alert(penaltyMessage); 
+        } catch (_) {}
+      }, 1500);
+      
     } else if (data && data.action === 'ignored') {
       console.log('[TabDetect] Server ignored detection:', data.reason);
+      // Show cancellation message if server ignored
+      setTimeout(function() {
+        try { 
+          alert('Tab switch detected but no penalty applied.\nReason: ' + (data.reason || 'Unknown')); 
+        } catch (_) {}
+      }, 1000);
+    } else if (data && data.error) {
+      console.error('[TabDetect] Server error:', data.error);
+      setTimeout(function() {
+        try { 
+          alert('Tab switch detected but penalty processing failed.\nError: ' + data.error); 
+        } catch (_) {}
+      }, 1000);
+    } else {
+      console.warn('[TabDetect] Unexpected server response:', data);
     }
   }).catch(function(err) {
     console.error('[TabDetect] Server notification failed:', err);
+    // Show error message to user
+    setTimeout(function() {
+      try { 
+        alert('Tab switch detected but server connection failed.\nPenalty may not be applied.\nError: ' + err.message); 
+      } catch (_) {}
+    }, 1000);
   }).finally(function() {
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 1500); // Reduced cooldown for faster detection
+    }, 1500);
   });
 }
 
@@ -619,24 +654,35 @@ function setupBackupDetection() {
 function notifyServerTabSwitch(hiddenMs){
   try {
     var teamId = sessionStorage.getItem('teamId');
-    if (!teamId) return Promise.resolve({});
+    if (!teamId) {
+      console.warn('[TabDetect] No team ID found in session storage');
+      return Promise.resolve({ error: 'No team ID' });
+    }
     
-    // Use main server API
-    var base = (window.location.hostname === 'localhost') ? 'http://localhost:3000' : window.location.origin;
+    // Improved server URL detection
+    var base = getEscapeApiBase();
     var url = base + '/api/escape/tab-switch';
+    
+    console.log('[TabDetect] Sending penalty request to:', url, 'for team:', teamId, 'duration:', hiddenMs + 'ms');
     
     return fetch(url, { 
       method: 'POST', 
       headers: { 'Content-Type': 'application/json' }, 
       body: JSON.stringify({ team_id: teamId, hiddenMs: Number(hiddenMs || 0) }) 
     })
-    .then(function(res){ return res.json(); })
+    .then(function(res){
+      if (!res.ok) {
+        throw new Error('Server responded with status: ' + res.status);
+      }
+      return res.json();
+    })
     .catch(function(err){ 
-      console.warn('Failed to notify server of tab switch', err); 
-      return {};
+      console.error('[TabDetect] Failed to notify server of tab switch:', err); 
+      return { error: 'Network error: ' + err.message };
     });
   } catch (e) {
-    return Promise.resolve({});
+    console.error('[TabDetect] Exception in notifyServerTabSwitch:', e);
+    return Promise.resolve({ error: 'Exception: ' + e.message });
   }
 }
 
@@ -751,7 +797,7 @@ window.ER.stopEscapeHeartbeat = stopEscapeHeartbeat;
 window.ER.requestFullScreen = requestFullScreen;
 window.ER.detectFullScreenExit = detectFullScreenExit;
 
-// Debug utility for monitoring tab switch behavior
+// Debug utilities for monitoring tab switch behavior and penalty system
 window.ER.getTabSwitchDebugInfo = function() {
   return {
     cooldownActive: tabSwitchCooldown,
@@ -764,6 +810,10 @@ window.ER.getTabSwitchDebugInfo = function() {
     thresholdMs: ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY
   };
 };
+
+// Expose penalty function for testing
+window.ER.testPenalty = applyTabSwitchPenalty;
+window.ER.notifyServer = notifyServerTabSwitch;
 /* ======================================================
    UNIFIED QUESTION NUMBERING SYSTEM
    Works for all levels - renders clickable question buttons

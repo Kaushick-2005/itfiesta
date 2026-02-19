@@ -23,12 +23,12 @@ function testTabSwitchDetection() {
   console.log('📱 Device Info:', debugInfo.browserInfo);
   
   // Instructions
-  console.log('\n🧪 TEST INSTRUCTIONS:');
-  console.log('1. Switch tabs and return within 0.5-1 seconds (quick switch)');
-  console.log('2. Console should show detection within 500-800ms');
-  console.log('3. INSTANT alert should appear if detection successful');
-  console.log('4. Test on all levels (1-5) to ensure consistency');
-  console.log('5. Try dev tools (F12) - should NOT trigger (false positive filter)');
+  console.log('\n🧪 PENALTY TEST INSTRUCTIONS:');
+  console.log('1. Switch tabs and return within 0.5-1 seconds');
+  console.log('2. First alert: "Processing penalty..." (immediate)');
+  console.log('3. Second alert: Actual penalty details with score (after 1.5s)');
+  console.log('4. Check console logs for server communication');
+  console.log('5. Verify score deduction in database/UI');
   
   // Monitor for changes
   let lastDetectionCount = debugInfo.detectionState.detectionCount;
@@ -60,3 +60,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for console use
 window.testTabSwitchDetection = testTabSwitchDetection;
+
+// Manual penalty test function
+window.testPenaltyApplication = function() {
+  console.log('🧪 Testing penalty application manually...');
+  
+  if (window.ER && window.ER.testPenalty) {
+    window.ER.testPenalty(750); // Simulate 750ms tab switch
+  } else {
+    console.error('❌ Penalty test function not available');
+    console.log('Available ER functions:', window.ER ? Object.keys(window.ER) : 'ER object not found');
+  }
+};

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Penalty System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .debug-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { padding: 10px 15px; margin: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; font-family: monospace; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>Escape Room Penalty Debug</h1>
+    
+    <div class="debug-section">
+        <h3>System Status</h3>
+        <p>Team ID: <span id="teamId">Loading...</span></p>
+        <p>Detection Active: <span id="detectionActive">Loading...</span></p>
+        <p>Tab Switch Cooldown: <span id="cooldownActive">Loading...</span></p>
+        <button onclick="checkSystemStatus()">Refresh Status</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Manual Tests</h3>
+        <button onclick="testPenalty()">Test Penalty (750ms)</button>
+        <button onclick="testPenaltyShort()">Test Short Switch (200ms)</button>
+        <button onclick="testServerConnection()">Test Server Connection</button>
+        <button onclick="clearLogs()">Clear Logs</button>
+    </div>
+
+    <div class="debug-section">
+        <h3>Debug Console</h3>
+        <div id="debugLog" class="log"></div>
+    </div>
+
+    <script src="assets/js/common.js"></script>
+    <script>
+        // Set up fake team ID for testing
+        sessionStorage.setItem('teamId', 'DEBUG-TEAM-001');
+        
+        // Initialize tab detection
+        if (window.ER && window.ER.enableDetection) {
+            window.ER.enableDetection();
+        }
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logDiv = document.getElementById('debugLog');
+            logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function checkSystemStatus() {
+            document.getElementById('teamId').textContent = sessionStorage.getItem('teamId') || 'Not set';
+            document.getElementById('detectionActive').textContent = window.ER ? 'Available' : 'Not loaded';
+            document.getElementById('cooldownActive').textContent = window.tabSwitchCooldown ? 'Yes' : 'No';
+        }
+
+        function testPenalty() {
+            log('🧪 Testing penalty application...');
+            if (window.ER && window.ER.testPenalty) {
+                window.ER.testPenalty(750);
+            } else {
+                log('❌ Test penalty function not available');
+            }
+        }
+
+        function testPenaltyShort() {
+            log('🧪 Testing short penalty (should be filtered)...');
+            if (window.ER && window.ER.testPenalty) {
+                window.ER.testPenalty(200);
+            } else {
+                log('❌ Test penalty function not available');
+            }
+        }
+
+        function testServerConnection() {
+            log('🌐 Testing server connection...');
+            if (window.ER && window.ER.notifyServer) {
+                window.ER.notifyServer(1000).then(function(data) {
+                    log('✅ Server response: ' + JSON.stringify(data, null, 2));
+                }).catch(function(err) {
+                    log('❌ Server error: ' + err.message);
+                });
+            } else {
+                log('❌ Server notification function not available');
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('debugLog').innerHTML = '';
+        }
+
+        // Initialize
+        window.addEventListener('load', function() {
+            checkSystemStatus();
+            log('🚀 Debug page loaded');
+        });
+
+        // Override console.log to capture logs
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            const logDiv = document.getElementById('debugLog');
+            if (logDiv && args[0] && typeof args[0] === 'string' && args[0].includes('[TabDetect]')) {
+                log(args.join(' '));
+            }
+        };
+    </script>
+</body>
+</html>
