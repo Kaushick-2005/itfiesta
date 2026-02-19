@@ -35,7 +35,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1000; // STRICT: 1000ms (1 second) - reduces false positives from UI interactions
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 300; // STRICT: detect even short tab/app switches
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -322,12 +322,11 @@ function markPotentialTabLeave(reason) {
   if (tabSwitchCooldown) return;
   
   var now = Date.now();
-  // Improved validation to reduce false positives
-  var isLikelyUserAction = !reason.includes('blur') || (reason.includes('delayed') && now - (detectionState.lastDetectionTime || 0) > 3000);
-  
-  if (!detectionState.isHidden && isLikelyUserAction) {
+
+  if (!detectionState.isHidden) {
     detectionState.isHidden = true;
     detectionState.hideStartTime = now;
+    ESCAPE_TAB_HIDDEN_SINCE = now;
     tabLeaveStartedAt = now;
     tabLeaveReason = String(reason || 'unknown');
     
@@ -403,7 +402,7 @@ function isLegitimateTabSwitch(hiddenMs, source) {
   }
 
   // Filter permission dialogs and system alerts (very brief interruptions)
-  if (hiddenMs < 500) {
+  if (hiddenMs < 300) {
     console.log('[TabDetect] Filtering very brief interruption (permission dialog?):', hiddenMs, 'ms');
     return false;
   }
@@ -420,23 +419,17 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // MOBILE DETECTION: Filter permission dialogs and system alerts
+  // MOBILE DETECTION: keep strict detection for real visibility events,
+  // only filter known noisy mobile blur/pagehide edge-cases.
   if (browserInfo.isMobile) {
-    // Filter permission dialogs (location, camera, notifications, etc.)
-    if (hiddenMs < 800) {
-      console.log('[TabDetect] Filtering mobile permission dialog or brief UI:', hiddenMs, 'ms');
-      return false; // Permission dialogs cause brief visibility changes
+    if (hiddenMs < 1200 && source.includes('blur') && !source.includes('delayed')) {
+      console.log('[TabDetect] Filtering mobile blur UI interruption:', hiddenMs, 'ms');
+      return false;
     }
-    
-    // Filter very brief mobile browser UI interactions
-    if (hiddenMs < 1500 && source.includes('blur') && !source.includes('delayed')) {
-      return false; // Filter immediate mobile blur events
-    }
-    
-    // iOS Safari: Filter permission dialogs and system alerts
-    if (browserInfo.isIOS && hiddenMs < 2000 && source.includes('pagehide')) {
-      console.log('[TabDetect] Filtering iOS brief interruption:', hiddenMs, 'ms');
-      return false; // iOS Safari pagehide filtering for alerts/permissions
+
+    if (browserInfo.isIOS && hiddenMs < 1200 && source.includes('pagehide')) {
+      console.log('[TabDetect] Filtering iOS pagehide brief interruption:', hiddenMs, 'ms');
+      return false;
     }
   }
 
@@ -856,6 +849,27 @@ function enableBeforeUnloadWarning(){
   // do not show browser "changes not saved" leave/cancel prompt.
   // Progress is server-synced via submit/start state and heartbeat checks.
   return;
+}
+
+// Lightweight screenshot hardening hook.
+// NOTE: True screenshot prevention is not possible in browsers,
+// but we block common hotkeys to discourage casual capture.
+function disableScreenshots() {
+  if (window.__ER_SCREENSHOT_GUARD_BOUND) return;
+  window.__ER_SCREENSHOT_GUARD_BOUND = true;
+
+  document.addEventListener('keydown', function(e) {
+    var key = String(e.key || '').toLowerCase();
+    var isPrintScreen = key === 'printscreen';
+    var isWindowsSnip = (e.metaKey && e.shiftKey && key === 's');
+
+    if (isPrintScreen || isWindowsSnip) {
+      e.preventDefault();
+      e.stopPropagation();
+      try { alert('Screenshots are disabled during the exam.'); } catch (_) {}
+      return false;
+    }
+  }, true);
 }
 
 // ==================== COPY PROTECTION ====================

@@ -15,7 +15,7 @@ function testTabSwitchDetection() {
   
   // Test balanced strict threshold
   console.log('⚡ BALANCED STRICT MODE:');
-  console.log('   - Threshold:', debugInfo.thresholdMs + 'ms (should be 500ms)');
+  console.log('   - Threshold:', debugInfo.thresholdMs + 'ms (strict target: 300ms)');
   console.log('   - Cooldown active:', debugInfo.cooldownActive);
   console.log('   - Currently hidden:', debugInfo.currentlyHidden);
   
@@ -24,7 +24,7 @@ function testTabSwitchDetection() {
   
   // Instructions
   console.log('\n🧪 PENALTY TEST INSTRUCTIONS:');
-  console.log('1. Switch tabs and return within 0.5-1 seconds');
+  console.log('1. Switch tabs and return after ~0.3 seconds or more');
   console.log('2. First alert: "Processing penalty..." (immediate)');
   console.log('3. Second alert: Actual penalty details with score (after 1.5s)');
   console.log('4. Check console logs for server communication');

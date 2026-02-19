@@ -557,7 +557,7 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1000) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 300) {
             return res.json({
                 action: "ignored",
                 reason: "brief_hidden_state",
