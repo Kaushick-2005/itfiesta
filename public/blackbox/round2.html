@@ -472,6 +472,7 @@ const FALLBACK_DURATION_MS = 5 * 60 * 1000;
 const HEARTBEAT_INTERVAL_MS = 4000;
 let heartbeatTimer = null;
 let hasShownReconnectPenalty = false;
+let hasShownBlockedAlert = false;
 
 // Submission flag to disable tab switching after submission
 window.EXAM_SUBMITTED = false;
@@ -482,11 +483,21 @@ async function sendHeartbeat() {
     if (document.visibilityState === 'hidden') return;
 
     try {
-        await fetch(`${API}/heartbeat`, {
+        const hbRes = await fetch(`${API}/heartbeat`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ session_id: sessionId })
         });
+
+        const hbData = await hbRes.json().catch(() => ({}));
+        if (hbData && hbData.status === "blocked" && !hasShownBlockedAlert) {
+            hasShownBlockedAlert = true;
+            window.EXAM_SUBMITTED = true;
+            stopHeartbeat();
+            alert(hbData.message || "You have been disqualified by admin.");
+            window.location.href = "/blackbox/leaderboard.html";
+            return;
+        }
     } catch (err) {
         console.warn('[Round 2] Heartbeat failed:', err);
     }

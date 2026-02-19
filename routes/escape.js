@@ -612,15 +612,22 @@ router.post("/heartbeat", async (req, res) => {
             return res.status(400).json({ ok: false, error: "team_id required" });
         }
 
-        const updated = await Team.findOneAndUpdate(
-            { teamId: team_id },
-            { $set: { antiCheatLastHeartbeatAt: new Date() } },
-            { returnDocument: "after" }
-        );
-
-        if (!updated) {
+        const team = await Team.findOne({ teamId: team_id });
+        if (!team) {
             return res.status(404).json({ ok: false, error: "Team not found" });
         }
+
+        // Immediate admin disqualification/elimination propagation to active client
+        if (team.status === "eliminated" || team.status === "disqualified") {
+            return res.json({
+                ok: false,
+                status: "blocked",
+                message: "You have been disqualified by admin."
+            });
+        }
+
+        team.antiCheatLastHeartbeatAt = new Date();
+        await team.save();
 
         return res.json({ ok: true });
     } catch (err) {

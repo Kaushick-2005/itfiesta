@@ -19,6 +19,7 @@ var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
 var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1500;
+var ESCAPE_ADMIN_BLOCK_NOTIFIED = false;
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -89,6 +90,16 @@ function sendEscapeHeartbeat() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ team_id: teamId })
+    }).then(function(res){
+      return res.json().catch(function(){ return {}; });
+    }).then(function(data){
+      if (data && data.status === 'blocked' && !ESCAPE_ADMIN_BLOCK_NOTIFIED) {
+        ESCAPE_ADMIN_BLOCK_NOTIFIED = true;
+        window.EXAM_SUBMITTED = true;
+        stopEscapeHeartbeat();
+        alert(data.message || 'You have been disqualified by admin.');
+        redirectToEliminatedPage();
+      }
     }).catch(function(err){
       console.warn('Escape heartbeat failed', err);
     });

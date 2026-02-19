@@ -549,15 +549,27 @@ router.post("/heartbeat", async (req, res) => {
             return res.status(400).json({ ok: false, error: "session_id required" });
         }
 
-        const updated = await BlackBoxSession.findByIdAndUpdate(
-            session_id,
-            { $set: { lastHeartbeatAt: new Date() } },
-            { returnDocument: "after" }
-        );
-
-        if (!updated) {
+        const session = await BlackBoxSession.findById(session_id);
+        if (!session) {
             return res.status(404).json({ ok: false, error: "Session not found" });
         }
+
+        const team = await Team.findOne({ teamId: session.team_id });
+        if (!team) {
+            return res.status(404).json({ ok: false, error: "Team not found" });
+        }
+
+        // Immediate admin disqualification/elimination propagation to active client
+        if (team.status === "eliminated" || team.status === "disqualified") {
+            return res.json({
+                ok: false,
+                status: "blocked",
+                message: "You have been disqualified by admin."
+            });
+        }
+
+        session.lastHeartbeatAt = new Date();
+        await session.save();
 
         return res.json({ ok: true });
     } catch (err) {
