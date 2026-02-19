@@ -548,7 +548,7 @@ router.post("/tab-switch", async (req, res) => {
             ? new Date(teamState.antiCheatLastViolationAt).getTime()
             : 0;
         const timeSinceLastViolation = now - lastViolationAt;
-        if (timeSinceLastViolation < 1500) { // 1.5 seconds minimum
+        if (timeSinceLastViolation < 3000) { // 3 seconds minimum between penalties
             return res.json({
                 action: "ignored",
                 reason: "rapid_consecutive_detection",
@@ -557,7 +557,7 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 300) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1000) {
             return res.json({
                 action: "ignored",
                 reason: "brief_hidden_state",

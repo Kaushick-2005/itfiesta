@@ -316,8 +316,10 @@ function handlePotentialTabReturn(source){
 
   notifyServerTabSwitch(hiddenForMs).then(function(data){
     if (data && data.action === 'penalty') {
-      queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
-      flushEscapePenaltyAlert();
+      // Show alert directly - same as blackbox
+      setTimeout(function(){
+        try { alert(data.message || 'Tab/App switch detected. Penalty applied.'); } catch(_){}
+      }, 150);
     }
   }).finally(function(){
     setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
@@ -444,7 +446,7 @@ function enableTabSwitchPenalty(){
 
   // Also trap window blur/focus for additional coverage
   window.addEventListener('blur', function(){
-    if (!ESCAPE_TAB_HIDDEN_SINCE && !window.EXAM_SUBMITTED && !tabSwitchCooldown) {
+    if (!window.EXAM_SUBMITTED && !tabSwitchCooldown && !tabLeaveStartedAt) {
       markPotentialTabLeave('window_blur');
     }
   });
