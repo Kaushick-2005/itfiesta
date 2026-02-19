@@ -532,7 +532,7 @@ router.post("/tab-switch", async (req, res) => {
         const { team_id, hiddenMs } = req.body;
 
         const teamState = await Team.findOne({ teamId: team_id })
-            .select("teamId antiCheatTransitionGraceUntil antiCheatLastViolationAt")
+            .select("teamId antiCheatLastViolationAt")
             .lean();
 
         if (!teamState) {
@@ -540,15 +540,8 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const now = Date.now();
-        const transitionGraceUntil = teamState.antiCheatTransitionGraceUntil
-            ? new Date(teamState.antiCheatTransitionGraceUntil).getTime()
-            : 0;
-        if (transitionGraceUntil && transitionGraceUntil > now) {
-            return res.json({
-                action: "ignored",
-                reason: "level_transition_grace"
-            });
-        }
+        // REMOVED: Grace period - all tab switches are penalized
+        // Crime is crime - no exceptions for any tab switch detection
 
         // Balanced: Prevent spam while allowing quick consecutive legitimate detections
         const lastViolationAt = teamState.antiCheatLastViolationAt
@@ -564,7 +557,7 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 500) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1000) {
             return res.json({
                 action: "ignored",
                 reason: "brief_hidden_state",
@@ -585,10 +578,10 @@ router.post("/tab-switch", async (req, res) => {
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         
-        // BALANCED STRICT: Enhanced mobile detection with optimized thresholds
+        // STRICT: Enhanced mobile detection with higher thresholds to reduce false positives
         if (isMobile) {
             // For mobile, filter very brief durations that are likely UI interactions
-            if (hiddenDuration < 800) {
+            if (hiddenDuration < 1500) {
                 return res.json({
                     action: "ignored",
                     reason: "mobile_brief_duration",
@@ -596,9 +589,9 @@ router.post("/tab-switch", async (req, res) => {
                 });
             }
             
-            // iOS Safari: Optimized threshold
+            // iOS Safari: Higher threshold for better accuracy
             const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-            if (isIOS && hiddenDuration < 1000) {
+            if (isIOS && hiddenDuration < 1800) {
                 return res.json({
                     action: "ignored",
                     reason: "ios_safari_brief_duration", 

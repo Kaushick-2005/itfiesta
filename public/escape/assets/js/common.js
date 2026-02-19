@@ -8,7 +8,7 @@ var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 500; // BALANCED STRICT: 500ms - detects quick switches while reducing false positives
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1000; // STRICT: 1000ms (1 second) - reduces false positives from UI interactions
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -350,9 +350,9 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // Filter out browser dev tools and zoom operations
-  if (hiddenMs < 1000 && (source.includes('blur') && !source.includes('delayed'))) {
-    console.log('[TabDetect] Filtering potential dev tools/zoom operation:', hiddenMs, 'ms');
+  // Filter out browser dev tools, zoom operations, and accidental triggers
+  if (hiddenMs < 1500 && (source.includes('blur') && !source.includes('delayed'))) {
+    console.log('[TabDetect] Filtering potential dev tools/zoom/UI operation:', hiddenMs, 'ms');
     return false;
   }
 
@@ -365,12 +365,12 @@ function isLegitimateTabSwitch(hiddenMs, source) {
   // STRICT MOBILE DETECTION: Fine-tuned for better accuracy
   if (browserInfo.isMobile) {
     // Filter very brief mobile browser UI interactions
-    if (hiddenMs < 800 && source.includes('blur') && !source.includes('delayed')) {
+    if (hiddenMs < 1500 && source.includes('blur') && !source.includes('delayed')) {
       return false; // Filter immediate mobile blur events
     }
     
     // iOS Safari: Slightly more lenient but still strict
-    if (browserInfo.isIOS && hiddenMs < 1000 && source.includes('pagehide')) {
+    if (browserInfo.isIOS && hiddenMs < 1800 && source.includes('pagehide')) {
       return false; // iOS Safari pagehide filtering
     }
   }
@@ -512,27 +512,27 @@ function handlePageShow() {
 function setupMobileDetection() {
   console.log('[TabDetect] Setting up mobile-optimized detection');
   
-  // Mobile app switching detection - FAST BUT ACCURATE
+  // Mobile app switching detection - ACCURATE with reduced false positives
   if (browserInfo.isAndroid) {
-    // Android-specific handling - optimized delay
+    // Android-specific handling - conservative delay to reduce false positives
     window.addEventListener('blur', function() {
       setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('android_blur_delayed');
         }
-      }, 400); // Balanced delay: fast but avoids UI glitches
+      }, 800); // Conservative delay: reduces false positives from UI interactions
     });
   }
   
   if (browserInfo.isIOS) {
-    // iOS Safari-specific handling - FAST AND ACCURATE
+    // iOS Safari-specific handling - ACCURATE with minimal false positives
     var iosBlurTimeout;
     window.addEventListener('blur', function() {
       iosBlurTimeout = setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('ios_blur_delayed');
         }
-      }, 600); // Optimized for iOS Safari behavior
+      }, 1000); // Higher threshold to prevent false positives from iOS Safari UI
     });
     
     window.addEventListener('focus', function() {
