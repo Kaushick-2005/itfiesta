@@ -883,6 +883,12 @@ function disableScreenshots() {
   document.addEventListener('keydown', function(e) {
     var key = e.key ? e.key.toLowerCase() : '';
     var code = e.keyCode || e.which;
+    var isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    
+    // ALWAYS allow all keys in input fields for typing - exit early
+    if (isInputField) {
+      return;  // Don't interfere with input field interactions
+    }
     
     // Print Screen (Windows/Linux) - multiple codes
     if (key === 'printscreen' || code === 44 || code === 124) {
@@ -1049,19 +1055,21 @@ function disableTextCopy() {
     [draggable="true"], [onclick],
     .option, .option-label, .option-text,
     .draggable, .level2-item, .droppable, .drop-zone,
-    .answer, .drag-item {
+    .answer, .drag-item,
+    #level3-answer, #level4-answer, #level5-answer {
       -webkit-user-select: auto !important;
       -moz-user-select: auto !important;
       -ms-user-select: auto !important;
       user-select: auto !important;
       pointer-events: auto !important;
     }
-    /* Input fields need text selection */
+    /* Input fields need text selection and MUST be able to receive events */
     input, textarea {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
       user-select: text !important;
+      pointer-events: auto !important;
     }
     /* Make page content unselectable via CSS */
     ::selection {
@@ -1119,9 +1127,14 @@ function disableTextCopy() {
     var code = e.keyCode || e.which;
     var isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
     
+    // ALWAYS allow typing in input fields - exit early for all non-modifier keys
+    if (isInputField && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      return;  // Allow normal typing
+    }
+    
     // Ctrl+C or Cmd+C (Copy)
     if ((e.ctrlKey || e.metaKey) && (key === 'c' || code === 67)) {
-      if (isInputField) return true;
+      if (isInputField) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -1132,7 +1145,7 @@ function disableTextCopy() {
     
     // Ctrl+X or Cmd+X (Cut)
     if ((e.ctrlKey || e.metaKey) && (key === 'x' || code === 88)) {
-      if (isInputField) return true;
+      if (isInputField) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
@@ -1142,7 +1155,7 @@ function disableTextCopy() {
     
     // Ctrl+A or Cmd+A (Select All)
     if ((e.ctrlKey || e.metaKey) && (key === 'a' || code === 65)) {
-      if (isInputField) return true;
+      if (isInputField) return;
       e.preventDefault();
       e.stopPropagation();
       e.stopImmediatePropagation();
