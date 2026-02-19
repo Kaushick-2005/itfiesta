@@ -1,5 +1,11 @@
 /* Common JavaScript functions for NPTEL-style Proctored Exam
    Features: Full-screen enforcement, tab-switch detection, back-navigation lock, timer
+   
+   LOGOUT/LOGIN TAB SWITCH DETECTION:
+   - When user navigates away (logout), timestamp is persisted to localStorage
+   - On page load (login), system checks for previous tab leave timestamp
+   - If found for same team, penalty is applied for the logout/login duration
+   - This ensures users cannot bypass detection by logging out and back in
 */
 
 // Global flag to disable anti-cheat after submission
@@ -7,6 +13,8 @@ window.EXAM_SUBMITTED = false;
 var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
+var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
+var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
 var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1000; // STRICT: 1000ms (1 second) - reduces false positives from UI interactions
 
@@ -283,7 +291,16 @@ var tabLeaveStartedAt = 0;
 var tabLeaveReason = '';
 
 function markPotentialTabLeave(reason) {
-  if (window.EXAM_SUBMITTED || tabSwitchCooldown) return;
+  if (window.EXAM_SUBMITTED) {
+    // Clear localStorage on exam submission to avoid false penalties
+    try {
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    } catch (_) {}
+    return;
+  }
+  
+  if (tabSwitchCooldown) return;
   
   var now = Date.now();
   // Improved validation to reduce false positives
@@ -295,6 +312,16 @@ function markPotentialTabLeave(reason) {
     tabLeaveStartedAt = now;
     tabLeaveReason = String(reason || 'unknown');
     
+    // Persist to localStorage for logout/login detection
+    try {
+      var teamId = sessionStorage.getItem('teamId');
+      if (teamId) {
+        localStorage.setItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY, String(now));
+        localStorage.setItem(ESCAPE_TAB_LEAVE_TEAM_KEY, teamId);
+        console.log('[TabDetect] Persisted tab leave timestamp for logout/login tracking');
+      }
+    } catch (_) {}
+    
     console.log('[TabDetect] Page hidden:', reason, 'at', new Date(now).toISOString());
   }
 }
@@ -304,6 +331,12 @@ function handlePotentialTabReturn(source) {
 
   var now = Date.now();
   var hiddenDuration = now - detectionState.hideStartTime;
+  
+  // Clear localStorage timestamp
+  try {
+    localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+    localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+  } catch (_) {}
   
   // Reset detection state
   detectionState.isHidden = false;
@@ -446,12 +479,75 @@ function applyTabSwitchPenalty(hiddenMs) {
   });
 }
 
+// Check for logout/login tab switch on page load
+function checkLogoutLoginTabSwitch() {
+  try {
+    var tabLeaveTimestamp = localStorage.getItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+    var tabLeaveTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    var currentTeamId = sessionStorage.getItem('teamId');
+    
+    if (tabLeaveTimestamp && tabLeaveTeamId && currentTeamId && tabLeaveTeamId === currentTeamId) {
+      var now = Date.now();
+      var leaveTime = parseInt(tabLeaveTimestamp, 10);
+      var hiddenDuration = now - leaveTime;
+      
+      console.log('[TabDetect] Detected logout/login scenario');
+      console.log('[TabDetect] Tab was left at:', new Date(leaveTime).toISOString());
+      console.log('[TabDetect] Return detected at:', new Date(now).toISOString());
+      console.log('[TabDetect] Hidden duration:', hiddenDuration + 'ms');
+      
+      // Clear the stored timestamp
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+      
+      // Apply penalty if duration is significant
+      if (hiddenDuration >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY && hiddenDuration < 600000) {
+        console.log('[TabDetect] Applying penalty for logout/login tab switch');
+        
+        // Show immediate alert
+        setTimeout(function() {
+          try {
+            alert('TAB SWITCH DETECTED VIA LOGOUT/LOGIN!\n⏱️ Duration: ' + hiddenDuration + 'ms\n\n⏳ Processing penalty...');
+          } catch (_) {}
+        }, 500);
+        
+        // Apply penalty
+        notifyServerTabSwitch(hiddenDuration).then(function(data) {
+          if (data && data.action === 'penalty') {
+            var penaltyMessage = data.message || 
+              ('LOGOUT/LOGIN TAB SWITCH PENALTY!\n\n' +
+               '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
+               '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
+               '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
+               '⚠️ Logging out does not excuse tab switching!');
+            
+            setTimeout(function() {
+              try {
+                alert(penaltyMessage);
+              } catch (_) {}
+            }, 2000);
+          }
+        });
+      } else {
+        console.log('[TabDetect] Logout/login duration too brief or too long, ignoring');
+      }
+    } else {
+      console.log('[TabDetect] No previous tab leave detected or team mismatch');
+    }
+  } catch (e) {
+    console.error('[TabDetect] Error checking logout/login tab switch:', e);
+  }
+}
+
 function enableTabSwitchPenalty(){
   if (window.__ER_TAB_PENALTY_BOUND) return;
   window.__ER_TAB_PENALTY_BOUND = true;
 
   console.log('[TabDetect] Enhanced tab switch penalty system enabled');
   console.log('[TabDetect] Device Info:', browserInfo);
+  
+  // Check for logout/login tab switch detection
+  checkLogoutLoginTabSwitch();
   
   // Reset detection state
   detectionState.isHidden = false;
@@ -465,6 +561,14 @@ function enableTabSwitchPenalty(){
   // Secondary detection: Page lifecycle events for broader coverage
   window.addEventListener('pagehide', handlePageHide);
   window.addEventListener('pageshow', handlePageShow);
+  
+  // Beforeunload detection for navigation away (logout, etc.)
+  window.addEventListener('beforeunload', function(e) {
+    if (!window.EXAM_SUBMITTED && !detectionState.isHidden) {
+      markPotentialTabLeave('beforeunload_navigation');
+      console.log('[TabDetect] Navigation away detected (logout/close)');
+    }
+  });
   
   // Mobile-specific detection for app switching
   if (browserInfo.isMobile) {
