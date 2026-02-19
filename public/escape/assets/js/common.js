@@ -453,10 +453,14 @@ function enableTabSwitchPenalty(){
       handlePotentialTabReturn('window_focus');
     }
   });
+}
+
+// Notify backend of tab switch for penalty
+function notifyServerTabSwitch(hiddenMs){
   try {
     var teamId = sessionStorage.getItem('teamId');
     if (!teamId) {
-      console.warn('[TabDetect] No team ID found in session storage');
+      console.warn('[Common] No team ID found in session storage');
       return Promise.resolve({ error: 'No team ID' });
     }
     
@@ -464,7 +468,7 @@ function enableTabSwitchPenalty(){
     var base = getEscapeApiBase();
     var url = base + '/api/escape/tab-switch';
     
-    console.log('[TabDetect] Sending penalty request to:', url, 'for team:', teamId, 'duration:', hiddenMs + 'ms');
+    console.log('[Common] Sending penalty request to:', url, 'for team:', teamId, 'duration:', hiddenMs + 'ms');
     
     return fetch(url, { 
       method: 'POST', 
@@ -478,11 +482,11 @@ function enableTabSwitchPenalty(){
       return res.json();
     })
     .catch(function(err){ 
-      console.error('[TabDetect] Failed to notify server of tab switch:', err); 
+      console.error('[Common] Failed to notify server of tab switch:', err); 
       return { error: 'Network error: ' + err.message };
     });
   } catch (e) {
-    console.error('[TabDetect] Exception in notifyServerTabSwitch:', e);
+    console.error('[Common] Exception in notifyServerTabSwitch:', e);
     return Promise.resolve({ error: 'Exception: ' + e.message });
   }
 }
