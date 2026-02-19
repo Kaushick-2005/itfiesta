@@ -18,7 +18,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 500; // Detect tab switches after 500ms (was 300ms, but more reliable)
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 100; // ULTRA STRICT: Detect tab switches even for fractions of a second
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -309,6 +309,23 @@ function markPotentialTabLeave(reason) {
     return;
   }
   
+  // Get current team ID
+  var currentTeamId = sessionStorage.getItem('teamId');
+  if (!currentTeamId) {
+    console.warn('[TabDetect] No team ID in session - cannot track tab leave');
+    return;
+  }
+  
+  // CRITICAL: Clear any previous user's localStorage data to prevent contamination
+  try {
+    var storedTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    if (storedTeamId && storedTeamId !== currentTeamId) {
+      console.log('[TabDetect] Clearing previous user data - stored team:', storedTeamId, '!= current:', currentTeamId);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    }
+  } catch (_) {}
+  
   if (tabSwitchCooldown) {
     console.log('[TabDetect] Cooldown active, not marking new tab leave');
     return;
@@ -323,14 +340,11 @@ function markPotentialTabLeave(reason) {
     tabLeaveStartedAt = now;
     tabLeaveReason = String(reason || 'unknown');
     
-    // Persist to localStorage for logout/login detection
+    // Persist to localStorage ONLY for current team
     try {
-      var teamId = sessionStorage.getItem('teamId');
-      if (teamId) {
-        localStorage.setItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY, String(now));
-        localStorage.setItem(ESCAPE_TAB_LEAVE_TEAM_KEY, teamId);
-        console.log('[TabDetect] Persisted tab leave timestamp for team:', teamId);
-      }
+      localStorage.setItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY, String(now));
+      localStorage.setItem(ESCAPE_TAB_LEAVE_TEAM_KEY, currentTeamId);
+      console.log('[TabDetect] ✓ Persisted tab leave for team:', currentTeamId, 'at', new Date(now).toISOString());
     } catch (_) {}
     
     console.log('[TabDetect] ✓ TAB LEAVE MARKED - Page hidden at', new Date(now).toISOString());
@@ -355,10 +369,40 @@ function handlePotentialTabReturn(source) {
     return;
   }
 
+  // CRITICAL: Verify this is the SAME USER/TEAM before applying penalty
+  var currentTeamId = sessionStorage.getItem('teamId');
+  var storedTeamId = null;
+  try {
+    storedTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+  } catch (_) {}
+  
+  console.log('[TabDetect] Team validation - Current:', currentTeamId, 'Stored:', storedTeamId);
+  
+  // PREVENT CROSS-USER CONTAMINATION: Only proceed if team IDs match
+  if (storedTeamId && currentTeamId !== storedTeamId) {
+    console.warn('[TabDetect] ⚠️ CROSS-USER DETECTION PREVENTED!');
+    console.warn('[TabDetect] Stored team:', storedTeamId, '!== Current team:', currentTeamId);
+    console.warn('[TabDetect] This tab switch belongs to a DIFFERENT USER - ignoring');
+    
+    // Reset detection state to prevent false positives
+    detectionState.isHidden = false;
+    detectionState.hideStartTime = 0;
+    tabLeaveStartedAt = 0;
+    tabLeaveReason = '';
+    
+    // Clear the other user's data
+    try {
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    } catch (_) {}
+    
+    return; // Exit without penalty!
+  }
+
   var now = Date.now();
   var hiddenDuration = now - detectionState.hideStartTime;
   
-  // Clear localStorage timestamp
+  // Clear localStorage timestamp for current user
   try {
     localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
     localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
@@ -378,14 +422,14 @@ function handlePotentialTabReturn(source) {
     detectionState.pendingDetection = null;
   }
 
-  // IMPROVED VALIDATION: Stricter detection with better false positive filtering
+  // STRICT VALIDATION: Catch everything above minimum threshold
   if (!isLegitimateTabSwitch(hiddenDuration, source)) {
     console.log('[TabDetect] Not a legitimate tab switch, ignoring');
     return;
   }
 
-  // Reduce cooldown for quick consecutive detections but prevent spam
-  if (now - detectionState.lastDetectionTime < 1000) {
+  // Reduce cooldown to allow consecutive detections (strict mode)
+  if (now - detectionState.lastDetectionTime < 500) {
     console.log('[TabDetect] Too soon since last detection, ignoring');
     return;
   }
@@ -393,10 +437,11 @@ function handlePotentialTabReturn(source) {
   detectionState.lastDetectionTime = now;
   detectionState.detectionCount++;
   
-  console.log('[TabDetect] Legitimate tab switch detected:', {
+  console.log('[TabDetect] ✓ LEGITIMATE TAB SWITCH DETECTED:', {
     source: source,
     duration: hiddenDuration,
-    count: detectionState.detectionCount
+    count: detectionState.detectionCount,
+    team: currentTeamId
   });
 
   applyTabSwitchPenalty(hiddenDuration);
@@ -406,15 +451,9 @@ function handlePotentialTabReturn(source) {
 function isLegitimateTabSwitch(hiddenMs, source) {
   console.log('[TabDetect] Validating tab switch:', hiddenMs + 'ms', 'source:', source);
   
-  // Must be hidden for minimum duration
+  // ULTRA STRICT: Accept anything above minimum threshold
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
     console.log('[TabDetect] Too brief (<' + ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY + 'ms), ignoring');
-    return false;
-  }
-
-  // Filter extremely brief interruptions (permission dialogs)
-  if (hiddenMs < 400) {
-    console.log('[TabDetect] Filtering very brief interruption (permission dialog?):', hiddenMs, 'ms');
     return false;
   }
 
@@ -424,37 +463,27 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // VISIBILITY CHANGE is the most reliable - always accept it
-  if (source.includes('visibility')) {
-    console.log('[TabDetect] Visibility change detected - LEGITIMATE');
-    return true;
-  }
-
-  // PAGE HIDE/SHOW events are also reliable
-  if (source.includes('pagehide') || source.includes('pageshow')) {
-    console.log('[TabDetect] Page hide/show detected - LEGITIMATE');
-    return true;
-  }
-
-  // For mobile, filter only very brief blur events
-  if (browserInfo.isMobile && hiddenMs < 800 && source.includes('blur')) {
-    console.log('[TabDetect] Filtering mobile brief blur:', hiddenMs, 'ms');
-    return false;
-  }
-
-  // Otherwise, it's legitimate
-  console.log('[TabDetect] Tab switch validated as LEGITIMATE');
+  // STRICT MODE: Accept all visibility changes and page hide/show events
+  // No filtering - we want to catch everything
+  console.log('[TabDetect] Tab switch validated as LEGITIMATE (STRICT MODE)');
   return true;
 }
 
 function applyTabSwitchPenalty(hiddenMs) {
+  // CRITICAL: Verify team ID before applying penalty
+  var currentTeamId = sessionStorage.getItem('teamId');
+  if (!currentTeamId) {
+    console.error('[TabDetect] ⚠️ Cannot apply penalty - no team ID in session');
+    return;
+  }
+  
   if (tabSwitchRequestInFlight) {
     console.log('[TabDetect] Penalty request already in flight, skipping duplicate');
     return;
   }
 
   var now = Date.now();
-  if (now - tabSwitchLastSentAt < 2500) {
+  if (now - tabSwitchLastSentAt < 1500) {
     console.log('[TabDetect] Duplicate penalty attempt suppressed');
     return;
   }
@@ -463,8 +492,8 @@ function applyTabSwitchPenalty(hiddenMs) {
   tabSwitchRequestInFlight = true;
   tabSwitchCooldown = true;
 
-  // Process server penalty
-  console.log('[TabDetect] Notifying server of tab switch:', hiddenMs + 'ms');
+  // Process server penalty with team validation
+  console.log('[TabDetect] Notifying server of tab switch:', hiddenMs + 'ms', 'for team:', currentTeamId);
   
   notifyServerTabSwitch(hiddenMs).then(function(data) {
     console.log('[TabDetect] Server response:', data);
@@ -498,7 +527,7 @@ function applyTabSwitchPenalty(hiddenMs) {
     tabSwitchRequestInFlight = false;
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 2500);
+    }, 1500); // Reduced cooldown for strict mode
   });
 }
 
@@ -662,52 +691,50 @@ function handlePageShow() {
 }
 
 function setupMobileDetection() {
-  console.log('[TabDetect] Setting up mobile-optimized detection');
+  console.log('[TabDetect] Setting up mobile-optimized ULTRA-STRICT detection');
   
-  // Mobile app switching detection - ACCURATE with reduced false positives
+  // Mobile app switching detection - ULTRA-STRICT with immediate detection
   if (browserInfo.isAndroid) {
-    // Android-specific handling - conservative delay to reduce false positives
+    // Android-specific handling - IMMEDIATE detection
     window.addEventListener('blur', function() {
-      setTimeout(function() {
-        if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
-          markPotentialTabLeave('android_blur_delayed');
-        }
-      }, 800); // Conservative delay: reduces false positives from UI interactions
-    });
-  }
-  
-  if (browserInfo.isIOS) {
-    // iOS Safari-specific handling - ACCURATE with minimal false positives
-    var iosBlurTimeout;
-    window.addEventListener('blur', function() {
-      iosBlurTimeout = setTimeout(function() {
-        if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
-          markPotentialTabLeave('ios_blur_delayed');
-        }
-      }, 1000); // Higher threshold to prevent false positives from iOS Safari UI
+      console.log('[TabDetect] Android blur event detected');
+      // Ultra-strict: detect immediately without delay
+      if (!detectionState.isHidden) {
+        markPotentialTabLeave('android_blur_immediate');
+      }
     });
     
     window.addEventListener('focus', function() {
-      if (iosBlurTimeout) {
-        clearTimeout(iosBlurTimeout);
-        iosBlurTimeout = null;
+      console.log('[TabDetect] Android focus event detected');
+      if (detectionState.isHidden) {
+        handlePotentialTabReturn('android_focus_immediate');
       }
     });
   }
   
-  // Touch event handling (detect when user switches apps during touch)
-  var touchStartTime = 0;
-  document.addEventListener('touchstart', function() {
-    touchStartTime = Date.now();
-  });
+  if (browserInfo.isIOS) {
+    // iOS Safari-specific handling - ULTRA-STRICT with immediate detection
+    window.addEventListener('blur', function() {
+      console.log('[TabDetect] iOS blur event detected');
+      // Ultra-strict: detect immediately without delay
+      if (!detectionState.isHidden) {
+        markPotentialTabLeave('ios_blur_immediate');
+      }
+    });
+    
+    window.addEventListener('focus', function() {
+      console.log('[TabDetect] iOS focus event detected');
+      if (detectionState.isHidden) {
+        handlePotentialTabReturn('ios_focus_immediate');
+      }
+    });
+  }
   
-  document.addEventListener('touchend', function() {
-    // If touch duration was very long, user might have switched apps
-    var touchDuration = Date.now() - touchStartTime;
-    if (touchDuration > 3000 && document.visibilityState === 'hidden') {
-      console.log('[TabDetect] Long touch detected with hidden state');
-    }
-  });
+  // Mobile browsers rely primarily on visibilitychange event
+  // which is already set up in enableTabSwitchPenalty()
+  // The blur/focus events above provide additional coverage
+  
+  console.log('[TabDetect] Mobile detection ready - ultra-strict mode active');
 }
 
 function setupDesktopDetection() {
