@@ -413,6 +413,12 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
+  // Filter permission dialogs and system alerts (very brief interruptions)
+  if (hiddenMs < 500) {
+    console.log('[TabDetect] Filtering very brief interruption (permission dialog?):', hiddenMs, 'ms');
+    return false;
+  }
+
   // Filter out browser dev tools, zoom operations, and accidental triggers
   if (hiddenMs < 1500 && (source.includes('blur') && !source.includes('delayed'))) {
     console.log('[TabDetect] Filtering potential dev tools/zoom/UI operation:', hiddenMs, 'ms');
@@ -425,16 +431,23 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // STRICT MOBILE DETECTION: Fine-tuned for better accuracy
+  // MOBILE DETECTION: Filter permission dialogs and system alerts
   if (browserInfo.isMobile) {
+    // Filter permission dialogs (location, camera, notifications, etc.)
+    if (hiddenMs < 800) {
+      console.log('[TabDetect] Filtering mobile permission dialog or brief UI:', hiddenMs, 'ms');
+      return false; // Permission dialogs cause brief visibility changes
+    }
+    
     // Filter very brief mobile browser UI interactions
     if (hiddenMs < 1500 && source.includes('blur') && !source.includes('delayed')) {
       return false; // Filter immediate mobile blur events
     }
     
-    // iOS Safari: Slightly more lenient but still strict
-    if (browserInfo.isIOS && hiddenMs < 1800 && source.includes('pagehide')) {
-      return false; // iOS Safari pagehide filtering
+    // iOS Safari: Filter permission dialogs and system alerts
+    if (browserInfo.isIOS && hiddenMs < 2000 && source.includes('pagehide')) {
+      console.log('[TabDetect] Filtering iOS brief interruption:', hiddenMs, 'ms');
+      return false; // iOS Safari pagehide filtering for alerts/permissions
     }
   }
 
@@ -1031,16 +1044,24 @@ function disableTextCopy() {
       -webkit-touch-callout: none !important;
       -webkit-tap-highlight-color: transparent !important;
     }
-    /* Allow input fields to be selectable */
+    /* Allow interactive elements to function normally */
+    input, textarea, button, select, option, label,
+    [draggable="true"], [onclick],
+    .option, .option-label, .option-text,
+    .draggable, .level2-item, .droppable, .drop-zone,
+    .answer, .drag-item {
+      -webkit-user-select: auto !important;
+      -moz-user-select: auto !important;
+      -ms-user-select: auto !important;
+      user-select: auto !important;
+      pointer-events: auto !important;
+    }
+    /* Input fields need text selection */
     input, textarea {
       -webkit-user-select: text !important;
       -moz-user-select: text !important;
       -ms-user-select: text !important;
       user-select: text !important;
-    }
-    /* Prevent pointer events on non-interactive elements */
-    body > *:not(input):not(textarea):not(button):not(select) {
-      pointer-events: auto !important;
     }
     /* Make page content unselectable via CSS */
     ::selection {
@@ -1063,15 +1084,17 @@ function disableTextCopy() {
     document.head.appendChild(metaViewport);
   }
   
-  // Disable context menu (right-click) - STRICT
+  // Disable context menu (right-click) - SILENT (no annoying alerts)
   document.addEventListener('contextmenu', function(e) {
+    // Allow context menu on input fields for spell check, etc.
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      return;
+    }
     e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
     console.warn('[Security] Right-click disabled');
-    alert('⚠️ RIGHT-CLICK DISABLED\n\nContext menu is not available during the exam.');
+    // No alert - just prevent the menu silently
     return false;
-  }, true);
+  }, false);
   
   // Long press detection for mobile (alternative to right-click)
   if (browserInfo.isMobile) {
@@ -1226,49 +1249,114 @@ function disableTextCopy() {
   
   // Disable text selection via multiple methods
   document.addEventListener('selectstart', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      return true;
+    // ALLOW selection in input fields, textareas, and contenteditable
+    if (e.target.tagName === 'INPUT' || 
+        e.target.tagName === 'TEXTAREA' ||
+        e.target.isContentEditable) {
+      return true;  // Allow selection
     }
+    // Allow selection in exam interactive elements
+    if (e.target.closest('label') || 
+        e.target.closest('button') ||
+        e.target.closest('.option')) {
+      return true;  // Allow for quiz interactions
+    }
+    // Block text selection on static content
     e.preventDefault();
-    e.stopPropagation();
     return false;
-  }, true);
+  }, false);
   
-  // Disable mouse selection
+  // Allow normal clicking on interactive elements
   document.addEventListener('mousedown', function(e) {
-    // Don't interfere with buttons, inputs, or interactive elements
+    // ALLOW clicks on ALL interactive elements for exam functionality
     if (e.target.tagName === 'INPUT' || 
         e.target.tagName === 'TEXTAREA' || 
         e.target.tagName === 'BUTTON' ||
         e.target.tagName === 'SELECT' ||
+        e.target.tagName === 'LABEL' ||  // For radio/checkbox labels
+        e.target.tagName === 'OPTION' ||
+        e.target.tagName === 'A' ||      // Links
+        e.target.getAttribute('draggable') || // Draggable items
+        e.target.dataset.option ||       // Answer options
+        e.target.dataset.draggable ||    // Drag elements
+        e.target.classList.contains('draggable') ||
+        e.target.classList.contains('option') ||
+        e.target.classList.contains('answer') ||
+        e.target.classList.contains('droppable') ||
+        e.target.classList.contains('drop-zone') ||
+        e.target.classList.contains('level2-item') ||
+        e.target.classList.contains('option-label') ||
+        e.target.classList.contains('option-text') ||
         e.target.onclick ||
-        e.target.closest('button')) {
-      return true;
+        e.target.closest('button') ||
+        e.target.closest('label') ||     // Clicks inside labels
+        e.target.closest('[onclick]') || // Any element with onclick
+        e.target.closest('[draggable]') || // Draggable containers
+        e.target.closest('.option') ||   // Answer option containers
+        e.target.closest('.option-label') ||   // Level 1 option labels
+        e.target.closest('.draggable') ||
+        e.target.closest('.level2-item') ||
+        e.target.closest('.droppable')) {
+      return;  // Don't interfere - allow normal behavior
     }
-    // Prevent text selection on double-click
+    // Only prevent text selection on double-click for non-interactive content
     if (e.detail > 1) {
       e.preventDefault();
-      return false;
     }
-  }, true);
+  }, false);
   
-  // Disable drag and drop completely
+  // Allow drag and drop for exam elements ONLY
   document.addEventListener('dragstart', function(e) {
+    // ALLOW drag for exam elements (Level 2 drag-and-drop questions)
+    if (e.target.getAttribute('draggable') === 'true' ||
+        e.target.dataset.draggable ||
+        e.target.classList.contains('draggable') ||
+        e.target.classList.contains('drag-item') ||
+        e.target.classList.contains('level2-item') ||  // Level 2 specific
+        e.target.closest('[draggable="true"]') ||
+        e.target.closest('.draggable') ||
+        e.target.closest('.level2-item')) {
+      console.log('[Security] Allowing drag for exam element');
+      return;  // Allow exam drag-and-drop - don't interfere
+    }
+    // Block dragging of other content
     e.preventDefault();
-    e.stopPropagation();
     return false;
-  }, true);
+  }, false);
   
   document.addEventListener('drop', function(e) {
+    // ALLOW drop for exam elements
+    if (e.target.classList.contains('droppable') ||
+        e.target.classList.contains('drop-zone') ||
+        e.target.classList.contains('level2-item') ||  // Level 2 items are drop targets
+        e.target.dataset.droppable ||
+        e.target.closest('.droppable') ||
+        e.target.closest('.drop-zone') ||
+        e.target.closest('.level2-item')) {
+      console.log('[Security] Allowing drop for exam element');
+      // Don't call preventDefault here - let the exam handlers process it
+      return;  // Allow exam drag-and-drop - don't interfere
+    }
+    // Block dropping elsewhere
     e.preventDefault();
-    e.stopPropagation();
     return false;
-  }, true);
+  }, false);
   
   document.addEventListener('dragover', function(e) {
+    // ALLOW dragover for exam drop zones
+    if (e.target.classList.contains('droppable') ||
+        e.target.classList.contains('drop-zone') ||
+        e.target.classList.contains('level2-item') ||  // Level 2 items accept dragover
+        e.target.dataset.droppable ||
+        e.target.closest('.droppable') ||
+        e.target.closest('.drop-zone') ||
+        e.target.closest('.level2-item')) {
+      // Let the exam's own handler manage preventDefault
+      return;  // Allow exam drag-and-drop - don't interfere
+    }
     e.preventDefault();
     return false;
-  }, true);
+  }, false);
   
   // Disable selection in mobile browsers
   if (browserInfo.isMobile) {
