@@ -18,7 +18,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1000; // STRICT: 1000ms (1 second) - reduces false positives from UI interactions
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1500;
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -284,271 +284,43 @@ function disableAllInputs(){
   });
 }
 
-// Enhanced tab switching detection: PENALTY instead of elimination
-// Uses cooldown to prevent multiple triggers
+// Simple tab switching detection: PENALTY instead of elimination
 var tabSwitchCooldown = false;
 var tabLeaveStartedAt = 0;
 var tabLeaveReason = '';
-var tabSwitchRequestInFlight = false;
-var tabSwitchLastSentAt = 0;
 
-function markPotentialTabLeave(reason) {
-  console.log('[TabDetect] --- markPotentialTabLeave called ---');
-  console.log('[TabDetect] Reason:', reason);
-  console.log('[TabDetect] EXAM_SUBMITTED?:', window.EXAM_SUBMITTED);
-  console.log('[TabDetect] Cooldown active?:', tabSwitchCooldown);
-  console.log('[TabDetect] Already hidden?:', detectionState.isHidden);
-  
-  if (window.EXAM_SUBMITTED) {
-    // Clear localStorage on exam submission to avoid false penalties
-    try {
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    } catch (_) {}
-    console.log('[TabDetect] Exam submitted, not tracking tab leave');
-    return;
-  }
-  
-  // Get current team ID
-  var currentTeamId = sessionStorage.getItem('teamId');
-  if (!currentTeamId) {
-    console.warn('[TabDetect] No team ID in session - cannot track tab leave');
-    return;
-  }
-  
-  // CRITICAL: Clear any previous user's localStorage data to prevent contamination
-  try {
-    var storedTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    if (storedTeamId && storedTeamId !== currentTeamId) {
-      console.log('[TabDetect] Clearing previous user data - stored team:', storedTeamId, '!= current:', currentTeamId);
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    }
-  } catch (_) {}
-  
-  if (tabSwitchCooldown) {
-    console.log('[TabDetect] Cooldown active, not marking new tab leave');
-    return;
-  }
-  
-  var now = Date.now();
-
-  if (!detectionState.isHidden) {
-    detectionState.isHidden = true;
-    detectionState.hideStartTime = now;
-    ESCAPE_TAB_HIDDEN_SINCE = now;
-    tabLeaveStartedAt = now;
+function markPotentialTabLeave(reason){
+  if (window.EXAM_SUBMITTED) return;
+  if (!tabLeaveStartedAt) {
+    tabLeaveStartedAt = Date.now();
     tabLeaveReason = String(reason || 'unknown');
-    
-    // Persist to localStorage ONLY for current team
-    try {
-      localStorage.setItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY, String(now));
-      localStorage.setItem(ESCAPE_TAB_LEAVE_TEAM_KEY, currentTeamId);
-      console.log('[TabDetect] ✓ Persisted tab leave for team:', currentTeamId, 'at', new Date(now).toISOString());
-    } catch (_) {}
-    
-    console.log('[TabDetect] ✓ TAB LEAVE MARKED - Page hidden at', new Date(now).toISOString());
-  } else {
-    console.log('[TabDetect] Already marked as hidden, ignoring duplicate');
   }
 }
 
-function handlePotentialTabReturn(source) {
-  if (window.EXAM_SUBMITTED) {
-    console.log('[TabDetect] Exam submitted, ignoring return');
-    return;
-  }
-  
-  if (!detectionState.isHidden) {
-    console.log('[TabDetect] Page was not hidden, ignoring');
-    return;
-  }
+function handlePotentialTabReturn(source){
+  if (window.EXAM_SUBMITTED) return;
+  if (tabSwitchCooldown) return;
+  if (!tabLeaveStartedAt) return;
 
-  if (tabSwitchCooldown) {
-    console.log('[TabDetect] Cooldown active, ignoring this return');
-    return;
-  }
-
-  // CRITICAL: Verify this is the SAME USER/TEAM before applying penalty
-  var currentTeamId = sessionStorage.getItem('teamId');
-  var storedTeamId = null;
-  try {
-    storedTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-  } catch (_) {}
-  
-  console.log('[TabDetect] Team validation - Current:', currentTeamId, 'Stored:', storedTeamId);
-  
-  // PREVENT CROSS-USER CONTAMINATION: Only proceed if team IDs match
-  if (storedTeamId && currentTeamId !== storedTeamId) {
-    console.warn('[TabDetect] ⚠️ CROSS-USER DETECTION PREVENTED!');
-    console.warn('[TabDetect] Stored team:', storedTeamId, '!== Current team:', currentTeamId);
-    console.warn('[TabDetect] This tab switch belongs to a DIFFERENT USER - ignoring');
-    
-    // Reset detection state to prevent false positives
-    detectionState.isHidden = false;
-    detectionState.hideStartTime = 0;
-    tabLeaveStartedAt = 0;
-    tabLeaveReason = '';
-    
-    // Clear the other user's data
-    try {
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    } catch (_) {}
-    
-    return; // Exit without penalty!
-  }
-
-  var now = Date.now();
-  var hiddenDuration = now - detectionState.hideStartTime;
-  
-  // Clear localStorage timestamp for current user
-  try {
-    localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-    localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-  } catch (_) {}
-  
-  // Reset detection state
-  detectionState.isHidden = false;
-  detectionState.hideStartTime = 0;
+  var hiddenForMs = Math.max(0, Date.now() - tabLeaveStartedAt);
   tabLeaveStartedAt = 0;
   tabLeaveReason = '';
 
-  console.log('[TabDetect] Page visible:', source, 'hidden for', hiddenDuration + 'ms');
-
-  // Clear any pending detection
-  if (detectionState.pendingDetection) {
-    clearTimeout(detectionState.pendingDetection);
-    detectionState.pendingDetection = null;
-  }
-
-  // STRICT VALIDATION: Catch everything above minimum threshold
-  if (!isLegitimateTabSwitch(hiddenDuration, source)) {
-    console.log('[TabDetect] Not a legitimate tab switch, ignoring');
+  if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+    console.log('[Common] Ignoring brief hidden/blur state:', hiddenForMs, 'ms from', source);
     return;
   }
 
-  // Reduce cooldown for quick consecutive detections but prevent spam
-  if (now - detectionState.lastDetectionTime < 1000) {
-    console.log('[TabDetect] Too soon since last detection, ignoring');
-    return;
-  }
-
-  detectionState.lastDetectionTime = now;
-  detectionState.detectionCount++;
-  
-  console.log('[TabDetect] ✓ LEGITIMATE TAB SWITCH DETECTED:', {
-    source: source,
-    duration: hiddenDuration,
-    count: detectionState.detectionCount,
-    team: currentTeamId
-  });
-
-  applyTabSwitchPenalty(hiddenDuration);
-}
-
-// Validate if the detected event is likely a legitimate tab switch
-function isLegitimateTabSwitch(hiddenMs, source) {
-  console.log('[TabDetect] Validating tab switch:', hiddenMs + 'ms', 'source:', source);
-  
-  // BALANCED STRICT: Quick detection while filtering obvious false positives
-  if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
-    console.log('[TabDetect] Too brief (<' + ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY + 'ms), ignoring');
-    return false;
-  }
-
-  // Filter out browser dev tools, zoom operations, and accidental triggers
-  if (hiddenMs < 1500 && (source.includes('blur') && !source.includes('delayed'))) {
-    console.log('[TabDetect] Filtering potential dev tools/zoom/UI operation:', hiddenMs, 'ms');
-    return false;
-  }
-
-  // Too long - likely system sleep or phone lock
-  if (hiddenMs > 600000) { // 10 minutes
-    console.log('[TabDetect] Very long period, likely system issue:', hiddenMs);
-    return false;
-  }
-
-  // STRICT MOBILE DETECTION: Fine-tuned for better accuracy
-  if (browserInfo.isMobile) {
-    // Filter very brief mobile browser UI interactions
-    if (hiddenMs < 1500 && source.includes('blur') && !source.includes('delayed')) {
-      console.log('[TabDetect] Filtering mobile UI interaction');
-      return false; // Filter immediate mobile blur events
-    }
-
-    // iOS Safari: Slightly more lenient but still strict
-    if (browserInfo.isIOS && hiddenMs < 1800 && source.includes('pagehide')) {
-      console.log('[TabDetect] Filtering iOS Safari pagehide');
-      return false; // iOS Safari pagehide filtering
-    }
-  }
-
-  console.log('[TabDetect] Tab switch validated as LEGITIMATE');
-  return true;
-}
-
-function applyTabSwitchPenalty(hiddenMs) {
-  // CRITICAL: Verify team ID before applying penalty
-  var currentTeamId = sessionStorage.getItem('teamId');
-  if (!currentTeamId) {
-    console.error('[TabDetect] ⚠️ Cannot apply penalty - no team ID in session');
-    return;
-  }
-  
-  if (tabSwitchRequestInFlight) {
-    console.log('[TabDetect] Penalty request already in flight, skipping duplicate');
-    return;
-  }
-
-  var now = Date.now();
-  
-  // Single cooldown check: prevent duplicate requests within 1 second
-  if (now - tabSwitchLastSentAt < 1000) {
-    console.log('[TabDetect] Duplicate penalty attempt suppressed (too soon)');
-    return;
-  }
-
-  tabSwitchLastSentAt = now;
-  tabSwitchRequestInFlight = true;
+  console.log('[Common] Tab/app leave detected. reason=', source, 'hiddenForMs=', hiddenForMs);
   tabSwitchCooldown = true;
 
-  // Process server penalty with team validation
-  console.log('[TabDetect] Notifying server of tab switch:', hiddenMs + 'ms', 'for team:', currentTeamId);
-  
-  notifyServerTabSwitch(hiddenMs).then(function(data) {
-    console.log('[TabDetect] Server response:', data);
-    
+  notifyServerTabSwitch(hiddenForMs).then(function(data){
     if (data && data.action === 'penalty') {
-      // Show the actual penalty response from server
-      var penaltyMessage = data.message || 
-        ('TAB SWITCH PENALTY APPLIED!\n\n' +
-         '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
-         '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
-         '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
-         '⚠️ Stay focused on the exam!');
-      
-      // Show penalty details after short delay
-      setTimeout(function() {
-        try { 
-          alert(penaltyMessage); 
-        } catch (_) {}
-      }, 120);
-      
-    } else if (data && data.action === 'ignored') {
-      console.log('[TabDetect] Server ignored detection:', data.reason);
-    } else if (data && data.error) {
-      console.error('[TabDetect] Server error:', data.error);
-    } else {
-      console.warn('[TabDetect] Unexpected server response:', data);
+      queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
+      flushEscapePenaltyAlert();
     }
-  }).catch(function(err) {
-    console.error('[TabDetect] Server notification failed:', err);
-  }).finally(function() {
-    tabSwitchRequestInFlight = false;
-    setTimeout(function() { 
-      tabSwitchCooldown = false; 
-    }, 3000); // 3-second cooldown prevents duplicate triggers
+  }).finally(function(){
+    setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
   });
 }
 
@@ -633,225 +405,54 @@ function enableTabSwitchPenalty(){
   if (window.__ER_TAB_PENALTY_BOUND) return;
   window.__ER_TAB_PENALTY_BOUND = true;
 
-  console.log('[TabDetect] Enhanced tab switch penalty system enabled');
-  console.log('[TabDetect] Device Info:', browserInfo);
-  
-  // Check for logout/login tab switch detection
-  window.__ER_LOGOUT_LOGIN_CHECK_PROMISE = checkLogoutLoginTabSwitch();
-  
-  // Reset detection state
-  detectionState.isHidden = false;
-  detectionState.hideStartTime = 0;
-  detectionState.lastDetectionTime = 0;
-  detectionState.detectionCount = 0;
+  console.log('[Common] Tab switch penalty enabled');
+  document.addEventListener('visibilitychange', function(){
+    console.log('[Common] Visibility changed, state:', document.visibilityState);
+    // Skip if exam is already submitted
+    if (window.EXAM_SUBMITTED) {
+      console.log('[Common] Exam already submitted, skipping penalty');
+      return;
+    }
+    // Skip if cooldown active
+    if (tabSwitchCooldown) {
+      console.log('[Common] Cooldown active, skipping');
+      return;
+    }
 
-  // Primary detection: visibilitychange API (most reliable across all platforms)
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  
-  // Secondary detection: Page lifecycle events for broader coverage
-  window.addEventListener('pagehide', handlePageHide);
-  window.addEventListener('pageshow', handlePageShow);
-  
-  // Beforeunload detection for navigation away (logout, etc.)
-  window.addEventListener('beforeunload', function(e) {
-    if (!window.EXAM_SUBMITTED && !detectionState.isHidden) {
-      markPotentialTabLeave('beforeunload_navigation');
-      console.log('[TabDetect] Navigation away detected (logout/close)');
+    if (document.visibilityState === 'hidden'){
+      ESCAPE_TAB_HIDDEN_SINCE = Date.now();
+      markPotentialTabLeave('visibility_hidden');
+      return;
+    }
+
+    if (document.visibilityState === 'visible') {
+      var hiddenForMs = ESCAPE_TAB_HIDDEN_SINCE ? (Date.now() - ESCAPE_TAB_HIDDEN_SINCE) : 0;
+      ESCAPE_TAB_HIDDEN_SINCE = 0;
+
+      // Ignore very brief focus flickers (notification shade, quick app switch gestures, etc.)
+      if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+        console.log('[Common] Ignoring brief hidden state:', hiddenForMs, 'ms');
+      }
+
+      // Prefer visibility duration if available (most accurate)
+      if (hiddenForMs >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+        tabLeaveStartedAt = Date.now() - hiddenForMs;
+      }
+      handlePotentialTabReturn('visibility_visible');
     }
   });
-  
-  // Mobile-specific detection for app switching
-  if (browserInfo.isMobile) {
-    setupMobileDetection();
-  }
-  
-  // Desktop-specific detection with enhanced validation
-  if (browserInfo.isDesktop) {
-    setupDesktopDetection();
-  }
-  
-  // Cross-platform backup detection for edge cases
-  setupBackupDetection();
-}
 
-function handleVisibilityChange() {
-  var state = document.visibilityState;
-  console.log('[TabDetect] ========== VISIBILITY CHANGE ==========');
-  console.log('[TabDetect] New state:', state);
-  console.log('[TabDetect] Currently hidden?:', detectionState.isHidden);
-  console.log('[TabDetect] EXAM_SUBMITTED?:', window.EXAM_SUBMITTED);
-  
-  if (window.EXAM_SUBMITTED) {
-    console.log('[TabDetect] Exam submitted, ignoring visibility change');
-    return;
-  }
-
-  if (state === 'hidden') {
-    console.log('[TabDetect] >>> TAB SWITCH DETECTED: Page becoming HIDDEN');
-    markPotentialTabLeave('visibility_hidden');
-  } else if (state === 'visible') {
-    console.log('[TabDetect] >>> TAB RETURN: Page becoming VISIBLE');
-    handlePotentialTabReturn('visibility_visible');
-  }
-  
-  console.log('[TabDetect] =====================================');
-}
-
-function handlePageHide() {
-  if (!detectionState.isHidden) {
-    console.log('[TabDetect] Page hide event');
-    markPotentialTabLeave('pagehide');
-  }
-}
-
-function handlePageShow() {
-  if (detectionState.isHidden && document.visibilityState === 'visible') {
-    console.log('[TabDetect] Page show event');
-    handlePotentialTabReturn('pageshow');
-  }
-}
-
-function setupMobileDetection() {
-  console.log('[TabDetect] Setting up mobile-optimized ULTRA-STRICT detection');
-  
-  // Mobile app switching detection - ULTRA-STRICT with immediate detection
-  if (browserInfo.isAndroid) {
-    // Android-specific handling - IMMEDIATE detection
-    window.addEventListener('blur', function() {
-      console.log('[TabDetect] Android blur event detected');
-      // Ultra-strict: detect immediately without delay
-      if (!detectionState.isHidden) {
-        markPotentialTabLeave('android_blur_immediate');
-      }
-    });
-    
-    window.addEventListener('focus', function() {
-      console.log('[TabDetect] Android focus event detected');
-      if (detectionState.isHidden) {
-        handlePotentialTabReturn('android_focus_immediate');
-      }
-    });
-  }
-  
-  if (browserInfo.isIOS) {
-    // iOS Safari-specific handling - ULTRA-STRICT with immediate detection
-    window.addEventListener('blur', function() {
-      console.log('[TabDetect] iOS blur event detected');
-      // Ultra-strict: detect immediately without delay
-      if (!detectionState.isHidden) {
-        markPotentialTabLeave('ios_blur_immediate');
-      }
-    });
-    
-    window.addEventListener('focus', function() {
-      console.log('[TabDetect] iOS focus event detected');
-      if (detectionState.isHidden) {
-        handlePotentialTabReturn('ios_focus_immediate');
-      }
-    });
-  }
-  
-  // Mobile browsers rely primarily on visibilitychange event
-  // which is already set up in enableTabSwitchPenalty()
-  // The blur/focus events above provide additional coverage
-  
-  console.log('[TabDetect] Mobile detection ready - ultra-strict mode active');
-}
-
-function setupDesktopDetection() {
-  console.log('[TabDetect] Setting up desktop-optimized detection');
-  
-  var desktopBlurTimeout;
-  var focusRestoreTimeout;
-  
-  window.addEventListener('blur', function() {
-    // Clear any existing timeout
-    if (desktopBlurTimeout) {
-      clearTimeout(desktopBlurTimeout);
-    }
-    
-    desktopBlurTimeout = setTimeout(function() {
-      // Only mark as tab leave if page is still not hidden by visibility API
-      // and we haven't already detected it
-      if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
-        console.log('[TabDetect] Desktop blur timeout triggered');
-        markPotentialTabLeave('desktop_blur_delayed');
-      }
-    }, 200); // Fast desktop detection while avoiding dev tools false positives
-  });
-  
-  window.addEventListener('focus', function() {
-    // Clear blur timeout if focus returns quickly
-    if (desktopBlurTimeout) {
-      clearTimeout(desktopBlurTimeout);
-      desktopBlurTimeout = null;
-    }
-    
-    // Handle focus return with optimized delay
-    focusRestoreTimeout = setTimeout(function() {
-      if (detectionState.isHidden && document.visibilityState === 'visible') {
-        console.log('[TabDetect] Desktop focus return');
-        handlePotentialTabReturn('desktop_focus_delayed');
-      }
-    }, 100); // Fast focus restoration
-  });
-  
-  // Additional desktop-specific events
-  document.addEventListener('keydown', function(e) {
-    // Detect Alt+Tab, Ctrl+Tab, Windows key, etc.
-    if ((e.altKey && e.key === 'Tab') || (e.ctrlKey && e.key === 'Tab') || e.key === 'Meta') {
-      console.log('[TabDetect] Tab switching hotkey detected:', e.key);
-      // Mark potential but don't immediately trigger - wait for visibility change
-      setTimeout(function() {
-        if (document.visibilityState === 'hidden' && !detectionState.isHidden) {
-          markPotentialTabLeave('hotkey_tab_switch');
-        }
-      }, 100);
+  // Also trap window blur/focus for additional coverage
+  window.addEventListener('blur', function(){
+    if (!ESCAPE_TAB_HIDDEN_SINCE && !window.EXAM_SUBMITTED && !tabSwitchCooldown) {
+      markPotentialTabLeave('window_blur');
     }
   });
-}
-
-function setupBackupDetection() {
-  // Additional fallback detection for browsers with quirky behavior
-  var backupCheckInterval;
-  
-  function startBackupMonitoring() {
-    if (backupCheckInterval) return;
-    
-    backupCheckInterval = setInterval(function() {
-      // Check if page has been hidden for a while but not detected
-      if (document.visibilityState === 'hidden' && !detectionState.isHidden) {
-        console.log('[TabDetect] Backup detection: page hidden but not detected');
-        markPotentialTabLeave('backup_detection');
-      }
-      
-      // Check if page is visible but we think it's hidden
-      if (document.visibilityState === 'visible' && detectionState.isHidden) {
-        var hiddenDuration = Date.now() - detectionState.hideStartTime;
-        if (hiddenDuration > 1000) { // Match main detection threshold
-          console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
-          handlePotentialTabReturn('backup_visible_detection');
-        }
-      }
-    }, 1000); // More frequent checking for better responsiveness
-  }
-  
-  function stopBackupMonitoring() {
-    if (backupCheckInterval) {
-      clearInterval(backupCheckInterval);
-      backupCheckInterval = null;
+  window.addEventListener('focus', function(){
+    if (tabLeaveStartedAt && !window.EXAM_SUBMITTED && !tabSwitchCooldown) {
+      handlePotentialTabReturn('window_focus');
     }
-  }
-  
-  // Start backup monitoring when tab detection is enabled
-  startBackupMonitoring();
-  
-  // Stop monitoring when exam is completed
-  window.addEventListener('beforeunload', stopBackupMonitoring);
-}
-
-// Notify backend of tab switch for penalty
-function notifyServerTabSwitch(hiddenMs){
+  });
   try {
     var teamId = sessionStorage.getItem('teamId');
     if (!teamId) {
