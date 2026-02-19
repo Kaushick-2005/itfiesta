@@ -1,5 +1,9 @@
 // Level 2: Visual Drag & Drop (3 ordered questions, 4 minutes)
 document.addEventListener('DOMContentLoaded', function(){
+  // Enable strict tab switch detection and protections
+  if (window.ER && window.ER.enableFullExamProtections) window.ER.enableFullExamProtections();
+  if (window.ER && window.ER.detectFullScreenExit) window.ER.detectFullScreenExit();
+
   var teamId = sessionStorage.getItem('teamId');
   if (!teamId) { alert('Please start from main page'); window.location.href='../index.html'; return; }
   sessionStorage.setItem('currentLevel', '2');

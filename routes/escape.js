@@ -550,12 +550,9 @@ router.post("/tab-switch", async (req, res) => {
             });
         }
 
-        // Prevent rapid consecutive penalties (likely false positives or browser glitches)
-        const lastViolationAt = teamState.antiCheatLastViolationAt
-            ? new Date(teamState.antiCheatLastViolationAt).getTime()
-            : 0;
+        // Ultra-strict: Reduce cooldown for faster consecutive detection
         const timeSinceLastViolation = now - lastViolationAt;
-        if (timeSinceLastViolation < 8000) { // 8 seconds minimum between penalties
+        if (timeSinceLastViolation < 2000) { // 2 seconds minimum for ultra-strict mode
             return res.json({
                 action: "ignored",
                 reason: "rapid_consecutive_detection",
@@ -564,10 +561,10 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 2000) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 300) {
             return res.json({
                 action: "ignored",
-                reason: "brief_hidden_state",
+                reason: "ultra_brief_hidden_state",
                 hiddenMs: hiddenDuration
             });
         }
@@ -581,26 +578,27 @@ router.post("/tab-switch", async (req, res) => {
             });
         }
 
-        // Enhanced mobile detection: Be more strict for mobile browsers
+        // Enhanced mobile detection with ultra-strict thresholds
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         
+        // ULTRA STRICT: Enhanced mobile detection with reduced false negative filtering
         if (isMobile) {
-            // For mobile, require longer duration to avoid false positives from app switching
-            if (hiddenDuration < 3000) {
+            // For mobile, only ignore extremely brief durations (< 500ms)
+            if (hiddenDuration < 500) {
                 return res.json({
                     action: "ignored",
-                    reason: "mobile_short_duration",
+                    reason: "mobile_ultra_brief_duration",
                     hiddenMs: hiddenDuration
                 });
             }
             
-            // iOS Safari specific handling
+            // iOS Safari: Reduced threshold for stricter detection
             const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-            if (isIOS && hiddenDuration < 4000) {
+            if (isIOS && hiddenDuration < 800) {
                 return res.json({
                     action: "ignored",
-                    reason: "ios_safari_short_duration", 
+                    reason: "ios_safari_brief_duration", 
                     hiddenMs: hiddenDuration
                 });
             }

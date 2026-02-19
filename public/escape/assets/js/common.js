@@ -8,7 +8,7 @@ var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 2000; // Optimized threshold: 2 seconds
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 300; // ULTRA STRICT: 300ms - detects even fraction of second switches
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -322,8 +322,8 @@ function handlePotentialTabReturn(source) {
     return;
   }
 
-  // Prevent rapid consecutive detections
-  if (now - detectionState.lastDetectionTime < 8000) {
+  // Reduce cooldown for ultra-strict detection - allow faster consecutive detections
+  if (now - detectionState.lastDetectionTime < 2000) {
     console.log('[TabDetect] Too soon since last detection, ignoring');
     return;
   }
@@ -342,7 +342,7 @@ function handlePotentialTabReturn(source) {
 
 // Validate if the detected event is likely a legitimate tab switch
 function isLegitimateTabSwitch(hiddenMs, source) {
-  // Too short - likely browser UI interaction
+  // ULTRA STRICT: Even very short periods are considered legitimate tab switches
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
     return false;
   }
@@ -353,16 +353,16 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // Mobile-specific validation
+  // STRICT MOBILE DETECTION: Reduce false negative filtering for ultra-strict detection
   if (browserInfo.isMobile) {
-    // On mobile, short periods might be legitimate app switching
-    if (hiddenMs < 3000 && source.includes('blur')) {
-      return false; // Mobile blur events are unreliable
+    // Only ignore very brief blur events that are clearly browser UI interactions
+    if (hiddenMs < 500 && source.includes('blur')) {
+      return false; // Only ignore extremely brief mobile blur events
     }
     
-    // iOS Safari specific handling
-    if (browserInfo.isIOS && hiddenMs < 4000 && source.includes('pagehide')) {
-      return false; // iOS Safari fires pagehide inconsistently
+    // iOS Safari: Reduce threshold for stricter detection
+    if (browserInfo.isIOS && hiddenMs < 800 && source.includes('pagehide')) {
+      return false; // Reduced threshold for stricter iOS detection
     }
   }
 
@@ -384,7 +384,7 @@ function applyTabSwitchPenalty(hiddenMs) {
   }).finally(function() {
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 6000); // 6 second cooldown
+    }, 2000); // Reduced from 6s to 2s for ultra-strict consecutive detection
   });
 }
 
@@ -454,27 +454,27 @@ function handlePageShow() {
 function setupMobileDetection() {
   console.log('[TabDetect] Setting up mobile-optimized detection');
   
-  // Mobile app switching detection
+  // Mobile app switching detection - ULTRA STRICT
   if (browserInfo.isAndroid) {
-    // Android-specific handling
+    // Android-specific handling - reduced delay for stricter detection
     window.addEventListener('blur', function() {
       setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('android_blur_delayed');
         }
-      }, 800); // Longer delay for Android
+      }, 200); // Reduced from 800ms to 200ms
     });
   }
   
   if (browserInfo.isIOS) {
-    // iOS Safari-specific handling
+    // iOS Safari-specific handling - ULTRA STRICT
     var iosBlurTimeout;
     window.addEventListener('blur', function() {
       iosBlurTimeout = setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('ios_blur_delayed');
         }
-      }, 1200); // Even longer delay for iOS Safari
+      }, 300); // Reduced from 1200ms to 300ms for strict detection
     });
     
     window.addEventListener('focus', function() {
@@ -519,7 +519,7 @@ function setupDesktopDetection() {
         console.log('[TabDetect] Desktop blur timeout triggered');
         markPotentialTabLeave('desktop_blur_delayed');
       }
-    }, 300); // Short delay for desktop
+    }, 100); // Reduced from 300ms to 100ms for ultra-strict desktop detection
   });
   
   window.addEventListener('focus', function() {
@@ -529,13 +529,13 @@ function setupDesktopDetection() {
       desktopBlurTimeout = null;
     }
     
-    // Handle focus return with small delay to avoid race conditions
+    // Handle focus return with minimal delay for ultra-strict detection
     focusRestoreTimeout = setTimeout(function() {
       if (detectionState.isHidden && document.visibilityState === 'visible') {
         console.log('[TabDetect] Desktop focus return');
         handlePotentialTabReturn('desktop_focus_delayed');
       }
-    }, 50);
+    }, 20); // Reduced from 50ms to 20ms
   });
   
   // Additional desktop-specific events
@@ -570,12 +570,12 @@ function setupBackupDetection() {
       // Check if page is visible but we think it's hidden
       if (document.visibilityState === 'visible' && detectionState.isHidden) {
         var hiddenDuration = Date.now() - detectionState.hideStartTime;
-        if (hiddenDuration > 1000) { // If hidden for more than 1 second
+        if (hiddenDuration > 300) { // Reduced from 1000ms to 300ms for ultra-strict detection
           console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
           handlePotentialTabReturn('backup_visible_detection');
         }
       }
-    }, 2000); // Check every 2 seconds
+    }, 500); // Reduced from 2000ms to 500ms for more frequent checking
   }
   
   function stopBackupMonitoring() {
