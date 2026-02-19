@@ -7,23 +7,6 @@
    - If found for same team, penalty is applied for the logout/login duration
    - This ensures users cannot bypass detection by logging out and back in
    
-   ULTRA-STRICT COPY PROTECTION:
-   - CSS-based text selection disabled (user-select: none)
-   - Mobile touch-callout disabled
-   - Right-click context menu completely blocked
-   - Mobile long-press selection disabled
-   - All copy shortcuts blocked (Ctrl+C, Cmd+C, etc.)
-   - Cut shortcuts blocked (Ctrl+X, Cmd+X)
-   - Select-all blocked (Ctrl+A, Cmd+A)
-   - Drag selection prevented
-   - Mouse double-click selection blocked
-   - Copy/cut events intercepted with clipboard clearing
-   - Aggressive 1-second periodic clipboard clearing
-   - Mobile selectionchange monitoring
-   - Drag-and-drop completely disabled
-   - Input fields remain functional for answers
-   - Visual watermark overlay with team ID and timestamp
-   
    ALL PROTECTIONS AUTO-ENABLED via enableFullExamProtections()
 */
 
@@ -220,8 +203,6 @@ function ensureEscapeSessionStart() {
     console.warn('Escape start handler failed', e);
   }
 }
-
-document.addEventListener('DOMContentLoaded', ensureEscapeSessionStart);
 
 function getEliminatedPageUrl(){
   try {
@@ -495,73 +476,79 @@ function applyTabSwitchPenalty(hiddenMs) {
 
 // Check for logout/login tab switch on page load
 function checkLogoutLoginTabSwitch() {
-  try {
-    var tabLeaveTimestamp = localStorage.getItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-    var tabLeaveTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    var currentTeamId = sessionStorage.getItem('teamId');
-    
-    console.log('[TabDetect] Checking for previous tab leave...');
-    console.log('[TabDetect] Previous team:', tabLeaveTeamId, '| Current team:', currentTeamId);
-    
-    // CRITICAL: Always clear localStorage entries to prevent cross-user contamination
-    // This must happen BEFORE any penalty logic to ensure clean state for each login
-    var shouldApplyPenalty = false;
-    var hiddenDuration = 0;
-    
-    if (tabLeaveTimestamp && tabLeaveTeamId && currentTeamId) {
-      // Check if this is the SAME team returning (not a different user)
-      if (tabLeaveTeamId === currentTeamId) {
-        var now = Date.now();
-        var leaveTime = parseInt(tabLeaveTimestamp, 10);
-        hiddenDuration = now - leaveTime;
-        
-        console.log('[TabDetect] SAME TEAM detected - logout/login scenario');
-        console.log('[TabDetect] Tab was left at:', new Date(leaveTime).toISOString());
-        console.log('[TabDetect] Return detected at:', new Date(now).toISOString());
-        console.log('[TabDetect] Hidden duration:', hiddenDuration + 'ms');
-        
-        // Apply penalty if duration is significant
-        if (hiddenDuration >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY && hiddenDuration < 600000) {
-          shouldApplyPenalty = true;
+  return new Promise(function(resolve) {
+    try {
+      var tabLeaveTimestamp = localStorage.getItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      var tabLeaveTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+      var currentTeamId = sessionStorage.getItem('teamId');
+      
+      console.log('[TabDetect] Checking for previous tab leave...');
+      console.log('[TabDetect] Previous team:', tabLeaveTeamId, '| Current team:', currentTeamId);
+      
+      // CRITICAL: Always clear localStorage entries to prevent cross-user contamination
+      // This must happen BEFORE any penalty logic to ensure clean state for each login
+      var shouldApplyPenalty = false;
+      var hiddenDuration = 0;
+      
+      if (tabLeaveTimestamp && tabLeaveTeamId && currentTeamId) {
+        // Check if this is the SAME team returning (not a different user)
+        if (tabLeaveTeamId === currentTeamId) {
+          var now = Date.now();
+          var leaveTime = parseInt(tabLeaveTimestamp, 10);
+          hiddenDuration = now - leaveTime;
+          
+          console.log('[TabDetect] SAME TEAM detected - logout/login scenario');
+          console.log('[TabDetect] Tab was left at:', new Date(leaveTime).toISOString());
+          console.log('[TabDetect] Return detected at:', new Date(now).toISOString());
+          console.log('[TabDetect] Hidden duration:', hiddenDuration + 'ms');
+          
+          // Apply penalty if duration is significant
+          if (hiddenDuration >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY && hiddenDuration < 600000) {
+            shouldApplyPenalty = true;
+          }
+        } else {
+          console.log('[TabDetect] DIFFERENT TEAM - clearing previous user\'s data');
+          console.log('[TabDetect] Previous team:', tabLeaveTeamId, '!== Current team:', currentTeamId);
         }
       } else {
-        console.log('[TabDetect] DIFFERENT TEAM - clearing previous user\'s data');
-        console.log('[TabDetect] Previous team:', tabLeaveTeamId, '!== Current team:', currentTeamId);
+        console.log('[TabDetect] No previous tab leave detected or missing data');
       }
-    } else {
-      console.log('[TabDetect] No previous tab leave detected or missing data');
-    }
-    
-    // ALWAYS clear localStorage regardless of team match to prevent cross-contamination
-    localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-    localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-    console.log('[TabDetect] Cleared localStorage for fresh session');
-    
-    // Now apply penalty only if it was the same team
-    if (shouldApplyPenalty) {
-      console.log('[TabDetect] Applying penalty for logout/login tab switch');
+      
+      // ALWAYS clear localStorage regardless of team match to prevent cross-contamination
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+      console.log('[TabDetect] Cleared localStorage for fresh session');
+      
+      // Now apply penalty only if it was the same team
+      if (shouldApplyPenalty) {
+        console.log('[TabDetect] Applying penalty for logout/login tab switch');
 
-      // Apply penalty
-      notifyServerTabSwitch(hiddenDuration).then(function(data) {
-        if (data && data.action === 'penalty') {
-          var penaltyMessage = data.message || 
-            ('LOGOUT/LOGIN TAB SWITCH PENALTY!\n\n' +
-             '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
-             '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
-             '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
-             '⚠️ Logging out does not excuse tab switching!');
-          
-          setTimeout(function() {
-            try {
-              alert(penaltyMessage);
-            } catch (_) {}
-          }, 120);
-        }
-      });
+        notifyServerTabSwitch(hiddenDuration)
+          .then(function(data) {
+            if (data && data.action === 'penalty') {
+              var penaltyMessage = data.message || 
+                ('LOGOUT/LOGIN TAB SWITCH PENALTY!\n\n' +
+                 '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
+                 '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
+                 '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
+                 '⚠️ Logging out does not excuse tab switching!');
+              
+              setTimeout(function() {
+                try {
+                  alert(penaltyMessage);
+                } catch (_) {}
+              }, 120);
+            }
+          })
+          .finally(resolve);
+        return;
+      }
+    } catch (e) {
+      console.error('[TabDetect] Error checking logout/login tab switch:', e);
     }
-  } catch (e) {
-    console.error('[TabDetect] Error checking logout/login tab switch:', e);
-  }
+
+    resolve();
+  });
 }
 
 function enableTabSwitchPenalty(){
@@ -572,7 +559,7 @@ function enableTabSwitchPenalty(){
   console.log('[TabDetect] Device Info:', browserInfo);
   
   // Check for logout/login tab switch detection
-  checkLogoutLoginTabSwitch();
+  window.__ER_LOGOUT_LOGIN_CHECK_PROMISE = checkLogoutLoginTabSwitch();
   
   // Reset detection state
   detectionState.isHidden = false;
@@ -854,369 +841,6 @@ function disableScreenshots() {
   }, true);
 }
 
-// ==================== COPY PROTECTION ====================
-
-// Disable text selection and copy functionality - ULTRA STRICT
-function disableTextCopy() {
-  if (window.__ER_COPY_DISABLED) return;
-  window.__ER_COPY_DISABLED = true;
-  
-  console.log('[Security] Enabling STRICT copy protection');
-  
-  // COMPREHENSIVE CSS-based text selection blocking
-  var style = document.createElement('style');
-  style.id = 'no-select-style';
-  style.textContent = `
-    * {
-      -webkit-user-select: none !important;
-      -moz-user-select: none !important;
-      -ms-user-select: none !important;
-      user-select: none !important;
-      -webkit-touch-callout: none !important;
-      -webkit-tap-highlight-color: transparent !important;
-    }
-    /* Allow interactive elements to function normally */
-    input, textarea, button, select, option, label,
-    [draggable="true"], [onclick],
-    .option, .option-label, .option-text,
-    .draggable, .level2-item, .droppable, .drop-zone,
-    .answer, .drag-item,
-    #level3-answer, #level4-answer, #level5-answer {
-      -webkit-user-select: auto !important;
-      -moz-user-select: auto !important;
-      -ms-user-select: auto !important;
-      user-select: auto !important;
-      pointer-events: auto !important;
-    }
-    /* Input fields need text selection and MUST be able to receive events */
-    input, textarea {
-      -webkit-user-select: text !important;
-      -moz-user-select: text !important;
-      -ms-user-select: text !important;
-      user-select: text !important;
-      pointer-events: auto !important;
-    }
-    /* Make page content unselectable via CSS */
-    ::selection {
-      background: transparent !important;
-      color: inherit !important;
-    }
-    ::-moz-selection {
-      background: transparent !important;
-      color: inherit !important;
-    }
-  `;
-  document.head.appendChild(style);
-  
-  // Add meta tag to prevent selection on mobile
-  var metaViewport = document.querySelector('meta[name="viewport"]');
-  if (!metaViewport) {
-    metaViewport = document.createElement('meta');
-    metaViewport.name = 'viewport';
-    metaViewport.content = 'width=device-width, initial-scale=1.0, user-scalable=no';
-    document.head.appendChild(metaViewport);
-  }
-  
-  // Disable context menu (right-click) - SILENT (no annoying alerts)
-  document.addEventListener('contextmenu', function(e) {
-    // Allow context menu on input fields for spell check, etc.
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      return;
-    }
-    e.preventDefault();
-    console.warn('[Security] Right-click disabled');
-    // No alert - just prevent the menu silently
-    return false;
-  }, false);
-  
-  // Long press detection for mobile (alternative to right-click)
-  if (browserInfo.isMobile) {
-    var longPressTimer;
-    document.addEventListener('touchstart', function(e) {
-      longPressTimer = setTimeout(function() {
-        e.preventDefault();
-        e.stopPropagation();
-      }, 500);
-    }, true);
-    document.addEventListener('touchend', function() {
-      clearTimeout(longPressTimer);
-    }, true);
-    document.addEventListener('touchmove', function() {
-      clearTimeout(longPressTimer);
-    }, true);
-  }
-  
-  // COMPREHENSIVE keyboard shortcut blocking
-  document.addEventListener('keydown', function(e) {
-    var key = e.key ? e.key.toLowerCase() : '';
-    var code = e.keyCode || e.which;
-    var isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
-    
-    // ALWAYS allow typing in input fields - exit early for all non-modifier keys
-    if (isInputField && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      return;  // Allow normal typing
-    }
-    
-    // Ctrl+C or Cmd+C (Copy)
-    if ((e.ctrlKey || e.metaKey) && (key === 'c' || code === 67)) {
-      if (isInputField) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      console.warn('[Security] Copy blocked');
-      alert('⚠️ COPYING STRICTLY DISABLED\n\nText copying is not allowed.');
-      return false;
-    }
-    
-    // Ctrl+X or Cmd+X (Cut)
-    if ((e.ctrlKey || e.metaKey) && (key === 'x' || code === 88)) {
-      if (isInputField) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      console.warn('[Security] Cut blocked');
-      return false;
-    }
-    
-    // Ctrl+A or Cmd+A (Select All)
-    if ((e.ctrlKey || e.metaKey) && (key === 'a' || code === 65)) {
-      if (isInputField) return;
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      console.warn('[Security] Select all blocked');
-      return false;
-    }
-    
-    // Ctrl+V (Paste) - block from external sources
-    if ((e.ctrlKey || e.metaKey) && (key === 'v' || code === 86)) {
-      // Allow paste in input fields but monitor clipboard
-      if (!isInputField) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        return false;
-      }
-    }
-    
-    // Block Ctrl+Shift+V (paste without formatting)
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'v' || code === 86)) {
-      if (!isInputField) {
-        e.preventDefault();
-        e.stopPropagation();
-        return false;
-      }
-    }
-  }, true);
-  
-  // Intercept ALL copy events and aggressively clear clipboard
-  document.addEventListener('copy', function(e) {
-    // Allow copy from input fields
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      return true;
-    }
-    
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    
-    // Aggressively clear clipboard data
-    if (e.clipboardData) {
-      e.clipboardData.setData('text/plain', '');
-      e.clipboardData.setData('text/html', '');
-      e.clipboardData.setData('text/uri-list', '');
-      e.clipboardData.setData('text/csv', '');
-      e.clipboardData.setData('application/json', '');
-    }
-    
-    // Alternative method: clear system clipboard
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText('').catch(function() {});
-      }
-    } catch (_) {}
-    
-    console.warn('[Security] Copy blocked and clipboard cleared');
-    alert('⚠️ COPYING STRICTLY DISABLED\n\nText copying is not allowed during the exam.\nThis action has been logged.');
-    return false;
-  }, true);
-  
-  // Intercept cut events
-  document.addEventListener('cut', function(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      return true;
-    }
-    
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    
-    if (e.clipboardData) {
-      e.clipboardData.setData('text/plain', '');
-      e.clipboardData.setData('text/html', '');
-    }
-    
-    console.warn('[Security] Cut blocked and clipboard cleared');
-    return false;
-  }, true);
-  
-  // Intercept paste events (monitor what's being pasted)
-  document.addEventListener('paste', function(e) {
-    console.log('[Security] Paste event detected');
-    // Allow paste in input fields but log it
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-      console.log('[Security] Paste allowed in input field');
-      return true;
-    }
-    e.preventDefault();
-    e.stopPropagation();
-    return false;
-  }, true);
-  
-  // AGGRESSIVE periodic clipboard clearing
-  var clipboardClearInterval = setInterval(function() {
-    try {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText('').catch(function() {});
-      }
-    } catch (_) {}
-  }, 1000); // Clear every 1 second (more aggressive)
-  
-  // Store interval ID for potential cleanup
-  window.__ER_CLIPBOARD_CLEAR_INTERVAL = clipboardClearInterval;
-  
-  // Disable text selection via multiple methods
-  document.addEventListener('selectstart', function(e) {
-    // ALLOW selection in input fields, textareas, and contenteditable
-    if (e.target.tagName === 'INPUT' || 
-        e.target.tagName === 'TEXTAREA' ||
-        e.target.isContentEditable) {
-      return true;  // Allow selection
-    }
-    // Allow selection in exam interactive elements
-    if (e.target.closest('label') || 
-        e.target.closest('button') ||
-        e.target.closest('.option')) {
-      return true;  // Allow for quiz interactions
-    }
-    // Block text selection on static content
-    e.preventDefault();
-    return false;
-  }, false);
-  
-  // Allow normal clicking on interactive elements
-  document.addEventListener('mousedown', function(e) {
-    // ALLOW clicks on ALL interactive elements for exam functionality
-    if (e.target.tagName === 'INPUT' || 
-        e.target.tagName === 'TEXTAREA' || 
-        e.target.tagName === 'BUTTON' ||
-        e.target.tagName === 'SELECT' ||
-        e.target.tagName === 'LABEL' ||  // For radio/checkbox labels
-        e.target.tagName === 'OPTION' ||
-        e.target.tagName === 'A' ||      // Links
-        e.target.getAttribute('draggable') || // Draggable items
-        e.target.dataset.option ||       // Answer options
-        e.target.dataset.draggable ||    // Drag elements
-        e.target.classList.contains('draggable') ||
-        e.target.classList.contains('option') ||
-        e.target.classList.contains('answer') ||
-        e.target.classList.contains('droppable') ||
-        e.target.classList.contains('drop-zone') ||
-        e.target.classList.contains('level2-item') ||
-        e.target.classList.contains('option-label') ||
-        e.target.classList.contains('option-text') ||
-        e.target.onclick ||
-        e.target.closest('button') ||
-        e.target.closest('label') ||     // Clicks inside labels
-        e.target.closest('[onclick]') || // Any element with onclick
-        e.target.closest('[draggable]') || // Draggable containers
-        e.target.closest('.option') ||   // Answer option containers
-        e.target.closest('.option-label') ||   // Level 1 option labels
-        e.target.closest('.draggable') ||
-        e.target.closest('.level2-item') ||
-        e.target.closest('.droppable')) {
-      return;  // Don't interfere - allow normal behavior
-    }
-    // Only prevent text selection on double-click for non-interactive content
-    if (e.detail > 1) {
-      e.preventDefault();
-    }
-  }, false);
-  
-  // Allow drag and drop for exam elements ONLY
-  document.addEventListener('dragstart', function(e) {
-    // ALLOW drag for exam elements (Level 2 drag-and-drop questions)
-    if (e.target.getAttribute('draggable') === 'true' ||
-        e.target.dataset.draggable ||
-        e.target.classList.contains('draggable') ||
-        e.target.classList.contains('drag-item') ||
-        e.target.classList.contains('level2-item') ||  // Level 2 specific
-        e.target.closest('[draggable="true"]') ||
-        e.target.closest('.draggable') ||
-        e.target.closest('.level2-item')) {
-      console.log('[Security] Allowing drag for exam element');
-      return;  // Allow exam drag-and-drop - don't interfere
-    }
-    // Block dragging of other content
-    e.preventDefault();
-    return false;
-  }, false);
-  
-  document.addEventListener('drop', function(e) {
-    // ALLOW drop for exam elements
-    if (e.target.classList.contains('droppable') ||
-        e.target.classList.contains('drop-zone') ||
-        e.target.classList.contains('level2-item') ||  // Level 2 items are drop targets
-        e.target.dataset.droppable ||
-        e.target.closest('.droppable') ||
-        e.target.closest('.drop-zone') ||
-        e.target.closest('.level2-item')) {
-      console.log('[Security] Allowing drop for exam element');
-      // Don't call preventDefault here - let the exam handlers process it
-      return;  // Allow exam drag-and-drop - don't interfere
-    }
-    // Block dropping elsewhere
-    e.preventDefault();
-    return false;
-  }, false);
-  
-  document.addEventListener('dragover', function(e) {
-    // ALLOW dragover for exam drop zones
-    if (e.target.classList.contains('droppable') ||
-        e.target.classList.contains('drop-zone') ||
-        e.target.classList.contains('level2-item') ||  // Level 2 items accept dragover
-        e.target.dataset.droppable ||
-        e.target.closest('.droppable') ||
-        e.target.closest('.drop-zone') ||
-        e.target.closest('.level2-item')) {
-      // Let the exam's own handler manage preventDefault
-      return;  // Allow exam drag-and-drop - don't interfere
-    }
-    e.preventDefault();
-    return false;
-  }, false);
-  
-  // Disable selection in mobile browsers
-  if (browserInfo.isMobile) {
-    document.addEventListener('selectionchange', function() {
-      var selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        var range = selection.getRangeAt(0);
-        var container = range.commonAncestorContainer;
-        var element = container.nodeType === 1 ? container : container.parentElement;
-        
-        // Clear selection if not in input field
-        if (element && element.tagName !== 'INPUT' && element.tagName !== 'TEXTAREA') {
-          selection.removeAllRanges();
-          console.warn('[Security] Mobile text selection cleared');
-        }
-      }
-    });
-  }
-  
-  console.log('[Security] STRICT copy protection fully enabled');
-}
-
 // Add visual watermark to discourage screenshots
 function addSecurityWatermark() {
   if (window.__ER_WATERMARK_ADDED) return;
@@ -1270,9 +894,14 @@ function addSecurityWatermark() {
 // Auto-enable all anti-cheat protections
 function enableFullExamProtections() {
   enableTabSwitchPenalty();
+  var bootStart = window.__ER_LOGOUT_LOGIN_CHECK_PROMISE;
+  if (bootStart && typeof bootStart.finally === 'function') {
+    bootStart.finally(ensureEscapeSessionStart);
+  } else {
+    ensureEscapeSessionStart();
+  }
   preventBackNavigation();
   enableBeforeUnloadWarning();
-  disableTextCopy();
   addSecurityWatermark();
   startEscapeHeartbeat();
   requestFullScreen();
