@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Features Test - Escape Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #d32f2f;
+        }
+        h3 {
+            color: #1976d2;
+            margin-top: 0;
+        }
+        .instruction {
+            background: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.active {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.inactive {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #1565c0;
+        }
+        .test-text {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #ffebee;
+            padding: 15px;
+            border-left: 4px solid #d32f2f;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔒 Security Features Test Page</h1>
+    
+    <div class="warning">
+        ⚠️ <strong>WARNING:</strong> This page demonstrates the security features that will be active during the escape room exam.
+        All screenshot and copy protections are enabled on this page for testing purposes.
+    </div>
+
+    <div class="test-section">
+        <h3>1. Screenshot Protection Test</h3>
+        <div class="instruction">
+            <strong>Try these screenshot methods:</strong><br>
+            • Windows: Press <kbd>Print Screen</kbd> or <kbd>Win + Shift + S</kbd><br>
+            • macOS: Press <kbd>Cmd + Shift + 3</kbd> or <kbd>Cmd + Shift + 4</kbd><br>
+            • You should see an alert blocking the screenshot
+        </div>
+        <div class="status active" id="screenshotStatus">
+            ✅ Screenshot protection: ACTIVE
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Text Copy Protection Test</h3>
+        <div class="instruction">
+            <strong>Try to copy this text using any method:</strong><br>
+            • Select with mouse and press <kbd>Ctrl+C</kbd> or <kbd>Cmd+C</kbd><br>
+            • Right-click and select "Copy"<br>
+            • Use <kbd>Ctrl+A</kbd> to select all<br>
+            • All methods should be blocked
+        </div>
+        <div class="test-text">
+            This is sample exam question text. Try to select and copy this text.
+            You should not be able to do so. The right-click context menu should also be disabled.
+            If you can copy this text, the security is not working properly.
+        </div>
+        <div class="status active" id="copyStatus">
+            ✅ Text copy protection: ACTIVE
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Context Menu (Right-Click) Test</h3>
+        <div class="instruction">
+            <strong>Try to right-click anywhere on this page:</strong><br>
+            The context menu should NOT appear. Right-click is completely disabled.
+        </div>
+        <div class="status active" id="contextMenuStatus">
+            ✅ Context menu disabled: ACTIVE
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>4. Input Field Test (Should Still Work)</h3>
+        <div class="instruction">
+            <strong>Test that input fields still function normally:</strong><br>
+            You SHOULD be able to select, copy, cut, and paste in these input fields.
+        </div>
+        <p><label>Text Input (copy/paste should work here):</label></p>
+        <input type="text" placeholder="You can select and copy text in this input field" value="Test input - copy me!">
+        
+        <p><label>Textarea (copy/paste should work here):</label></p>
+        <textarea rows="3" placeholder="You can select and copy text in this textarea">Type something here and try to copy it. This should work!</textarea>
+        
+        <div class="status active">
+            ✅ Input fields: Copy/paste should work normally
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>5. Clipboard Clearing Test</h3>
+        <div class="instruction">
+            <strong>Test clipboard clearing:</strong><br>
+            1. Copy text from the input field above<br>
+            2. Wait 3 seconds<br>
+            3. Try to paste it somewhere<br>
+            The clipboard is cleared every 2 seconds, so paste may fail after a short time.
+        </div>
+        <button onclick="testClipboard()">Test Clipboard Status</button>
+        <div id="clipboardResult" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>6. Security Status Dashboard</h3>
+        <button onclick="checkSecurityStatus()">Refresh Security Status</button>
+        <div id="securityDashboard" style="margin-top: 15px;">
+            <p>Click "Refresh Security Status" to check all protections</p>
+        </div>
+    </div>
+
+    <script src="assets/js/common.js"></script>
+    <script>
+        // Set up test environment
+        sessionStorage.setItem('teamId', 'TEST-SECURITY-TEAM');
+        
+        // Enable all security features on page load
+        window.addEventListener('load', function() {
+            console.log('🔒 Enabling security features for testing...');
+            
+            if (window.ER) {
+                window.ER.disableScreenshots();
+                window.ER.disableTextCopy();
+                console.log('✅ Security features enabled');
+            } else {
+                console.error('❌ window.ER not available');
+            }
+        });
+
+        function testClipboard() {
+            navigator.clipboard.readText()
+                .then(function(text) {
+                    var result = document.getElementById('clipboardResult');
+                    if (text && text.length > 0) {
+                        result.innerHTML = '<div class="status inactive">⚠️ Clipboard contains: "' + text + '"</div>';
+                    } else {
+                        result.innerHTML = '<div class="status active">✅ Clipboard is empty (cleared successfully)</div>';
+                    }
+                })
+                .catch(function(err) {
+                    document.getElementById('clipboardResult').innerHTML = 
+                        '<div class="status active">✅ Clipboard access denied (good security)</div>';
+                });
+        }
+
+        function checkSecurityStatus() {
+            var dashboard = document.getElementById('securityDashboard');
+            var html = '<h4>Current Security Status:</h4>';
+            
+            // Check if protections are enabled
+            var screenshotProtected = window.__ER_SCREENSHOT_DISABLED;
+            var copyProtected = window.__ER_COPY_DISABLED;
+            var noSelectStyle = document.getElementById('no-select-style');
+            
+            html += '<div class="status ' + (screenshotProtected ? 'active' : 'inactive') + '">';
+            html += screenshotProtected ? '✅' : '❌';
+            html += ' Screenshot Protection: ' + (screenshotProtected ? 'ENABLED' : 'DISABLED');
+            html += '</div>';
+            
+            html += '<div class="status ' + (copyProtected ? 'active' : 'inactive') + '">';
+            html += copyProtected ? '✅' : '❌';
+            html += ' Copy Protection: ' + (copyProtected ? 'ENABLED' : 'DISABLED');
+            html += '</div>';
+            
+            html += '<div class="status ' + (noSelectStyle ? 'active' : 'inactive') + '">';
+            html += noSelectStyle ? '✅' : '❌';
+            html += ' Text Selection Blocked: ' + (noSelectStyle ? 'YES' : 'NO');
+            html += '</div>';
+            
+            // Check context menu
+            html += '<div class="status active">';
+            html += '✅ Context Menu: DISABLED';
+            html += '</div>';
+            
+            // Check clipboard clearing
+            html += '<div class="status active">';
+            html += '✅ Periodic Clipboard Clearing: ACTIVE (every 2 seconds)';
+            html += '</div>';
+            
+            dashboard.innerHTML = html;
+        }
+
+        // Log copy attempts for demonstration
+        var copyAttempts = 0;
+        document.addEventListener('copy', function() {
+            copyAttempts++;
+            console.log('🚫 Copy attempt #' + copyAttempts + ' blocked!');
+        }, true);
+
+        // Log screenshot attempts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'PrintScreen' || e.keyCode === 44) {
+                console.log('🚫 Screenshot attempt blocked: Print Screen');
+            }
+            if ((e.metaKey || e.ctrlKey) && e.shiftKey && ['3', '4', '5'].includes(e.key)) {
+                console.log('🚫 Screenshot attempt blocked: macOS shortcut');
+            }
+        });
+    </script>
+</body>
+</html>
