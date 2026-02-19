@@ -18,7 +18,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 300; // STRICT: detect even short tab/app switches
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 500; // Detect tab switches after 500ms (was 300ms, but more reliable)
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -293,16 +293,26 @@ var tabSwitchRequestInFlight = false;
 var tabSwitchLastSentAt = 0;
 
 function markPotentialTabLeave(reason) {
+  console.log('[TabDetect] --- markPotentialTabLeave called ---');
+  console.log('[TabDetect] Reason:', reason);
+  console.log('[TabDetect] EXAM_SUBMITTED?:', window.EXAM_SUBMITTED);
+  console.log('[TabDetect] Cooldown active?:', tabSwitchCooldown);
+  console.log('[TabDetect] Already hidden?:', detectionState.isHidden);
+  
   if (window.EXAM_SUBMITTED) {
     // Clear localStorage on exam submission to avoid false penalties
     try {
       localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
       localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
     } catch (_) {}
+    console.log('[TabDetect] Exam submitted, not tracking tab leave');
     return;
   }
   
-  if (tabSwitchCooldown) return;
+  if (tabSwitchCooldown) {
+    console.log('[TabDetect] Cooldown active, not marking new tab leave');
+    return;
+  }
   
   var now = Date.now();
 
@@ -319,16 +329,31 @@ function markPotentialTabLeave(reason) {
       if (teamId) {
         localStorage.setItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY, String(now));
         localStorage.setItem(ESCAPE_TAB_LEAVE_TEAM_KEY, teamId);
-        console.log('[TabDetect] Persisted tab leave timestamp for logout/login tracking');
+        console.log('[TabDetect] Persisted tab leave timestamp for team:', teamId);
       }
     } catch (_) {}
     
-    console.log('[TabDetect] Page hidden:', reason, 'at', new Date(now).toISOString());
+    console.log('[TabDetect] ✓ TAB LEAVE MARKED - Page hidden at', new Date(now).toISOString());
+  } else {
+    console.log('[TabDetect] Already marked as hidden, ignoring duplicate');
   }
 }
 
 function handlePotentialTabReturn(source) {
-  if (window.EXAM_SUBMITTED || tabSwitchCooldown || !detectionState.isHidden) return;
+  if (window.EXAM_SUBMITTED) {
+    console.log('[TabDetect] Exam submitted, ignoring return');
+    return;
+  }
+  
+  if (!detectionState.isHidden) {
+    console.log('[TabDetect] Page was not hidden, ignoring');
+    return;
+  }
+
+  if (tabSwitchCooldown) {
+    console.log('[TabDetect] Cooldown active, ignoring this return');
+    return;
+  }
 
   var now = Date.now();
   var hiddenDuration = now - detectionState.hideStartTime;
@@ -379,20 +404,17 @@ function handlePotentialTabReturn(source) {
 
 // Validate if the detected event is likely a legitimate tab switch
 function isLegitimateTabSwitch(hiddenMs, source) {
-  // BALANCED STRICT: Quick detection while filtering obvious false positives
+  console.log('[TabDetect] Validating tab switch:', hiddenMs + 'ms', 'source:', source);
+  
+  // Must be hidden for minimum duration
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+    console.log('[TabDetect] Too brief (<' + ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY + 'ms), ignoring');
     return false;
   }
 
-  // Filter permission dialogs and system alerts (very brief interruptions)
-  if (hiddenMs < 300) {
+  // Filter extremely brief interruptions (permission dialogs)
+  if (hiddenMs < 400) {
     console.log('[TabDetect] Filtering very brief interruption (permission dialog?):', hiddenMs, 'ms');
-    return false;
-  }
-
-  // Filter out browser dev tools, zoom operations, and accidental triggers
-  if (hiddenMs < 1500 && (source.includes('blur') && !source.includes('delayed'))) {
-    console.log('[TabDetect] Filtering potential dev tools/zoom/UI operation:', hiddenMs, 'ms');
     return false;
   }
 
@@ -402,20 +424,26 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // MOBILE DETECTION: keep strict detection for real visibility events,
-  // only filter known noisy mobile blur/pagehide edge-cases.
-  if (browserInfo.isMobile) {
-    if (hiddenMs < 1200 && source.includes('blur') && !source.includes('delayed')) {
-      console.log('[TabDetect] Filtering mobile blur UI interruption:', hiddenMs, 'ms');
-      return false;
-    }
-
-    if (browserInfo.isIOS && hiddenMs < 1200 && source.includes('pagehide')) {
-      console.log('[TabDetect] Filtering iOS pagehide brief interruption:', hiddenMs, 'ms');
-      return false;
-    }
+  // VISIBILITY CHANGE is the most reliable - always accept it
+  if (source.includes('visibility')) {
+    console.log('[TabDetect] Visibility change detected - LEGITIMATE');
+    return true;
   }
 
+  // PAGE HIDE/SHOW events are also reliable
+  if (source.includes('pagehide') || source.includes('pageshow')) {
+    console.log('[TabDetect] Page hide/show detected - LEGITIMATE');
+    return true;
+  }
+
+  // For mobile, filter only very brief blur events
+  if (browserInfo.isMobile && hiddenMs < 800 && source.includes('blur')) {
+    console.log('[TabDetect] Filtering mobile brief blur:', hiddenMs, 'ms');
+    return false;
+  }
+
+  // Otherwise, it's legitimate
+  console.log('[TabDetect] Tab switch validated as LEGITIMATE');
   return true;
 }
 
@@ -597,18 +625,26 @@ function enableTabSwitchPenalty(){
 }
 
 function handleVisibilityChange() {
-  console.log('[TabDetect] Visibility change:', document.visibilityState);
+  var state = document.visibilityState;
+  console.log('[TabDetect] ========== VISIBILITY CHANGE ==========');
+  console.log('[TabDetect] New state:', state);
+  console.log('[TabDetect] Currently hidden?:', detectionState.isHidden);
+  console.log('[TabDetect] EXAM_SUBMITTED?:', window.EXAM_SUBMITTED);
   
   if (window.EXAM_SUBMITTED) {
-    console.log('[TabDetect] Exam submitted, ignoring');
+    console.log('[TabDetect] Exam submitted, ignoring visibility change');
     return;
   }
 
-  if (document.visibilityState === 'hidden') {
+  if (state === 'hidden') {
+    console.log('[TabDetect] >>> TAB SWITCH DETECTED: Page becoming HIDDEN');
     markPotentialTabLeave('visibility_hidden');
-  } else if (document.visibilityState === 'visible') {
+  } else if (state === 'visible') {
+    console.log('[TabDetect] >>> TAB RETURN: Page becoming VISIBLE');
     handlePotentialTabReturn('visibility_visible');
   }
+  
+  console.log('[TabDetect] =====================================');
 }
 
 function handlePageHide() {
