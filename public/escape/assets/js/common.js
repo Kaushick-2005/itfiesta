@@ -8,7 +8,32 @@ var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 3000; // Increased from 1500ms to 3000ms to reduce false positives
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 2000; // Optimized threshold: 2 seconds
+
+// Enhanced detection state tracking
+var detectionState = {
+  isHidden: false,
+  hideStartTime: 0,
+  lastDetectionTime: 0,
+  pendingDetection: null,
+  detectionCount: 0
+};
+
+// Comprehensive browser and device detection
+var browserInfo = {
+  isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || ''),
+  isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent || ''),
+  isAndroid: /Android/.test(navigator.userAgent || ''),
+  isDesktop: !/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || ''),
+  browser: (function() {
+    var ua = navigator.userAgent || '';
+    if (ua.includes('Chrome')) return 'chrome';
+    if (ua.includes('Firefox')) return 'firefox';
+    if (ua.includes('Safari') && !ua.includes('Chrome')) return 'safari';
+    if (ua.includes('Edge')) return 'edge';
+    return 'other';
+  })()
+};
 
 function queueEscapePenaltyAlert(message) {
   if (!message) return;
@@ -251,177 +276,320 @@ function disableAllInputs(){
   });
 }
 
-// Tab switching detection: PENALTY instead of elimination
+// Enhanced tab switching detection: PENALTY instead of elimination
 // Uses cooldown to prevent multiple triggers
 var tabSwitchCooldown = false;
 var tabLeaveStartedAt = 0;
 var tabLeaveReason = '';
-var lastVisibilityChangeTime = 0;
-var consecutiveVisibilityChanges = 0;
-var visibilityChangeWindow = 5000; // 5 second window to detect rapid changes
 
-function markPotentialTabLeave(reason){
-  if (window.EXAM_SUBMITTED) return;
-  if (!tabLeaveStartedAt) {
-    tabLeaveStartedAt = Date.now();
+function markPotentialTabLeave(reason) {
+  if (window.EXAM_SUBMITTED || tabSwitchCooldown) return;
+  
+  var now = Date.now();
+  if (!detectionState.isHidden) {
+    detectionState.isHidden = true;
+    detectionState.hideStartTime = now;
+    tabLeaveStartedAt = now;
     tabLeaveReason = String(reason || 'unknown');
+    
+    console.log('[TabDetect] Page hidden:', reason, 'at', new Date(now).toISOString());
   }
 }
 
-function handlePotentialTabReturn(source){
-  if (window.EXAM_SUBMITTED) return;
-  if (tabSwitchCooldown) return;
-  if (!tabLeaveStartedAt) return;
+function handlePotentialTabReturn(source) {
+  if (window.EXAM_SUBMITTED || tabSwitchCooldown || !detectionState.isHidden) return;
 
-  var hiddenForMs = Math.max(0, Date.now() - tabLeaveStartedAt);
+  var now = Date.now();
+  var hiddenDuration = now - detectionState.hideStartTime;
+  
+  // Reset detection state
+  detectionState.isHidden = false;
+  detectionState.hideStartTime = 0;
   tabLeaveStartedAt = 0;
   tabLeaveReason = '';
 
-  // Ignore very brief hidden states (likely browser UI interactions)
-  if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
-    console.log('[Common] Ignoring brief hidden/blur state:', hiddenForMs, 'ms from', source);
+  console.log('[TabDetect] Page visible:', source, 'hidden for', hiddenDuration + 'ms');
+
+  // Clear any pending detection
+  if (detectionState.pendingDetection) {
+    clearTimeout(detectionState.pendingDetection);
+    detectionState.pendingDetection = null;
+  }
+
+  // Validate if this is a legitimate tab switch
+  if (!isLegitimateTabSwitch(hiddenDuration, source)) {
+    console.log('[TabDetect] Not a legitimate tab switch, ignoring');
     return;
   }
 
-  // Detect rapid visibility changes (possible browser glitch or dev tools)
-  var now = Date.now();
-  if (now - lastVisibilityChangeTime < visibilityChangeWindow) {
-    consecutiveVisibilityChanges++;
-    if (consecutiveVisibilityChanges > 3) {
-      console.log('[Common] Ignoring rapid visibility changes (browser behavior):', consecutiveVisibilityChanges);
-      return;
-    }
-  } else {
-    consecutiveVisibilityChanges = 1;
-  }
-  lastVisibilityChangeTime = now;
-
-  // Additional validation: Check if this is likely a legitimate tab switch
-  if (!validateLegitimateTabSwitch(hiddenForMs, source)) {
-    console.log('[Common] Tab switch validation failed, ignoring');
+  // Prevent rapid consecutive detections
+  if (now - detectionState.lastDetectionTime < 8000) {
+    console.log('[TabDetect] Too soon since last detection, ignoring');
     return;
   }
 
-  console.log('[Common] Tab/app leave detected. reason=', source, 'hiddenForMs=', hiddenForMs);
-  tabSwitchCooldown = true;
-
-  notifyServerTabSwitch(hiddenForMs).then(function(data){
-    if (data && data.action === 'penalty') {
-      queueEscapePenaltyAlert(data.message || 'Tab/App switch detected. Penalty applied.');
-      flushEscapePenaltyAlert();
-    }
-  }).finally(function(){
-    setTimeout(function(){ tabSwitchCooldown = false; }, 5000); // Increased cooldown to 5 seconds
+  detectionState.lastDetectionTime = now;
+  detectionState.detectionCount++;
+  
+  console.log('[TabDetect] Legitimate tab switch detected:', {
+    source: source,
+    duration: hiddenDuration,
+    count: detectionState.detectionCount
   });
+
+  applyTabSwitchPenalty(hiddenDuration);
 }
 
 // Validate if the detected event is likely a legitimate tab switch
-function validateLegitimateTabSwitch(hiddenMs, source) {
-  // Ignore very short periods (browser UI interactions)
+function isLegitimateTabSwitch(hiddenMs, source) {
+  // Too short - likely browser UI interaction
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
     return false;
   }
 
-  // Ignore extremely long periods (might be system sleep/hibernate)
-  if (hiddenMs > 300000) { // 5 minutes
-    console.log('[Common] Ignoring very long hidden period:', hiddenMs, 'ms - likely system sleep');
+  // Too long - likely system sleep or phone lock
+  if (hiddenMs > 600000) { // 10 minutes
+    console.log('[TabDetect] Very long period, likely system issue:', hiddenMs);
     return false;
   }
 
-  // For mobile devices, be more lenient with blur events
-  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  if (isMobile && source.includes('blur') && hiddenMs < 5000) {
-    console.log('[Common] Ignoring mobile blur event:', hiddenMs, 'ms');
-    return false;
+  // Mobile-specific validation
+  if (browserInfo.isMobile) {
+    // On mobile, short periods might be legitimate app switching
+    if (hiddenMs < 3000 && source.includes('blur')) {
+      return false; // Mobile blur events are unreliable
+    }
+    
+    // iOS Safari specific handling
+    if (browserInfo.isIOS && hiddenMs < 4000 && source.includes('pagehide')) {
+      return false; // iOS Safari fires pagehide inconsistently
+    }
   }
 
   return true;
+}
+
+function applyTabSwitchPenalty(hiddenMs) {
+  tabSwitchCooldown = true;
+  
+  notifyServerTabSwitch(hiddenMs).then(function(data) {
+    if (data && data.action === 'penalty') {
+      queueEscapePenaltyAlert(data.message || 'Tab switch detected. Penalty applied.');
+      flushEscapePenaltyAlert();
+    } else if (data && data.action === 'ignored') {
+      console.log('[TabDetect] Server ignored detection:', data.reason);
+    }
+  }).catch(function(err) {
+    console.error('[TabDetect] Server notification failed:', err);
+  }).finally(function() {
+    setTimeout(function() { 
+      tabSwitchCooldown = false; 
+    }, 6000); // 6 second cooldown
+  });
 }
 
 function enableTabSwitchPenalty(){
   if (window.__ER_TAB_PENALTY_BOUND) return;
   window.__ER_TAB_PENALTY_BOUND = true;
 
-  console.log('[Common] Tab switch penalty enabled');
+  console.log('[TabDetect] Enhanced tab switch penalty system enabled');
+  console.log('[TabDetect] Device Info:', browserInfo);
   
-  // Primary detection: visibilitychange (most reliable)
-  document.addEventListener('visibilitychange', function(){
-    console.log('[Common] Visibility changed, state:', document.visibilityState);
-    // Skip if exam is already submitted
-    if (window.EXAM_SUBMITTED) {
-      console.log('[Common] Exam already submitted, skipping penalty');
-      return;
-    }
-    // Skip if cooldown active
-    if (tabSwitchCooldown) {
-      console.log('[Common] Cooldown active, skipping');
-      return;
-    }
-    
-    if (document.visibilityState === 'hidden'){
-      ESCAPE_TAB_HIDDEN_SINCE = Date.now();
-      markPotentialTabLeave('visibility_hidden');
-      return;
-    }
+  // Reset detection state
+  detectionState.isHidden = false;
+  detectionState.hideStartTime = 0;
+  detectionState.lastDetectionTime = 0;
+  detectionState.detectionCount = 0;
 
-    if (document.visibilityState === 'visible') {
-      var hiddenForMs = ESCAPE_TAB_HIDDEN_SINCE ? (Date.now() - ESCAPE_TAB_HIDDEN_SINCE) : 0;
-      ESCAPE_TAB_HIDDEN_SINCE = 0;
+  // Primary detection: visibilitychange API (most reliable across all platforms)
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  // Secondary detection: Page lifecycle events for broader coverage
+  window.addEventListener('pagehide', handlePageHide);
+  window.addEventListener('pageshow', handlePageShow);
+  
+  // Mobile-specific detection for app switching
+  if (browserInfo.isMobile) {
+    setupMobileDetection();
+  }
+  
+  // Desktop-specific detection with enhanced validation
+  if (browserInfo.isDesktop) {
+    setupDesktopDetection();
+  }
+  
+  // Cross-platform backup detection for edge cases
+  setupBackupDetection();
+}
 
-      // Ignore very brief focus flickers (notification shade, quick app switch gestures, etc.)
-      if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
-        console.log('[Common] Ignoring brief hidden state:', hiddenForMs, 'ms');
-        return;
-      }
+function handleVisibilityChange() {
+  console.log('[TabDetect] Visibility change:', document.visibilityState);
+  
+  if (window.EXAM_SUBMITTED) {
+    console.log('[TabDetect] Exam submitted, ignoring');
+    return;
+  }
 
-      // Prefer visibility duration if available (most accurate)
-      if (hiddenForMs >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
-        tabLeaveStartedAt = Date.now() - hiddenForMs;
-      }
-      handlePotentialTabReturn('visibility_visible');
-    }
-  });
+  if (document.visibilityState === 'hidden') {
+    markPotentialTabLeave('visibility_hidden');
+  } else if (document.visibilityState === 'visible') {
+    handlePotentialTabReturn('visibility_visible');
+  }
+}
 
-  // Secondary detection: page lifecycle events (backup for older browsers)
-  window.addEventListener('pagehide', function(){
-    if (!document.hidden) { // Only if visibilitychange didn't already handle it
-      markPotentialTabLeave('pagehide');
-    }
-  });
+function handlePageHide() {
+  if (!detectionState.isHidden) {
+    console.log('[TabDetect] Page hide event');
+    markPotentialTabLeave('pagehide');
+  }
+}
 
-  window.addEventListener('pageshow', function(){
-    if (!document.hidden && document.visibilityState === 'visible') {
-      handlePotentialTabReturn('pageshow');
-    }
-  });
+function handlePageShow() {
+  if (detectionState.isHidden && document.visibilityState === 'visible') {
+    console.log('[TabDetect] Page show event');
+    handlePotentialTabReturn('pageshow');
+  }
+}
 
-  // Tertiary detection: blur/focus (only for desktop browsers, highly filtered)
-  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  if (!isMobile) {
-    var blurTimeout;
-    
-    window.addEventListener('blur', function(){
-      // Use a timeout to avoid false positives from temporary focus loss
-      blurTimeout = setTimeout(function(){
-        if (document.visibilityState !== 'hidden') {
-          markPotentialTabLeave('window_blur_delayed');
+function setupMobileDetection() {
+  console.log('[TabDetect] Setting up mobile-optimized detection');
+  
+  // Mobile app switching detection
+  if (browserInfo.isAndroid) {
+    // Android-specific handling
+    window.addEventListener('blur', function() {
+      setTimeout(function() {
+        if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
+          markPotentialTabLeave('android_blur_delayed');
         }
-      }, 500);
+      }, 800); // Longer delay for Android
     });
-
-    window.addEventListener('focus', function(){
-      // Clear the blur timeout if focus returns quickly
-      if (blurTimeout) {
-        clearTimeout(blurTimeout);
-        blurTimeout = null;
-      }
-      
-      // Only handle if not already handled by visibility change
-      if (document.visibilityState === 'visible' && tabLeaveStartedAt) {
-        handlePotentialTabReturn('window_focus');
+  }
+  
+  if (browserInfo.isIOS) {
+    // iOS Safari-specific handling
+    var iosBlurTimeout;
+    window.addEventListener('blur', function() {
+      iosBlurTimeout = setTimeout(function() {
+        if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
+          markPotentialTabLeave('ios_blur_delayed');
+        }
+      }, 1200); // Even longer delay for iOS Safari
+    });
+    
+    window.addEventListener('focus', function() {
+      if (iosBlurTimeout) {
+        clearTimeout(iosBlurTimeout);
+        iosBlurTimeout = null;
       }
     });
   }
+  
+  // Touch event handling (detect when user switches apps during touch)
+  var touchStartTime = 0;
+  document.addEventListener('touchstart', function() {
+    touchStartTime = Date.now();
+  });
+  
+  document.addEventListener('touchend', function() {
+    // If touch duration was very long, user might have switched apps
+    var touchDuration = Date.now() - touchStartTime;
+    if (touchDuration > 3000 && document.visibilityState === 'hidden') {
+      console.log('[TabDetect] Long touch detected with hidden state');
+    }
+  });
+}
+
+function setupDesktopDetection() {
+  console.log('[TabDetect] Setting up desktop-optimized detection');
+  
+  var desktopBlurTimeout;
+  var focusRestoreTimeout;
+  
+  window.addEventListener('blur', function() {
+    // Clear any existing timeout
+    if (desktopBlurTimeout) {
+      clearTimeout(desktopBlurTimeout);
+    }
+    
+    desktopBlurTimeout = setTimeout(function() {
+      // Only mark as tab leave if page is still not hidden by visibility API
+      // and we haven't already detected it
+      if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
+        console.log('[TabDetect] Desktop blur timeout triggered');
+        markPotentialTabLeave('desktop_blur_delayed');
+      }
+    }, 300); // Short delay for desktop
+  });
+  
+  window.addEventListener('focus', function() {
+    // Clear blur timeout if focus returns quickly
+    if (desktopBlurTimeout) {
+      clearTimeout(desktopBlurTimeout);
+      desktopBlurTimeout = null;
+    }
+    
+    // Handle focus return with small delay to avoid race conditions
+    focusRestoreTimeout = setTimeout(function() {
+      if (detectionState.isHidden && document.visibilityState === 'visible') {
+        console.log('[TabDetect] Desktop focus return');
+        handlePotentialTabReturn('desktop_focus_delayed');
+      }
+    }, 50);
+  });
+  
+  // Additional desktop-specific events
+  document.addEventListener('keydown', function(e) {
+    // Detect Alt+Tab, Ctrl+Tab, Windows key, etc.
+    if ((e.altKey && e.key === 'Tab') || (e.ctrlKey && e.key === 'Tab') || e.key === 'Meta') {
+      console.log('[TabDetect] Tab switching hotkey detected:', e.key);
+      // Mark potential but don't immediately trigger - wait for visibility change
+      setTimeout(function() {
+        if (document.visibilityState === 'hidden' && !detectionState.isHidden) {
+          markPotentialTabLeave('hotkey_tab_switch');
+        }
+      }, 100);
+    }
+  });
+}
+
+function setupBackupDetection() {
+  // Additional fallback detection for browsers with quirky behavior
+  var backupCheckInterval;
+  
+  function startBackupMonitoring() {
+    if (backupCheckInterval) return;
+    
+    backupCheckInterval = setInterval(function() {
+      // Check if page has been hidden for a while but not detected
+      if (document.visibilityState === 'hidden' && !detectionState.isHidden) {
+        console.log('[TabDetect] Backup detection: page hidden but not detected');
+        markPotentialTabLeave('backup_detection');
+      }
+      
+      // Check if page is visible but we think it's hidden
+      if (document.visibilityState === 'visible' && detectionState.isHidden) {
+        var hiddenDuration = Date.now() - detectionState.hideStartTime;
+        if (hiddenDuration > 1000) { // If hidden for more than 1 second
+          console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
+          handlePotentialTabReturn('backup_visible_detection');
+        }
+      }
+    }, 2000); // Check every 2 seconds
+  }
+  
+  function stopBackupMonitoring() {
+    if (backupCheckInterval) {
+      clearInterval(backupCheckInterval);
+      backupCheckInterval = null;
+    }
+  }
+  
+  // Start backup monitoring when tab detection is enabled
+  startBackupMonitoring();
+  
+  // Stop monitoring when exam is completed
+  window.addEventListener('beforeunload', stopBackupMonitoring);
 }
 
 // Notify backend of tab switch for penalty
@@ -565,11 +733,12 @@ window.ER.getTabSwitchDebugInfo = function() {
   return {
     cooldownActive: tabSwitchCooldown,
     currentlyHidden: document.visibilityState === 'hidden',
+    detectionState: detectionState,
+    browserInfo: browserInfo,
     hiddenSince: ESCAPE_TAB_HIDDEN_SINCE,
-    lastVisibilityChange: lastVisibilityChangeTime,
-    consecutiveChanges: consecutiveVisibilityChanges,
     tabLeaveTime: tabLeaveStartedAt,
-    examSubmitted: window.EXAM_SUBMITTED || false
+    examSubmitted: window.EXAM_SUBMITTED || false,
+    thresholdMs: ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY
   };
 };
 /* ======================================================

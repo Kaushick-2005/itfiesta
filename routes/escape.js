@@ -555,7 +555,7 @@ router.post("/tab-switch", async (req, res) => {
             ? new Date(teamState.antiCheatLastViolationAt).getTime()
             : 0;
         const timeSinceLastViolation = now - lastViolationAt;
-        if (timeSinceLastViolation < 10000) { // 10 seconds minimum between penalties
+        if (timeSinceLastViolation < 8000) { // 8 seconds minimum between penalties
             return res.json({
                 action: "ignored",
                 reason: "rapid_consecutive_detection",
@@ -564,7 +564,7 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 3000) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 2000) {
             return res.json({
                 action: "ignored",
                 reason: "brief_hidden_state",
@@ -573,12 +573,37 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         // Additional validation: ignore suspiciously long periods (system sleep/hibernate)
-        if (hiddenDuration > 300000) { // 5 minutes
+        if (hiddenDuration > 600000) { // 10 minutes
             return res.json({
                 action: "ignored", 
                 reason: "very_long_hidden_state_likely_system_sleep",
                 hiddenMs: hiddenDuration
             });
+        }
+
+        // Enhanced mobile detection: Be more strict for mobile browsers
+        const userAgent = req.headers['user-agent'] || '';
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+        
+        if (isMobile) {
+            // For mobile, require longer duration to avoid false positives from app switching
+            if (hiddenDuration < 3000) {
+                return res.json({
+                    action: "ignored",
+                    reason: "mobile_short_duration",
+                    hiddenMs: hiddenDuration
+                });
+            }
+            
+            // iOS Safari specific handling
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+            if (isIOS && hiddenDuration < 4000) {
+                return res.json({
+                    action: "ignored",
+                    reason: "ios_safari_short_duration", 
+                    hiddenMs: hiddenDuration
+                });
+            }
         }
         
         const team = await applyEscapeTabSwitchPenalty(team_id, "VISIBILITY_TAB_SWITCH");
