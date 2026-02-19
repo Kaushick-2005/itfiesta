@@ -18,7 +18,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 250; // STRICT: Fast detection while avoiding browser UI false positives
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1000; // STRICT: 1000ms (1 second) - reduces false positives from UI interactions
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -428,7 +428,12 @@ function handlePotentialTabReturn(source) {
     return;
   }
 
-  // Update tracking (removed consecutive detection block for strict mode)
+  // Reduce cooldown for quick consecutive detections but prevent spam
+  if (now - detectionState.lastDetectionTime < 1000) {
+    console.log('[TabDetect] Too soon since last detection, ignoring');
+    return;
+  }
+
   detectionState.lastDetectionTime = now;
   detectionState.detectionCount++;
   
@@ -446,9 +451,15 @@ function handlePotentialTabReturn(source) {
 function isLegitimateTabSwitch(hiddenMs, source) {
   console.log('[TabDetect] Validating tab switch:', hiddenMs + 'ms', 'source:', source);
   
-  // ULTRA STRICT: Accept anything above minimum threshold
+  // BALANCED STRICT: Quick detection while filtering obvious false positives
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
     console.log('[TabDetect] Too brief (<' + ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY + 'ms), ignoring');
+    return false;
+  }
+
+  // Filter out browser dev tools, zoom operations, and accidental triggers
+  if (hiddenMs < 1500 && (source.includes('blur') && !source.includes('delayed'))) {
+    console.log('[TabDetect] Filtering potential dev tools/zoom/UI operation:', hiddenMs, 'ms');
     return false;
   }
 
@@ -458,9 +469,22 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // STRICT MODE: Accept all visibility changes and page hide/show events
-  // No filtering - we want to catch everything
-  console.log('[TabDetect] Tab switch validated as LEGITIMATE (STRICT MODE)');
+  // STRICT MOBILE DETECTION: Fine-tuned for better accuracy
+  if (browserInfo.isMobile) {
+    // Filter very brief mobile browser UI interactions
+    if (hiddenMs < 1500 && source.includes('blur') && !source.includes('delayed')) {
+      console.log('[TabDetect] Filtering mobile UI interaction');
+      return false; // Filter immediate mobile blur events
+    }
+
+    // iOS Safari: Slightly more lenient but still strict
+    if (browserInfo.isIOS && hiddenMs < 1800 && source.includes('pagehide')) {
+      console.log('[TabDetect] Filtering iOS Safari pagehide');
+      return false; // iOS Safari pagehide filtering
+    }
+  }
+
+  console.log('[TabDetect] Tab switch validated as LEGITIMATE');
   return true;
 }
 
@@ -524,7 +548,7 @@ function applyTabSwitchPenalty(hiddenMs) {
     tabSwitchRequestInFlight = false;
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 1000); // Fast cooldown for strict detection
+    }, 3000); // 3-second cooldown prevents duplicate triggers
   });
 }
 
@@ -804,7 +828,7 @@ function setupBackupDetection() {
       // Check if page is visible but we think it's hidden
       if (document.visibilityState === 'visible' && detectionState.isHidden) {
         var hiddenDuration = Date.now() - detectionState.hideStartTime;
-        if (hiddenDuration > 250) { // Match main detection threshold
+        if (hiddenDuration > 1000) { // Match main detection threshold
           console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
           handlePotentialTabReturn('backup_visible_detection');
         }
