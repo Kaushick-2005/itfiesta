@@ -574,31 +574,8 @@ router.post("/tab-switch", async (req, res) => {
             });
         }
 
-        // Enhanced mobile detection with ultra-strict thresholds
-        const userAgent = req.headers['user-agent'] || '';
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-        
-        // STRICT: Enhanced mobile detection with higher thresholds to reduce false positives
-        if (isMobile) {
-            // For mobile, filter very brief durations that are likely UI interactions
-            if (hiddenDuration < 1500) {
-                return res.json({
-                    action: "ignored",
-                    reason: "mobile_brief_duration",
-                    hiddenMs: hiddenDuration
-                });
-            }
-            
-            // iOS Safari: Higher threshold for better accuracy
-            const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-            if (isIOS && hiddenDuration < 1800) {
-                return res.json({
-                    action: "ignored",
-                    reason: "ios_safari_brief_duration", 
-                    hiddenMs: hiddenDuration
-                });
-            }
-        }
+        // ZERO TOLERANCE: All tab switches penalized regardless of platform
+        // No special handling for mobile - crime is crime
         
         const team = await applyEscapeTabSwitchPenalty(team_id, "VISIBILITY_TAB_SWITCH");
         
