@@ -8,7 +8,7 @@ var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 1500;
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 3000; // Increased from 1500ms to 3000ms to reduce false positives
 
 function queueEscapePenaltyAlert(message) {
   if (!message) return;
@@ -256,6 +256,9 @@ function disableAllInputs(){
 var tabSwitchCooldown = false;
 var tabLeaveStartedAt = 0;
 var tabLeaveReason = '';
+var lastVisibilityChangeTime = 0;
+var consecutiveVisibilityChanges = 0;
+var visibilityChangeWindow = 5000; // 5 second window to detect rapid changes
 
 function markPotentialTabLeave(reason){
   if (window.EXAM_SUBMITTED) return;
@@ -274,8 +277,28 @@ function handlePotentialTabReturn(source){
   tabLeaveStartedAt = 0;
   tabLeaveReason = '';
 
+  // Ignore very brief hidden states (likely browser UI interactions)
   if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
     console.log('[Common] Ignoring brief hidden/blur state:', hiddenForMs, 'ms from', source);
+    return;
+  }
+
+  // Detect rapid visibility changes (possible browser glitch or dev tools)
+  var now = Date.now();
+  if (now - lastVisibilityChangeTime < visibilityChangeWindow) {
+    consecutiveVisibilityChanges++;
+    if (consecutiveVisibilityChanges > 3) {
+      console.log('[Common] Ignoring rapid visibility changes (browser behavior):', consecutiveVisibilityChanges);
+      return;
+    }
+  } else {
+    consecutiveVisibilityChanges = 1;
+  }
+  lastVisibilityChangeTime = now;
+
+  // Additional validation: Check if this is likely a legitimate tab switch
+  if (!validateLegitimateTabSwitch(hiddenForMs, source)) {
+    console.log('[Common] Tab switch validation failed, ignoring');
     return;
   }
 
@@ -288,8 +311,31 @@ function handlePotentialTabReturn(source){
       flushEscapePenaltyAlert();
     }
   }).finally(function(){
-    setTimeout(function(){ tabSwitchCooldown = false; }, 3000);
+    setTimeout(function(){ tabSwitchCooldown = false; }, 5000); // Increased cooldown to 5 seconds
   });
+}
+
+// Validate if the detected event is likely a legitimate tab switch
+function validateLegitimateTabSwitch(hiddenMs, source) {
+  // Ignore very short periods (browser UI interactions)
+  if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+    return false;
+  }
+
+  // Ignore extremely long periods (might be system sleep/hibernate)
+  if (hiddenMs > 300000) { // 5 minutes
+    console.log('[Common] Ignoring very long hidden period:', hiddenMs, 'ms - likely system sleep');
+    return false;
+  }
+
+  // For mobile devices, be more lenient with blur events
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile && source.includes('blur') && hiddenMs < 5000) {
+    console.log('[Common] Ignoring mobile blur event:', hiddenMs, 'ms');
+    return false;
+  }
+
+  return true;
 }
 
 function enableTabSwitchPenalty(){
@@ -297,6 +343,8 @@ function enableTabSwitchPenalty(){
   window.__ER_TAB_PENALTY_BOUND = true;
 
   console.log('[Common] Tab switch penalty enabled');
+  
+  // Primary detection: visibilitychange (most reliable)
   document.addEventListener('visibilitychange', function(){
     console.log('[Common] Visibility changed, state:', document.visibilityState);
     // Skip if exam is already submitted
@@ -323,6 +371,7 @@ function enableTabSwitchPenalty(){
       // Ignore very brief focus flickers (notification shade, quick app switch gestures, etc.)
       if (hiddenForMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
         console.log('[Common] Ignoring brief hidden state:', hiddenForMs, 'ms');
+        return;
       }
 
       // Prefer visibility duration if available (most accurate)
@@ -333,26 +382,46 @@ function enableTabSwitchPenalty(){
     }
   });
 
-  // Extra signals for browsers/devices where visibilitychange is unreliable.
-  window.addEventListener('blur', function(){
-    markPotentialTabLeave('window_blur');
-  });
-
-  window.addEventListener('focus', function(){
-    if (document.visibilityState !== 'hidden') {
-      handlePotentialTabReturn('window_focus');
-    }
-  });
-
+  // Secondary detection: page lifecycle events (backup for older browsers)
   window.addEventListener('pagehide', function(){
-    markPotentialTabLeave('pagehide');
+    if (!document.hidden) { // Only if visibilitychange didn't already handle it
+      markPotentialTabLeave('pagehide');
+    }
   });
 
   window.addEventListener('pageshow', function(){
-    if (document.visibilityState !== 'hidden') {
+    if (!document.hidden && document.visibilityState === 'visible') {
       handlePotentialTabReturn('pageshow');
     }
   });
+
+  // Tertiary detection: blur/focus (only for desktop browsers, highly filtered)
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (!isMobile) {
+    var blurTimeout;
+    
+    window.addEventListener('blur', function(){
+      // Use a timeout to avoid false positives from temporary focus loss
+      blurTimeout = setTimeout(function(){
+        if (document.visibilityState !== 'hidden') {
+          markPotentialTabLeave('window_blur_delayed');
+        }
+      }, 500);
+    });
+
+    window.addEventListener('focus', function(){
+      // Clear the blur timeout if focus returns quickly
+      if (blurTimeout) {
+        clearTimeout(blurTimeout);
+        blurTimeout = null;
+      }
+      
+      // Only handle if not already handled by visibility change
+      if (document.visibilityState === 'visible' && tabLeaveStartedAt) {
+        handlePotentialTabReturn('window_focus');
+      }
+    });
+  }
 }
 
 // Notify backend of tab switch for penalty
@@ -490,6 +559,19 @@ window.ER.startEscapeHeartbeat = startEscapeHeartbeat;
 window.ER.stopEscapeHeartbeat = stopEscapeHeartbeat;
 window.ER.requestFullScreen = requestFullScreen;
 window.ER.detectFullScreenExit = detectFullScreenExit;
+
+// Debug utility for monitoring tab switch behavior
+window.ER.getTabSwitchDebugInfo = function() {
+  return {
+    cooldownActive: tabSwitchCooldown,
+    currentlyHidden: document.visibilityState === 'hidden',
+    hiddenSince: ESCAPE_TAB_HIDDEN_SINCE,
+    lastVisibilityChange: lastVisibilityChangeTime,
+    consecutiveChanges: consecutiveVisibilityChanges,
+    tabLeaveTime: tabLeaveStartedAt,
+    examSubmitted: window.EXAM_SUBMITTED || false
+  };
+};
 /* ======================================================
    UNIFIED QUESTION NUMBERING SYSTEM
    Works for all levels - renders clickable question buttons

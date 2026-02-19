@@ -532,7 +532,7 @@ router.post("/tab-switch", async (req, res) => {
         const { team_id, hiddenMs } = req.body;
 
         const teamState = await Team.findOne({ teamId: team_id })
-            .select("teamId antiCheatTransitionGraceUntil")
+            .select("teamId antiCheatTransitionGraceUntil antiCheatLastViolationAt")
             .lean();
 
         if (!teamState) {
@@ -550,11 +550,33 @@ router.post("/tab-switch", async (req, res) => {
             });
         }
 
+        // Prevent rapid consecutive penalties (likely false positives or browser glitches)
+        const lastViolationAt = teamState.antiCheatLastViolationAt
+            ? new Date(teamState.antiCheatLastViolationAt).getTime()
+            : 0;
+        const timeSinceLastViolation = now - lastViolationAt;
+        if (timeSinceLastViolation < 10000) { // 10 seconds minimum between penalties
+            return res.json({
+                action: "ignored",
+                reason: "rapid_consecutive_detection",
+                timeSinceLastMs: timeSinceLastViolation
+            });
+        }
+
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 1500) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 3000) {
             return res.json({
                 action: "ignored",
                 reason: "brief_hidden_state",
+                hiddenMs: hiddenDuration
+            });
+        }
+
+        // Additional validation: ignore suspiciously long periods (system sleep/hibernate)
+        if (hiddenDuration > 300000) { // 5 minutes
+            return res.json({
+                action: "ignored", 
+                reason: "very_long_hidden_state_likely_system_sleep",
                 hiddenMs: hiddenDuration
             });
         }
