@@ -550,12 +550,12 @@ router.post("/tab-switch", async (req, res) => {
             });
         }
 
-        // Ultra-strict: Reduce cooldown for faster consecutive detection
+        // Balanced: Prevent spam while allowing quick consecutive legitimate detections
         const lastViolationAt = teamState.antiCheatLastViolationAt
             ? new Date(teamState.antiCheatLastViolationAt).getTime()
             : 0;
         const timeSinceLastViolation = now - lastViolationAt;
-        if (timeSinceLastViolation < 2000) { // 2 seconds minimum for ultra-strict mode
+        if (timeSinceLastViolation < 1500) { // 1.5 seconds minimum
             return res.json({
                 action: "ignored",
                 reason: "rapid_consecutive_detection",
@@ -564,10 +564,10 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         const hiddenDuration = Number(hiddenMs || 0);
-        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 300) {
+        if (Number.isFinite(hiddenDuration) && hiddenDuration > 0 && hiddenDuration < 500) {
             return res.json({
                 action: "ignored",
-                reason: "ultra_brief_hidden_state",
+                reason: "brief_hidden_state",
                 hiddenMs: hiddenDuration
             });
         }
@@ -585,20 +585,20 @@ router.post("/tab-switch", async (req, res) => {
         const userAgent = req.headers['user-agent'] || '';
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
         
-        // ULTRA STRICT: Enhanced mobile detection with reduced false negative filtering
+        // BALANCED STRICT: Enhanced mobile detection with optimized thresholds
         if (isMobile) {
-            // For mobile, only ignore extremely brief durations (< 500ms)
-            if (hiddenDuration < 500) {
+            // For mobile, filter very brief durations that are likely UI interactions
+            if (hiddenDuration < 800) {
                 return res.json({
                     action: "ignored",
-                    reason: "mobile_ultra_brief_duration",
+                    reason: "mobile_brief_duration",
                     hiddenMs: hiddenDuration
                 });
             }
             
-            // iOS Safari: Reduced threshold for stricter detection
+            // iOS Safari: Optimized threshold
             const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-            if (isIOS && hiddenDuration < 800) {
+            if (isIOS && hiddenDuration < 1000) {
                 return res.json({
                     action: "ignored",
                     reason: "ios_safari_brief_duration", 

@@ -8,7 +8,7 @@ var escapeHeartbeatTimer = null;
 var ESCAPE_HEARTBEAT_INTERVAL_MS = 4000;
 var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 300; // ULTRA STRICT: 300ms - detects even fraction of second switches
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 500; // BALANCED STRICT: 500ms - detects quick switches while reducing false positives
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -286,7 +286,10 @@ function markPotentialTabLeave(reason) {
   if (window.EXAM_SUBMITTED || tabSwitchCooldown) return;
   
   var now = Date.now();
-  if (!detectionState.isHidden) {
+  // Improved validation to reduce false positives
+  var isLikelyUserAction = !reason.includes('blur') || (reason.includes('delayed') && now - (detectionState.lastDetectionTime || 0) > 3000);
+  
+  if (!detectionState.isHidden && isLikelyUserAction) {
     detectionState.isHidden = true;
     detectionState.hideStartTime = now;
     tabLeaveStartedAt = now;
@@ -316,14 +319,14 @@ function handlePotentialTabReturn(source) {
     detectionState.pendingDetection = null;
   }
 
-  // Validate if this is a legitimate tab switch
+  // IMPROVED VALIDATION: Stricter detection with better false positive filtering
   if (!isLegitimateTabSwitch(hiddenDuration, source)) {
     console.log('[TabDetect] Not a legitimate tab switch, ignoring');
     return;
   }
 
-  // Reduce cooldown for ultra-strict detection - allow faster consecutive detections
-  if (now - detectionState.lastDetectionTime < 2000) {
+  // Reduce cooldown for quick consecutive detections but prevent spam
+  if (now - detectionState.lastDetectionTime < 1000) {
     console.log('[TabDetect] Too soon since last detection, ignoring');
     return;
   }
@@ -342,8 +345,14 @@ function handlePotentialTabReturn(source) {
 
 // Validate if the detected event is likely a legitimate tab switch
 function isLegitimateTabSwitch(hiddenMs, source) {
-  // ULTRA STRICT: Even very short periods are considered legitimate tab switches
+  // BALANCED STRICT: Quick detection while filtering obvious false positives
   if (hiddenMs < ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY) {
+    return false;
+  }
+
+  // Filter out browser dev tools and zoom operations
+  if (hiddenMs < 1000 && (source.includes('blur') && !source.includes('delayed'))) {
+    console.log('[TabDetect] Filtering potential dev tools/zoom operation:', hiddenMs, 'ms');
     return false;
   }
 
@@ -353,16 +362,16 @@ function isLegitimateTabSwitch(hiddenMs, source) {
     return false;
   }
 
-  // STRICT MOBILE DETECTION: Reduce false negative filtering for ultra-strict detection
+  // STRICT MOBILE DETECTION: Fine-tuned for better accuracy
   if (browserInfo.isMobile) {
-    // Only ignore very brief blur events that are clearly browser UI interactions
-    if (hiddenMs < 500 && source.includes('blur')) {
-      return false; // Only ignore extremely brief mobile blur events
+    // Filter very brief mobile browser UI interactions
+    if (hiddenMs < 800 && source.includes('blur') && !source.includes('delayed')) {
+      return false; // Filter immediate mobile blur events
     }
     
-    // iOS Safari: Reduce threshold for stricter detection
-    if (browserInfo.isIOS && hiddenMs < 800 && source.includes('pagehide')) {
-      return false; // Reduced threshold for stricter iOS detection
+    // iOS Safari: Slightly more lenient but still strict
+    if (browserInfo.isIOS && hiddenMs < 1000 && source.includes('pagehide')) {
+      return false; // iOS Safari pagehide filtering
     }
   }
 
@@ -372,10 +381,24 @@ function isLegitimateTabSwitch(hiddenMs, source) {
 function applyTabSwitchPenalty(hiddenMs) {
   tabSwitchCooldown = true;
   
+  // IMMEDIATE ALERT - Show alert first, then process server request
+  var alertMessage = 'TAB SWITCH DETECTED!\n\nPenalty Applied: -10 marks\nHidden Duration: ' + hiddenMs + 'ms\n\nStay focused on the exam!';
+  
+  // Show alert immediately for instant feedback
+  setTimeout(function() {
+    try { 
+      alert(alertMessage); 
+    } catch (_) {}
+  }, 50); // Minimal delay for UI consistency
+  
   notifyServerTabSwitch(hiddenMs).then(function(data) {
     if (data && data.action === 'penalty') {
-      queueEscapePenaltyAlert(data.message || 'Tab switch detected. Penalty applied.');
-      flushEscapePenaltyAlert();
+      // Update alert with server response if different
+      if (data.message && data.message !== alertMessage) {
+        setTimeout(function() {
+          try { alert(data.message); } catch (_) {}
+        }, 100);
+      }
     } else if (data && data.action === 'ignored') {
       console.log('[TabDetect] Server ignored detection:', data.reason);
     }
@@ -384,7 +407,7 @@ function applyTabSwitchPenalty(hiddenMs) {
   }).finally(function() {
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 2000); // Reduced from 6s to 2s for ultra-strict consecutive detection
+    }, 1500); // Reduced cooldown for faster detection
   });
 }
 
@@ -454,27 +477,27 @@ function handlePageShow() {
 function setupMobileDetection() {
   console.log('[TabDetect] Setting up mobile-optimized detection');
   
-  // Mobile app switching detection - ULTRA STRICT
+  // Mobile app switching detection - FAST BUT ACCURATE
   if (browserInfo.isAndroid) {
-    // Android-specific handling - reduced delay for stricter detection
+    // Android-specific handling - optimized delay
     window.addEventListener('blur', function() {
       setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('android_blur_delayed');
         }
-      }, 200); // Reduced from 800ms to 200ms
+      }, 400); // Balanced delay: fast but avoids UI glitches
     });
   }
   
   if (browserInfo.isIOS) {
-    // iOS Safari-specific handling - ULTRA STRICT
+    // iOS Safari-specific handling - FAST AND ACCURATE
     var iosBlurTimeout;
     window.addEventListener('blur', function() {
       iosBlurTimeout = setTimeout(function() {
         if (document.visibilityState !== 'hidden' && !detectionState.isHidden) {
           markPotentialTabLeave('ios_blur_delayed');
         }
-      }, 300); // Reduced from 1200ms to 300ms for strict detection
+      }, 600); // Optimized for iOS Safari behavior
     });
     
     window.addEventListener('focus', function() {
@@ -519,7 +542,7 @@ function setupDesktopDetection() {
         console.log('[TabDetect] Desktop blur timeout triggered');
         markPotentialTabLeave('desktop_blur_delayed');
       }
-    }, 100); // Reduced from 300ms to 100ms for ultra-strict desktop detection
+    }, 200); // Fast desktop detection while avoiding dev tools false positives
   });
   
   window.addEventListener('focus', function() {
@@ -529,13 +552,13 @@ function setupDesktopDetection() {
       desktopBlurTimeout = null;
     }
     
-    // Handle focus return with minimal delay for ultra-strict detection
+    // Handle focus return with optimized delay
     focusRestoreTimeout = setTimeout(function() {
       if (detectionState.isHidden && document.visibilityState === 'visible') {
         console.log('[TabDetect] Desktop focus return');
         handlePotentialTabReturn('desktop_focus_delayed');
       }
-    }, 20); // Reduced from 50ms to 20ms
+    }, 100); // Fast focus restoration
   });
   
   // Additional desktop-specific events
@@ -570,12 +593,12 @@ function setupBackupDetection() {
       // Check if page is visible but we think it's hidden
       if (document.visibilityState === 'visible' && detectionState.isHidden) {
         var hiddenDuration = Date.now() - detectionState.hideStartTime;
-        if (hiddenDuration > 300) { // Reduced from 1000ms to 300ms for ultra-strict detection
+        if (hiddenDuration > 500) { // Quick backup detection
           console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
           handlePotentialTabReturn('backup_visible_detection');
         }
       }
-    }, 500); // Reduced from 2000ms to 500ms for more frequent checking
+    }, 1000); // More frequent checking for better responsiveness
   }
   
   function stopBackupMonitoring() {
