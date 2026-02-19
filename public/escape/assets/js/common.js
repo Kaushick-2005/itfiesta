@@ -308,6 +308,8 @@ function disableAllInputs(){
 var tabSwitchCooldown = false;
 var tabLeaveStartedAt = 0;
 var tabLeaveReason = '';
+var tabSwitchRequestInFlight = false;
+var tabSwitchLastSentAt = 0;
 
 function markPotentialTabLeave(reason) {
   if (window.EXAM_SUBMITTED) {
@@ -437,18 +439,21 @@ function isLegitimateTabSwitch(hiddenMs, source) {
 }
 
 function applyTabSwitchPenalty(hiddenMs) {
+  if (tabSwitchRequestInFlight) {
+    console.log('[TabDetect] Penalty request already in flight, skipping duplicate');
+    return;
+  }
+
+  var now = Date.now();
+  if (now - tabSwitchLastSentAt < 2500) {
+    console.log('[TabDetect] Duplicate penalty attempt suppressed');
+    return;
+  }
+
+  tabSwitchLastSentAt = now;
+  tabSwitchRequestInFlight = true;
   tabSwitchCooldown = true;
-  
-  // Show immediate feedback alert
-  var immediateMessage = 'TAB SWITCH DETECTED!\n⏱️ Duration: ' + hiddenMs + 'ms\n\n⏳ Processing penalty...';
-  
-  // Show immediate alert
-  setTimeout(function() {
-    try { 
-      alert(immediateMessage); 
-    } catch (_) {}
-  }, 50);
-  
+
   // Process server penalty
   console.log('[TabDetect] Notifying server of tab switch:', hiddenMs + 'ms');
   
@@ -469,38 +474,22 @@ function applyTabSwitchPenalty(hiddenMs) {
         try { 
           alert(penaltyMessage); 
         } catch (_) {}
-      }, 1500);
+      }, 120);
       
     } else if (data && data.action === 'ignored') {
       console.log('[TabDetect] Server ignored detection:', data.reason);
-      // Show cancellation message if server ignored
-      setTimeout(function() {
-        try { 
-          alert('Tab switch detected but no penalty applied.\nReason: ' + (data.reason || 'Unknown')); 
-        } catch (_) {}
-      }, 1000);
     } else if (data && data.error) {
       console.error('[TabDetect] Server error:', data.error);
-      setTimeout(function() {
-        try { 
-          alert('Tab switch detected but penalty processing failed.\nError: ' + data.error); 
-        } catch (_) {}
-      }, 1000);
     } else {
       console.warn('[TabDetect] Unexpected server response:', data);
     }
   }).catch(function(err) {
     console.error('[TabDetect] Server notification failed:', err);
-    // Show error message to user
-    setTimeout(function() {
-      try { 
-        alert('Tab switch detected but server connection failed.\nPenalty may not be applied.\nError: ' + err.message); 
-      } catch (_) {}
-    }, 1000);
   }).finally(function() {
+    tabSwitchRequestInFlight = false;
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 1500);
+    }, 2500);
   });
 }
 
@@ -551,14 +540,7 @@ function checkLogoutLoginTabSwitch() {
     // Now apply penalty only if it was the same team
     if (shouldApplyPenalty) {
       console.log('[TabDetect] Applying penalty for logout/login tab switch');
-      
-      // Show immediate alert
-      setTimeout(function() {
-        try {
-          alert('TAB SWITCH DETECTED VIA LOGOUT/LOGIN!\n⏱️ Duration: ' + hiddenDuration + 'ms\n\n⏳ Processing penalty...');
-        } catch (_) {}
-      }, 500);
-      
+
       // Apply penalty
       notifyServerTabSwitch(hiddenDuration).then(function(data) {
         if (data && data.action === 'penalty') {
@@ -573,7 +555,7 @@ function checkLogoutLoginTabSwitch() {
             try {
               alert(penaltyMessage);
             } catch (_) {}
-          }, 2000);
+          }, 120);
         }
       });
     }
