@@ -18,7 +18,7 @@ var ESCAPE_PENDING_ALERT_KEY = 'escape_pending_alert_message';
 var ESCAPE_TAB_LEAVE_TIMESTAMP_KEY = 'escape_tab_leave_timestamp';
 var ESCAPE_TAB_LEAVE_TEAM_KEY = 'escape_tab_leave_team';
 var ESCAPE_TAB_HIDDEN_SINCE = 0;
-var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 100; // ULTRA STRICT: Detect tab switches even for fractions of a second
+var ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY = 250; // STRICT: Fast detection while avoiding browser UI false positives
 
 // Enhanced detection state tracking
 var detectionState = {
@@ -428,12 +428,7 @@ function handlePotentialTabReturn(source) {
     return;
   }
 
-  // Reduce cooldown to allow consecutive detections (strict mode)
-  if (now - detectionState.lastDetectionTime < 500) {
-    console.log('[TabDetect] Too soon since last detection, ignoring');
-    return;
-  }
-
+  // Update tracking (removed consecutive detection block for strict mode)
   detectionState.lastDetectionTime = now;
   detectionState.detectionCount++;
   
@@ -483,8 +478,10 @@ function applyTabSwitchPenalty(hiddenMs) {
   }
 
   var now = Date.now();
-  if (now - tabSwitchLastSentAt < 1500) {
-    console.log('[TabDetect] Duplicate penalty attempt suppressed');
+  
+  // Single cooldown check: prevent duplicate requests within 1 second
+  if (now - tabSwitchLastSentAt < 1000) {
+    console.log('[TabDetect] Duplicate penalty attempt suppressed (too soon)');
     return;
   }
 
@@ -527,7 +524,7 @@ function applyTabSwitchPenalty(hiddenMs) {
     tabSwitchRequestInFlight = false;
     setTimeout(function() { 
       tabSwitchCooldown = false; 
-    }, 1500); // Reduced cooldown for strict mode
+    }, 1000); // Fast cooldown for strict detection
   });
 }
 
@@ -807,7 +804,7 @@ function setupBackupDetection() {
       // Check if page is visible but we think it's hidden
       if (document.visibilityState === 'visible' && detectionState.isHidden) {
         var hiddenDuration = Date.now() - detectionState.hideStartTime;
-        if (hiddenDuration > 500) { // Quick backup detection
+        if (hiddenDuration > 250) { // Match main detection threshold
           console.log('[TabDetect] Backup detection: page visible but state thinks hidden');
           handlePotentialTabReturn('backup_visible_detection');
         }
