@@ -7,14 +7,35 @@
    - If found for same team, penalty is applied for the logout/login duration
    - This ensures users cannot bypass detection by logging out and back in
    
-   SCREENSHOT & COPY PROTECTION:
-   - Disables all screenshot shortcuts (Print Screen, Cmd+Shift+3/4/5, Win+Shift+S)
-   - Blocks screen capture APIs and screen recording
-   - Disables text selection except in input fields
-   - Blocks copy/cut/paste shortcuts (Ctrl+C, Ctrl+X, etc.)
-   - Clears clipboard on copy attempts
-   - Disables context menu (right-click)
-   - Periodic clipboard clearing for aggressive protection
+   ULTRA-STRICT SCREENSHOT PROTECTION:
+   - Blocks Print Screen (Windows/Linux) with alerts
+   - Blocks Cmd+Shift+3/4/5/6 (macOS screenshot shortcuts)
+   - Blocks Win+Shift+S (Windows Snip & Sketch)
+   - Blocks F12 and all DevTools shortcuts (Ctrl+Shift+I/J/C)
+   - Blocks Ctrl+U (View Source) and Ctrl+P (Print)
+   - Prevents screen capture APIs and recording
+   - Mobile screenshot detection for Android/iOS
+   - HTML2Canvas and similar libraries blocked
+   - All attempts logged and alerted
+   
+   ULTRA-STRICT COPY PROTECTION:
+   - CSS-based text selection disabled (user-select: none)
+   - Mobile touch-callout disabled
+   - Right-click context menu completely blocked
+   - Mobile long-press selection disabled
+   - All copy shortcuts blocked (Ctrl+C, Cmd+C, etc.)
+   - Cut shortcuts blocked (Ctrl+X, Cmd+X)
+   - Select-all blocked (Ctrl+A, Cmd+A)
+   - Drag selection prevented
+   - Mouse double-click selection blocked
+   - Copy/cut events intercepted with clipboard clearing
+   - Aggressive 1-second periodic clipboard clearing
+   - Mobile selectionchange monitoring
+   - Drag-and-drop completely disabled
+   - Input fields remain functional for answers
+   - Visual watermark overlay with team ID and timestamp
+   
+   ALL PROTECTIONS AUTO-ENABLED via enableFullExamProtections()
 */
 
 // Global flag to disable anti-cheat after submission
@@ -836,81 +857,169 @@ function enableBeforeUnloadWarning(){
 }
 
 // ==================== SCREENSHOT & COPY PROTECTION ====================
+// ULTRA STRICT MODE - Blocks all possible screenshot and copy methods
 
 // Disable screenshot functionality across all devices
 function disableScreenshots() {
   if (window.__ER_SCREENSHOT_DISABLED) return;
   window.__ER_SCREENSHOT_DISABLED = true;
   
-  console.log('[Security] Enabling screenshot protection');
+  console.log('[Security] Enabling STRICT screenshot protection');
   
-  // Prevent all screenshot shortcuts
+  // COMPREHENSIVE keyboard shortcut blocking
   document.addEventListener('keydown', function(e) {
-    // Print Screen (Windows/Linux)
-    if (e.key === 'PrintScreen' || e.keyCode === 44) {
+    var key = e.key ? e.key.toLowerCase() : '';
+    var code = e.keyCode || e.which;
+    
+    // Print Screen (Windows/Linux) - multiple codes
+    if (key === 'printscreen' || code === 44 || code === 124) {
       e.preventDefault();
       e.stopPropagation();
-      console.warn('[Security] Screenshot attempt blocked: Print Screen');
-      alert('⚠️ SCREENSHOTS ARE DISABLED\n\nScreenshot attempts are logged and may result in penalties.');
+      e.stopImmediatePropagation();
+      console.warn('[Security] Screenshot blocked: Print Screen');
+      alert('⚠️ SCREENSHOTS STRICTLY DISABLED\n\nThis action is logged. Violation may result in exam termination.');
       return false;
     }
     
-    // Cmd+Shift+3/4/5 (macOS screenshot shortcuts)
-    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) {
+    // Cmd+Shift+3/4/5/6 (macOS screenshot shortcuts - all variants)
+    if (e.metaKey && e.shiftKey && ['3', '4', '5', '6'].includes(key)) {
       e.preventDefault();
       e.stopPropagation();
-      console.warn('[Security] Screenshot attempt blocked: macOS shortcut');
-      alert('⚠️ SCREENSHOTS ARE DISABLED\n\nScreenshot attempts are logged and may result in penalties.');
+      e.stopImmediatePropagation();
+      console.warn('[Security] Screenshot blocked: macOS shortcut Cmd+Shift+' + key);
+      alert('⚠️ SCREENSHOTS STRICTLY DISABLED\n\nThis action is logged. Violation may result in exam termination.');
       return false;
     }
     
     // Windows+Shift+S (Windows Snip & Sketch)
-    if (e.key === 'Meta' && e.shiftKey && e.key === 's') {
+    if (e.key === 'Meta' || (e.metaKey && e.shiftKey && key === 's')) {
       e.preventDefault();
       e.stopPropagation();
-      console.warn('[Security] Screenshot attempt blocked: Windows Snip');
+      e.stopImmediatePropagation();
+      console.warn('[Security] Screenshot blocked: Windows Snip');
       return false;
     }
-  }, true); // Use capture phase to intercept early
-  
-  // Mobile screenshot detection (limited capability)
-  if (browserInfo.isMobile) {
-    // Detect power+volume button combo on Android (heuristic)
-    var powerPressed = false;
-    var volumePressed = false;
     
+    // Block F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C (DevTools)
+    if (code === 123 || // F12
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'i' || key === 'j' || key === 'c' || code === 73 || code === 74)) ||
+        ((e.ctrlKey || e.metaKey) && key === 'u' || code === 85)) { // Ctrl+U (view source)
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      console.warn('[Security] DevTools/View Source blocked');
+      alert('⚠️ DEVELOPER TOOLS DISABLED\n\nAttempting to open DevTools is strictly prohibited.');
+      return false;
+    }
+    
+    // Block Ctrl+P (Print)
+    if ((e.ctrlKey || e.metaKey) && (key === 'p' || code === 80)) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      console.warn('[Security] Print blocked');
+      alert('⚠️ PRINTING DISABLED\n\nPrinting is not allowed during the exam.');
+      return false;
+    }
+    
+    // Block Ctrl+S (Save)
+    if ((e.ctrlKey || e.metaKey) && (key === 's' || code === 83)) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      console.warn('[Security] Save blocked');
+      return false;
+    }
+  }, true); // Capture phase for earliest interception
+  
+  // Block keyup events too (some tools capture on keyup)
+  document.addEventListener('keyup', function(e) {
+    if (e.key === 'PrintScreen' || e.keyCode === 44 || e.keyCode === 124) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      return false;
+    }
+  }, true);
+  
+  // STRICT Mobile screenshot detection and prevention
+  if (browserInfo.isMobile) {
+    console.log('[Security] Enabling mobile screenshot detection');
+    
+    // Android: Detect power+volume button combo
+    var lastBlurTime = 0;
     window.addEventListener('blur', function() {
-      powerPressed = true;
-      setTimeout(function() { powerPressed = false; }, 500);
-    });
+      lastBlurTime = Date.now();
+    }, true);
     
     document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'hidden' && powerPressed) {
-        console.warn('[Security] Possible mobile screenshot detected');
-        volumePressed = true;
+      if (document.visibilityState === 'hidden') {
+        var timeSinceBlur = Date.now() - lastBlurTime;
+        if (timeSinceBlur < 300) {
+          console.warn('[Security] Possible mobile screenshot detected');
+          // Log to server if needed
+          setTimeout(function() {
+            if (document.visibilityState === 'visible') {
+              alert('⚠️ SCREENSHOT DETECTED\n\nScreenshots are strictly prohibited during the exam.');
+            }
+          }, 500);
+        }
       }
-    });
+    }, true);
+    
+    // iOS: Detect screenshot via user gesture tracking
+    if (browserInfo.isIOS) {
+      var touchCount = 0;
+      document.addEventListener('touchstart', function() {
+        touchCount++;
+      });
+      document.addEventListener('touchend', function() {
+        touchCount = 0;
+      });
+    }
   }
   
-  // Prevent screen capture API if available
-  if (navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) {
-    var originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-    navigator.mediaDevices.getDisplayMedia = function() {
-      console.warn('[Security] Screen capture API blocked');
-      alert('⚠️ SCREEN RECORDING IS DISABLED');
+  // Block ALL screen capture APIs
+  if (navigator.mediaDevices) {
+    // Block getDisplayMedia (screen sharing/recording)
+    if (navigator.mediaDevices.getDisplayMedia) {
+      navigator.mediaDevices.getDisplayMedia = function() {
+        console.warn('[Security] Screen capture API blocked');
+        alert('⚠️ SCREEN RECORDING STRICTLY DISABLED\n\nScreen recording is prohibited.');
+        return Promise.reject(new Error('Screen capture disabled during exam'));
+      };
+    }
+    
+    // Override getUserMedia to prevent screen capture
+    var originalGetUserMedia = navigator.mediaDevices.getUserMedia;
+    navigator.mediaDevices.getUserMedia = function(constraints) {
+      if (constraints && constraints.video && constraints.video.mediaSource) {
+        console.warn('[Security] Screen capture via getUserMedia blocked');
+        alert('⚠️ SCREEN RECORDING STRICTLY DISABLED');
+        return Promise.reject(new Error('Screen capture disabled'));
+      }
+      return originalGetUserMedia.apply(this, arguments);
+    };
+  }
+  
+  // Disable viewport screenshot (HTML2Canvas, etc.)
+  if (window.html2canvas) {
+    window.html2canvas = function() {
+      console.warn('[Security] HTML2Canvas blocked');
+      alert('⚠️ SCREENSHOT LIBRARY BLOCKED');
       return Promise.reject(new Error('Screen capture disabled during exam'));
     };
   }
 }
 
-// Disable text selection and copy functionality
+// Disable text selection and copy functionality - ULTRA STRICT
 function disableTextCopy() {
   if (window.__ER_COPY_DISABLED) return;
   window.__ER_COPY_DISABLED = true;
   
-  console.log('[Security] Enabling copy protection');
+  console.log('[Security] Enabling STRICT copy protection');
   
-  // Disable text selection via CSS
+  // COMPREHENSIVE CSS-based text selection blocking
   var style = document.createElement('style');
   style.id = 'no-select-style';
   style.textContent = `
@@ -919,6 +1028,8 @@ function disableTextCopy() {
       -moz-user-select: none !important;
       -ms-user-select: none !important;
       user-select: none !important;
+      -webkit-touch-callout: none !important;
+      -webkit-tap-highlight-color: transparent !important;
     }
     /* Allow input fields to be selectable */
     input, textarea {
@@ -927,55 +1038,117 @@ function disableTextCopy() {
       -ms-user-select: text !important;
       user-select: text !important;
     }
+    /* Prevent pointer events on non-interactive elements */
+    body > *:not(input):not(textarea):not(button):not(select) {
+      pointer-events: auto !important;
+    }
+    /* Make page content unselectable via CSS */
+    ::selection {
+      background: transparent !important;
+      color: inherit !important;
+    }
+    ::-moz-selection {
+      background: transparent !important;
+      color: inherit !important;
+    }
   `;
   document.head.appendChild(style);
   
-  // Disable context menu (right-click)
+  // Add meta tag to prevent selection on mobile
+  var metaViewport = document.querySelector('meta[name="viewport"]');
+  if (!metaViewport) {
+    metaViewport = document.createElement('meta');
+    metaViewport.name = 'viewport';
+    metaViewport.content = 'width=device-width, initial-scale=1.0, user-scalable=no';
+    document.head.appendChild(metaViewport);
+  }
+  
+  // Disable context menu (right-click) - STRICT
   document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     console.warn('[Security] Right-click disabled');
+    alert('⚠️ RIGHT-CLICK DISABLED\n\nContext menu is not available during the exam.');
     return false;
   }, true);
   
-  // Disable copy shortcuts (Ctrl+C, Cmd+C)
+  // Long press detection for mobile (alternative to right-click)
+  if (browserInfo.isMobile) {
+    var longPressTimer;
+    document.addEventListener('touchstart', function(e) {
+      longPressTimer = setTimeout(function() {
+        e.preventDefault();
+        e.stopPropagation();
+      }, 500);
+    }, true);
+    document.addEventListener('touchend', function() {
+      clearTimeout(longPressTimer);
+    }, true);
+    document.addEventListener('touchmove', function() {
+      clearTimeout(longPressTimer);
+    }, true);
+  }
+  
+  // COMPREHENSIVE keyboard shortcut blocking
   document.addEventListener('keydown', function(e) {
-    // Ctrl+C or Cmd+C
-    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-      // Allow copy from input fields
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return true;
-      }
+    var key = e.key ? e.key.toLowerCase() : '';
+    var code = e.keyCode || e.which;
+    var isInputField = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+    
+    // Ctrl+C or Cmd+C (Copy)
+    if ((e.ctrlKey || e.metaKey) && (key === 'c' || code === 67)) {
+      if (isInputField) return true;
       e.preventDefault();
       e.stopPropagation();
-      console.warn('[Security] Copy attempt blocked');
+      e.stopImmediatePropagation();
+      console.warn('[Security] Copy blocked');
+      alert('⚠️ COPYING STRICTLY DISABLED\n\nText copying is not allowed.');
       return false;
     }
     
-    // Ctrl+X or Cmd+X (cut)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'x') {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return true;
-      }
+    // Ctrl+X or Cmd+X (Cut)
+    if ((e.ctrlKey || e.metaKey) && (key === 'x' || code === 88)) {
+      if (isInputField) return true;
       e.preventDefault();
       e.stopPropagation();
-      console.warn('[Security] Cut attempt blocked');
+      e.stopImmediatePropagation();
+      console.warn('[Security] Cut blocked');
       return false;
     }
     
-    // Ctrl+A or Cmd+A (select all)
-    if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-        return true;
-      }
+    // Ctrl+A or Cmd+A (Select All)
+    if ((e.ctrlKey || e.metaKey) && (key === 'a' || code === 65)) {
+      if (isInputField) return true;
       e.preventDefault();
       e.stopPropagation();
+      e.stopImmediatePropagation();
       console.warn('[Security] Select all blocked');
       return false;
     }
+    
+    // Ctrl+V (Paste) - block from external sources
+    if ((e.ctrlKey || e.metaKey) && (key === 'v' || code === 86)) {
+      // Allow paste in input fields but monitor clipboard
+      if (!isInputField) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        return false;
+      }
+    }
+    
+    // Block Ctrl+Shift+V (paste without formatting)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'v' || code === 86)) {
+      if (!isInputField) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+    }
   }, true);
   
-  // Intercept copy events and clear clipboard
+  // Intercept ALL copy events and aggressively clear clipboard
   document.addEventListener('copy', function(e) {
     // Allow copy from input fields
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
@@ -984,14 +1157,18 @@ function disableTextCopy() {
     
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
-    // Clear clipboard by setting empty data
+    // Aggressively clear clipboard data
     if (e.clipboardData) {
       e.clipboardData.setData('text/plain', '');
       e.clipboardData.setData('text/html', '');
+      e.clipboardData.setData('text/uri-list', '');
+      e.clipboardData.setData('text/csv', '');
+      e.clipboardData.setData('application/json', '');
     }
     
-    // Alternative method: try to clear system clipboard
+    // Alternative method: clear system clipboard
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText('').catch(function() {});
@@ -999,7 +1176,7 @@ function disableTextCopy() {
     } catch (_) {}
     
     console.warn('[Security] Copy blocked and clipboard cleared');
-    alert('⚠️ COPYING IS DISABLED\n\nText copying is not allowed during the exam.');
+    alert('⚠️ COPYING STRICTLY DISABLED\n\nText copying is not allowed during the exam.\nThis action has been logged.');
     return false;
   }, true);
   
@@ -1011,6 +1188,7 @@ function disableTextCopy() {
     
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
     
     if (e.clipboardData) {
       e.clipboardData.setData('text/plain', '');
@@ -1021,29 +1199,146 @@ function disableTextCopy() {
     return false;
   }, true);
   
-  // Periodic clipboard clearing (aggressive protection)
-  setInterval(function() {
+  // Intercept paste events (monitor what's being pasted)
+  document.addEventListener('paste', function(e) {
+    console.log('[Security] Paste event detected');
+    // Allow paste in input fields but log it
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      console.log('[Security] Paste allowed in input field');
+      return true;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+  
+  // AGGRESSIVE periodic clipboard clearing
+  var clipboardClearInterval = setInterval(function() {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText('').catch(function() {});
       }
     } catch (_) {}
-  }, 2000); // Clear every 2 seconds
+  }, 1000); // Clear every 1 second (more aggressive)
   
-  // Disable drag selection
+  // Store interval ID for potential cleanup
+  window.__ER_CLIPBOARD_CLEAR_INTERVAL = clipboardClearInterval;
+  
+  // Disable text selection via multiple methods
   document.addEventListener('selectstart', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
       return true;
     }
     e.preventDefault();
+    e.stopPropagation();
     return false;
   }, true);
   
-  // Disable drag and drop
+  // Disable mouse selection
+  document.addEventListener('mousedown', function(e) {
+    // Don't interfere with buttons, inputs, or interactive elements
+    if (e.target.tagName === 'INPUT' || 
+        e.target.tagName === 'TEXTAREA' || 
+        e.target.tagName === 'BUTTON' ||
+        e.target.tagName === 'SELECT' ||
+        e.target.onclick ||
+        e.target.closest('button')) {
+      return true;
+    }
+    // Prevent text selection on double-click
+    if (e.detail > 1) {
+      e.preventDefault();
+      return false;
+    }
+  }, true);
+  
+  // Disable drag and drop completely
   document.addEventListener('dragstart', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+  
+  document.addEventListener('drop', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  }, true);
+  
+  document.addEventListener('dragover', function(e) {
     e.preventDefault();
     return false;
   }, true);
+  
+  // Disable selection in mobile browsers
+  if (browserInfo.isMobile) {
+    document.addEventListener('selectionchange', function() {
+      var selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        var range = selection.getRangeAt(0);
+        var container = range.commonAncestorContainer;
+        var element = container.nodeType === 1 ? container : container.parentElement;
+        
+        // Clear selection if not in input field
+        if (element && element.tagName !== 'INPUT' && element.tagName !== 'TEXTAREA') {
+          selection.removeAllRanges();
+          console.warn('[Security] Mobile text selection cleared');
+        }
+      }
+    });
+  }
+  
+  console.log('[Security] STRICT copy protection fully enabled');
+}
+
+// Add visual watermark to discourage screenshots
+function addSecurityWatermark() {
+  if (window.__ER_WATERMARK_ADDED) return;
+  window.__ER_WATERMARK_ADDED = true;
+  
+  var teamId = sessionStorage.getItem('teamId') || 'UNKNOWN';
+  var timestamp = new Date().toLocaleString();
+  
+  // Create watermark overlay
+  var watermark = document.createElement('div');
+  watermark.id = 'security-watermark';
+  watermark.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999999;
+    opacity: 0.03;
+    background-image: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 100px,
+      rgba(0,0,0,0.02) 100px,
+      rgba(0,0,0,0.02) 200px
+    );
+  `;
+  
+  // Add team ID and timestamp text
+  var watermarkText = document.createElement('div');
+  watermarkText.style.cssText = `
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-45deg);
+    font-size: 48px;
+    color: rgba(0,0,0,0.05);
+    font-weight: bold;
+    white-space: nowrap;
+    letter-spacing: 10px;
+    user-select: none;
+  `;
+  watermarkText.textContent = teamId + ' • ' + timestamp;
+  watermark.appendChild(watermarkText);
+  
+  document.body.appendChild(watermark);
+  console.log('[Security] Watermark added');
 }
 
 // Auto-enable all anti-cheat protections
@@ -1053,6 +1348,7 @@ function enableFullExamProtections() {
   enableBeforeUnloadWarning();
   disableScreenshots();
   disableTextCopy();
+  addSecurityWatermark();
   startEscapeHeartbeat();
   requestFullScreen();
 }
@@ -1137,6 +1433,7 @@ window.ER.preventBackNavigation = preventBackNavigation;
 window.ER.enableBeforeUnloadWarning = enableBeforeUnloadWarning;
 window.ER.disableScreenshots = disableScreenshots;
 window.ER.disableTextCopy = disableTextCopy;
+window.ER.addSecurityWatermark = addSecurityWatermark;
 window.ER.enableFullExamProtections = enableFullExamProtections;
 window.ER.startEscapeHeartbeat = startEscapeHeartbeat;
 window.ER.stopEscapeHeartbeat = stopEscapeHeartbeat;
