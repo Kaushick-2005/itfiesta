@@ -551,6 +551,9 @@ router.post("/tab-switch", async (req, res) => {
         }
 
         // Ultra-strict: Reduce cooldown for faster consecutive detection
+        const lastViolationAt = teamState.antiCheatLastViolationAt
+            ? new Date(teamState.antiCheatLastViolationAt).getTime()
+            : 0;
         const timeSinceLastViolation = now - lastViolationAt;
         if (timeSinceLastViolation < 2000) { // 2 seconds minimum for ultra-strict mode
             return res.json({
