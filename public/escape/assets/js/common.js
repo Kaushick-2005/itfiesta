@@ -486,53 +486,71 @@ function checkLogoutLoginTabSwitch() {
     var tabLeaveTeamId = localStorage.getItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
     var currentTeamId = sessionStorage.getItem('teamId');
     
-    if (tabLeaveTimestamp && tabLeaveTeamId && currentTeamId && tabLeaveTeamId === currentTeamId) {
-      var now = Date.now();
-      var leaveTime = parseInt(tabLeaveTimestamp, 10);
-      var hiddenDuration = now - leaveTime;
-      
-      console.log('[TabDetect] Detected logout/login scenario');
-      console.log('[TabDetect] Tab was left at:', new Date(leaveTime).toISOString());
-      console.log('[TabDetect] Return detected at:', new Date(now).toISOString());
-      console.log('[TabDetect] Hidden duration:', hiddenDuration + 'ms');
-      
-      // Clear the stored timestamp
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
-      localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
-      
-      // Apply penalty if duration is significant
-      if (hiddenDuration >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY && hiddenDuration < 600000) {
-        console.log('[TabDetect] Applying penalty for logout/login tab switch');
+    console.log('[TabDetect] Checking for previous tab leave...');
+    console.log('[TabDetect] Previous team:', tabLeaveTeamId, '| Current team:', currentTeamId);
+    
+    // CRITICAL: Always clear localStorage entries to prevent cross-user contamination
+    // This must happen BEFORE any penalty logic to ensure clean state for each login
+    var shouldApplyPenalty = false;
+    var hiddenDuration = 0;
+    
+    if (tabLeaveTimestamp && tabLeaveTeamId && currentTeamId) {
+      // Check if this is the SAME team returning (not a different user)
+      if (tabLeaveTeamId === currentTeamId) {
+        var now = Date.now();
+        var leaveTime = parseInt(tabLeaveTimestamp, 10);
+        hiddenDuration = now - leaveTime;
         
-        // Show immediate alert
-        setTimeout(function() {
-          try {
-            alert('TAB SWITCH DETECTED VIA LOGOUT/LOGIN!\n⏱️ Duration: ' + hiddenDuration + 'ms\n\n⏳ Processing penalty...');
-          } catch (_) {}
-        }, 500);
+        console.log('[TabDetect] SAME TEAM detected - logout/login scenario');
+        console.log('[TabDetect] Tab was left at:', new Date(leaveTime).toISOString());
+        console.log('[TabDetect] Return detected at:', new Date(now).toISOString());
+        console.log('[TabDetect] Hidden duration:', hiddenDuration + 'ms');
         
-        // Apply penalty
-        notifyServerTabSwitch(hiddenDuration).then(function(data) {
-          if (data && data.action === 'penalty') {
-            var penaltyMessage = data.message || 
-              ('LOGOUT/LOGIN TAB SWITCH PENALTY!\n\n' +
-               '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
-               '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
-               '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
-               '⚠️ Logging out does not excuse tab switching!');
-            
-            setTimeout(function() {
-              try {
-                alert(penaltyMessage);
-              } catch (_) {}
-            }, 2000);
-          }
-        });
+        // Apply penalty if duration is significant
+        if (hiddenDuration >= ESCAPE_MIN_HIDDEN_MS_FOR_PENALTY && hiddenDuration < 600000) {
+          shouldApplyPenalty = true;
+        }
       } else {
-        console.log('[TabDetect] Logout/login duration too brief or too long, ignoring');
+        console.log('[TabDetect] DIFFERENT TEAM - clearing previous user\'s data');
+        console.log('[TabDetect] Previous team:', tabLeaveTeamId, '!== Current team:', currentTeamId);
       }
     } else {
-      console.log('[TabDetect] No previous tab leave detected or team mismatch');
+      console.log('[TabDetect] No previous tab leave detected or missing data');
+    }
+    
+    // ALWAYS clear localStorage regardless of team match to prevent cross-contamination
+    localStorage.removeItem(ESCAPE_TAB_LEAVE_TIMESTAMP_KEY);
+    localStorage.removeItem(ESCAPE_TAB_LEAVE_TEAM_KEY);
+    console.log('[TabDetect] Cleared localStorage for fresh session');
+    
+    // Now apply penalty only if it was the same team
+    if (shouldApplyPenalty) {
+      console.log('[TabDetect] Applying penalty for logout/login tab switch');
+      
+      // Show immediate alert
+      setTimeout(function() {
+        try {
+          alert('TAB SWITCH DETECTED VIA LOGOUT/LOGIN!\n⏱️ Duration: ' + hiddenDuration + 'ms\n\n⏳ Processing penalty...');
+        } catch (_) {}
+      }, 500);
+      
+      // Apply penalty
+      notifyServerTabSwitch(hiddenDuration).then(function(data) {
+        if (data && data.action === 'penalty') {
+          var penaltyMessage = data.message || 
+            ('LOGOUT/LOGIN TAB SWITCH PENALTY!\n\n' +
+             '❌ Score Deducted: -' + (data.scoreDeducted || 10) + ' marks\n' +
+             '📊 Current Score: ' + (data.currentScore || 0) + '\n' +
+             '🔢 Total Violations: ' + (data.tabSwitchCount || 1) + '\n\n' +
+             '⚠️ Logging out does not excuse tab switching!');
+          
+          setTimeout(function() {
+            try {
+              alert(penaltyMessage);
+            } catch (_) {}
+          }, 2000);
+        }
+      });
     }
   } catch (e) {
     console.error('[TabDetect] Error checking logout/login tab switch:', e);
