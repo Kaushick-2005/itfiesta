@@ -403,6 +403,26 @@ function checkLogoutLoginTabSwitch() {
   });
 }
 
+// Run logout/login tab-switch reconciliation once on script boot.
+// enableFullExamProtections() will wait for this promise before start sync.
+if (!window.__ER_LOGOUT_LOGIN_CHECK_PROMISE) {
+  window.__ER_LOGOUT_LOGIN_CHECK_PROMISE = checkLogoutLoginTabSwitch();
+}
+
+// Manual penalty helper (used by debug/test pages)
+function applyTabSwitchPenalty(hiddenMs){
+  if (window.EXAM_SUBMITTED) return Promise.resolve({ action: 'ignored', reason: 'exam_submitted' });
+  var duration = Number(hiddenMs || 0);
+  if (!Number.isFinite(duration)) duration = 0;
+
+  return notifyServerTabSwitch(duration).then(function(data){
+    if (data && data.action === 'penalty') {
+      try { alert(data.message || 'Tab/App switch detected. Penalty applied.'); } catch (_) {}
+    }
+    return data;
+  });
+}
+
 function enableTabSwitchPenalty(){
   if (window.__ER_TAB_PENALTY_BOUND) return;
   window.__ER_TAB_PENALTY_BOUND = true;
@@ -530,6 +550,17 @@ function disableScreenshots() {
       return false;
     }
   }, true);
+}
+
+// Basic copy/text-selection hardening
+function disableTextCopy() {
+  if (window.__ER_TEXT_COPY_GUARD_BOUND) return;
+  window.__ER_TEXT_COPY_GUARD_BOUND = true;
+
+  document.addEventListener('copy', function(e){ e.preventDefault(); }, true);
+  document.addEventListener('cut', function(e){ e.preventDefault(); }, true);
+  document.addEventListener('contextmenu', function(e){ e.preventDefault(); }, true);
+  document.addEventListener('selectstart', function(e){ e.preventDefault(); }, true);
 }
 
 // Add visual watermark to discourage screenshots
